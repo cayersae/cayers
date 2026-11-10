@@ -4,10 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cayers.ae </title>
-  <link rel="icon" href="favicon.png">
+<link rel="icon" href="favicon.png">
 <style>
-:root{--bg:#fff6f3;--card:#fff;--ink:#3a1f24;--mute:#8a6a70;--berry:#c2304f;--cocoa:#4a2a22;--line:#f0d9d6;--ok:#2f7d4f;--err:#b3261e}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#241517;--card:#33201f;--ink:#fbeae6;--mute:#c4a29f;--berry:#ff7d96;--cocoa:#e8c4b0;--line:#4b3030;--ok:#6fd59a;--err:#ff8a80}
+:root{--bg:#ffe4b5;--card:#fff;--ink:#7a0505;--mute:#8a6a70;--berry:#c2304f;--cocoa:#4a2a22;--line:#f0d9d6;--ok:#2f7d4f;--err:#b3261e}
 *{box-sizing:border-box}
 html{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito","Segoe UI",system-ui,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
@@ -74,7 +73,151 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 <script>
 // ====== EDIT THESE ======
 const CONFIG = {
-  endpoint: "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec",
+  endpoint: "<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cayers.ae </title>
+<link rel="icon" href="favicon.png">
+<style>
+:root{--bg:#ffe4b5;--card:#fff;--ink:#7a0505;--mute:#8a6a70;--berry:#c2304f;--cocoa:#4a2a22;--line:#f0d9d6;--ok:#2f7d4f;--err:#b3261e}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito","Segoe UI",system-ui,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:560px;margin:0 auto;padding:28px 18px 60px}
+h1{font:800 clamp(2.6rem,12vw,4rem)/.95 "Georgia","Times New Roman",serif;margin:0;color:var(--berry);letter-spacing:-.02em}
+.sub{color:var(--mute);margin:10px 0 26px}
+fieldset{border:0;padding:0;margin:0 0 22px}
+legend,label.l{font-weight:800;margin-bottom:8px;display:block;padding:0}
+input[type=text],input[type=tel]{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit}
+input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry);outline-offset:2px}
+.row{display:grid;gap:10px}
+.opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}
+.opt:has(input:checked){border-color:var(--berry);background:color-mix(in srgb,var(--berry) 10%,var(--card))}
+.opt small{color:var(--mute);display:block}
+.flavor{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);margin-bottom:10px}
+.flavor b{font:700 1.15rem Georgia,serif}
+.flavor span{color:var(--mute);font-size:.9rem}
+.step{display:flex;align-items:center;gap:12px}
+.step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;cursor:pointer}
+.step output{min-width:1.5ch;text-align:center;font-weight:800;font-size:1.2rem}
+.total{position:sticky;bottom:0;background:var(--cocoa);color:var(--bg);border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin:8px 0 14px;font-weight:800}
+.total small{display:block;font-weight:400;opacity:.85}
+#go{width:100%;padding:16px;border:0;border-radius:14px;background:var(--berry);color:#fff;font:800 1.1rem inherit;font-family:inherit;cursor:pointer}
+#go:disabled{opacity:.6}
+.msg{margin-top:14px;font-weight:700}
+.err{color:var(--err)}.ok{color:var(--ok)}
+.hide{display:none}
+.done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center}
+.done a{color:var(--berry);font-weight:800}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Cayers</h1>
+<p class="sub">Dessert cups, made fresh. Pick your flavors and a day, and your order goes straight to us.</p>
+
+<form id="f" novalidate>
+<fieldset><label class="l" for="name">Your name</label><input id="name" type="text" autocomplete="name"></fieldset>
+<fieldset><label class="l" for="ig">Instagram username</label><input id="ig" type="text" placeholder="Optional if you give a phone number"></fieldset>
+<fieldset><label class="l" for="ph">Phone number</label><input id="ph" type="tel" autocomplete="tel" placeholder="05x xxx xxxx"></fieldset>
+
+<fieldset><legend>How do you want to get your order?</legend>
+<div class="row">
+<label class="opt"><input type="radio" name="loc" value="University of Greater Manchester Campus"><span>Campus pickup<small id="minCampusTxt"></small></span></label>
+<label class="opt"><input type="radio" name="loc" value="Local Delivery/ Pickup Spot (DM)"><span>Local delivery or pickup spot<small id="minLocalTxt"></small></span></label>
+</div></fieldset>
+
+<fieldset id="dayBox" class="hide"><legend id="dayLegend">Day</legend><div class="row" id="days"></div></fieldset>
+
+<fieldset><legend>Choose your cups</legend><div id="flavors"></div></fieldset>
+
+<div class="total"><div>Total<small id="cups">0 cups</small></div><div id="price">0 AED</div></div>
+<button id="go" type="submit">Place order</button>
+<div id="msg" class="msg" role="status"></div>
+</form>
+
+<div id="done" class="done hide">
+<h2 style="font-family:Georgia,serif;margin:0 0 8px">Order received</h2>
+<p id="sum"></p>
+<p>We’ll confirm with you soon. Questions? Message <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
+</div>
+</div>
+
+<script>
+// ====== EDIT THESE ======
+const CONFIG = {
+  endpoint: "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
+  instagram: "cayers.ae",                     // your Instagram handle
+  flavors: [
+    {id:"Cloud Cayer",     desc:"Vanilla cake, whipped cream, strawberry jam", price:3},
+    {id:"Dark Land Cayer", desc:"Chocolate cake and whipped cream",            price:3}
+  ],
+  campusDays: ["Tuesday","Friday"],
+  localDays:  ["Tuesday","Wednesday","Thursday","Friday","Saturday"],
+  campusNote: "Want Wednesday or Thursday? DM us on Instagram first.",
+  minCampus: 1,
+  minLocal: 3
+};
+// ========================
+const $=s=>document.querySelector(s), qty={};
+CONFIG.flavors.forEach(f=>qty[f.id]=0);
+$("#minCampusTxt").textContent=`Minimum ${CONFIG.minCampus} cup${CONFIG.minCampus>1?"s":""}`;
+$("#minLocalTxt").textContent=`Minimum ${CONFIG.minLocal} cups`;
+$("#igLink").textContent="@"+CONFIG.instagram;
+$("#igLink").href="https://instagram.com/"+CONFIG.instagram;
+
+$("#flavors").innerHTML=CONFIG.flavors.map((f,i)=>`
+<div class="flavor"><div><b>${f.id}</b><br><span>${f.desc} · ${f.price} AED</span></div>
+<div class="step"><button type="button" data-i="${i}" data-d="-1" aria-label="Remove one ${f.id}">−</button><output id="q${i}">0</output><button type="button" data-i="${i}" data-d="1" aria-label="Add one ${f.id}">+</button></div></div>`).join("");
+
+$("#flavors").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  const f=CONFIG.flavors[b.dataset.i];
+  qty[f.id]=Math.max(0,Math.min(50,qty[f.id]+ +b.dataset.d));
+  $("#q"+b.dataset.i).textContent=qty[f.id]; update();
+});
+
+function loc(){const r=document.querySelector("input[name=loc]:checked");return r&&r.value}
+function isCampus(){return loc()&&loc().startsWith("University")}
+function totals(){let c=0,p=0;CONFIG.flavors.forEach(f=>{c+=qty[f.id];p+=qty[f.id]*f.price});return{c,p}}
+function update(){const t=totals();$("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;$("#price").textContent=t.p+" AED"}
+
+document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("change",()=>{
+  const campus=isCampus(), days=campus?CONFIG.campusDays:CONFIG.localDays;
+  $("#dayBox").classList.remove("hide");
+  $("#dayLegend").textContent=campus?"Campus pickup day":"Preferred delivery day";
+  $("#days").innerHTML=days.map(d=>`<label class="opt"><input type="radio" name="day" value="${d}"><span>${d}</span></label>`).join("")+(campus?`<small style="color:var(--mute)">${CONFIG.campusNote}</small>`:"");
+}));
+
+function say(t,c){const m=$("#msg");m.textContent=t;m.className="msg "+(c||"")}
+
+$("#f").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const name=$("#name").value.trim(), ig=$("#ig").value.trim(), ph=$("#ph").value.trim();
+  const day=(document.querySelector("input[name=day]:checked")||{}).value, t=totals();
+  if(!name) return say("Enter your name.","err");
+  if(!ig&&!ph) return say("Enter an Instagram username or a phone number so we can reach you.","err");
+  if(!loc()) return say("Choose campus pickup or local delivery.","err");
+  if(!day) return say("Choose a day.","err");
+  const min=isCampus()?CONFIG.minCampus:CONFIG.minLocal;
+  if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
+  if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
+
+  const order={name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c};
+  CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
+  $("#go").disabled=true; say("Sending your order…");
+  try{
+    await fetch(CONFIG.endpoint,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(order)});
+    $("#f").classList.add("hide"); $("#done").classList.remove("hide");
+    $("#sum").textContent=`${t.c} cup${t.c==1?"":"s"} · ${t.p} AED · ${day}`;
+    window.scrollTo(0,0);
+  }catch(err){say("Couldn’t send your order. Check your connection and try again.","err");$("#go").disabled=false}
+});
+</script>
+</body>
+</html>",
   instagram: "cayers.ae",                     // your Instagram handle
   flavors: [
     {id:"Cloud Cayer",     desc:"Vanilla cake, whipped cream, strawberry jam", price:3},
