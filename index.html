@@ -119,7 +119,6 @@ const CONFIG = {
     {id:"Dark Land Cayer", desc:"Chocolate cake and whipped cream",            price:3}
   ],
   campusDays: ["Tuesday","Friday"],
-  // Monday included so Monday-evening shows as a same-day slot and a future day
   localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
   minCampus: 1,
   minLocal: 3,
@@ -127,10 +126,8 @@ const CONFIG = {
   minFillMs: 2500,
 
   // --- Day-window settings ---
-  windowDays: 3,           // today + next 2 calendar days
-  minSlots: 2,             // always offer at least this many bookable days
-  maxSearchDays: 28,       // hard cap when extending the search
-  sameDayCutoffHour: 14    // same-day orders close at 2pm; after that today is hidden
+  weekStartsOn: 1,       // 1 = Monday, so "this week" = Mon -> Sun
+  sameDayCutoffHour: 14  // same-day orders close at 2pm; after that today is hidden
 };
 // ========================
 
@@ -168,38 +165,33 @@ function isCampus(){return loc()&&loc().startsWith("University")}
 function totals(){let c=0,p=0;CONFIG.flavors.forEach(f=>{c+=qty[f.id];p+=qty[f.id]*f.price});return{c,p}}
 function update(){const t=totals();$("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;$("#price").textContent=t.p+" AED"}
 
-// --- date-aware day slots ---
-// Shows today + (windowDays - 1) upcoming days, filtered to allowed weekdays.
-// Same-day slots only appear before sameDayCutoffHour (2pm) and are labelled
-// "(evening)" to match how the slots are described.
-// If fewer than minSlots are found, the search window is extended so the
-// customer always has at least minSlots to pick from.
+// --- date-aware day slots: THIS WEEK ONLY ---
+// Walks from today to the end of the current week (week starts on CONFIG.weekStartsOn)
+// and returns only allowed weekdays. Same-day only appears before sameDayCutoffHour.
+// Nothing next week is ever shown — once this week's slots run out, we say so.
 function upcomingSlots(allowedNames){
   const now=new Date();
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
 
-  function collect(daysAhead){
-    const out=[];
-    for(let i=0;i<daysAhead;i++){
-      const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);
-      const name=DAY_NAMES[d.getDay()];
-      if(!allowedNames.includes(name)) continue;
-      // Same-day only allowed before the cutoff
-      if(i===0 && now.getHours()>=CONFIG.sameDayCutoffHour) continue;
-      const base=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
-      const label = i===0 ? `${base} (today, evening)` : base;
-      out.push({value:base,label});
-    }
-    return out;
-  }
+  // find the start of this week
+  const dow=now.getDay();                                  // 0 = Sun .. 6 = Sat
+  const back=(dow-CONFIG.weekStartsOn+7)%7;
+  const weekStart=new Date(today.getFullYear(),today.getMonth(),today.getDate()-back);
+  const weekEnd=new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+6);
 
-  let slots=collect(CONFIG.windowDays);
-  let extra=7;
-  while(slots.length<CONFIG.minSlots && CONFIG.windowDays+extra<=CONFIG.maxSearchDays){
-    slots=collect(CONFIG.windowDays+extra);
-    extra+=7;
+  const out=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+i);
+    if(d>weekEnd) break;
+    if(d<today) continue;                                  // past days of this week
+    const name=DAY_NAMES[d.getDay()];
+    if(!allowedNames.includes(name)) continue;
+    const isToday=d.getTime()===today.getTime();
+    if(isToday && now.getHours()>=CONFIG.sameDayCutoffHour) continue;
+    const base=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
+    out.push({value:base, label: isToday ? `${base} (today, evening)` : base});
   }
-  return slots;
+  return out;
 }
 
 document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("change",()=>{
@@ -209,11 +201,11 @@ document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("chan
   $("#dayBox").classList.remove("hide");
   $("#dayLegend").textContent=campus?"Campus pickup day":"Preferred delivery day";
   if(slots.length===0){
-    $("#days").innerHTML=`<p class="note">No ${campus?"campus pickup":"delivery"} slots available right now. DM us on Instagram @${CONFIG.instagram} and we&rsquo;ll sort you out.</p>`;
+    $("#days").innerHTML=`<p class="note">No ${campus?"campus pickup":"delivery"} slots left this week. DM us on Instagram @${CONFIG.instagram} and we&rsquo;ll sort you out.</p>`;
     return;
   }
   $("#days").innerHTML=slots.map(s=>`<label class="opt"><input type="radio" name="day" value="${s.value}"${s.value===prev?" checked":""}><span>${s.label}</span></label>`).join("")
-    +`<small class="note">Same-day orders close at ${fmtHour(CONFIG.sameDayCutoffHour)}. We only show days we can actually fulfil.</small>`;
+    +`<small class="note">Orders are only taken for this week. Same-day orders close at ${fmtHour(CONFIG.sameDayCutoffHour)}.</small>`;
 }));
 
 // --- input cleanup ---
