@@ -40,7 +40,8 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .hide{display:none}
 .done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center}
 .done a{color:var(--berry);font-weight:800}
-.done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:14px 0 8px}
+.done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:10px 0}
+.done a.igbtn.hide{display:none}
 </style>
 </head>
 <body>
@@ -71,7 +72,8 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 <div id="done" class="done hide">
 <h2 style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
 <p id="sum"></p>
-<p>Your order is saved. Tap below to send it to us on Instagram and we’ll confirm it there as soon as we’re free.</p>
+<p>Your order is saved. Tap below to send it to us on WhatsApp or Instagram and we’ll confirm it there as soon as we’re free.</p>
+<a id="waBtn" class="igbtn hide" href="#" target="_blank" rel="noopener">Send my order on WhatsApp</a>
 <a id="igBtn" class="igbtn" href="#" target="_blank" rel="noopener">Send my order on Instagram</a>
 <p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
 <p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
@@ -82,6 +84,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 // ====== EDIT THESE ======
 const CONFIG = {
   endpoint: "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec",
+  whatsapp: "971545247463",                              // your WhatsApp number, digits only with country code, e.g. 971501234567
   instagram: "cayers.ae",                     // your Instagram handle
   flavors: [
     {id:"Cloud Cayer",     desc:"Vanilla cake, whipped cream, strawberry jam", price:3},
@@ -154,6 +157,8 @@ $("#f").addEventListener("submit",async e=>{
     const ref=orderId.slice(-5).toUpperCase(), parts=CONFIG.flavors.filter(f=>qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
     const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${t.p} AED), ${loc()}, ${day}. Please confirm.`;
     $("#sum").textContent+=` · Ref ${ref}`;
+    const wn=(CONFIG.whatsapp||"").replace(/\D/g,"");
+    if(wn){$("#waBtn").href="https://wa.me/"+wn+"?text="+encodeURIComponent(msg);$("#waBtn").classList.remove("hide")}
     if(noIg){$("#igBtn").classList.add("hide");$("#igHint").classList.add("hide")}
     $("#igBtn").addEventListener("click",()=>{try{navigator.clipboard.writeText(msg)}catch(e){};$("#igHint").textContent="Your order message is copied. Paste it into the chat and send."});
     window.scrollTo(0,0);
