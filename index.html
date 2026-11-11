@@ -78,6 +78,17 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 #sending{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
 #sending.gone{opacity:0;pointer-events:none}
 #sending.hide{display:none}
+#sending .splash-logo{transition:opacity .45s ease,transform .45s ease}
+#sending .dots,#sending .note{transition:opacity .3s ease}
+.okwrap{position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;opacity:0;transform:scale(.45);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.8,.3,1.2);pointer-events:none}
+.okwrap svg{width:100%;height:100%;display:block;overflow:visible}
+.okwrap .ring{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .7s ease}
+.okwrap .tick{fill:none;stroke:var(--ink);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .55s ease}
+#sending.s-circle .splash-logo{opacity:0;transform:scale(.35)}
+#sending.s-circle .dots,#sending.s-circle .note{opacity:0}
+#sending.s-circle .okwrap{opacity:1;transform:scale(1)}
+#sending.s-circle .ring{stroke-dashoffset:0}
+#sending.s-tick .tick{stroke-dashoffset:0}
 @media(prefers-reduced-motion:reduce){#splash,#sending{transition:none}.dots i{animation:none;opacity:.8}#splash .splash-logo span,#splash .dots,#splash .note{animation:none;opacity:1;transform:none}}
 
 /* ---------- content reveal (top → bottom) ---------- */
@@ -137,6 +148,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
     <p class="note" style="margin-top:18px;text-align:center">Sending your order&hellip;</p>
   </div>
+  <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
 </div>
 <div id="done" class="done hide">
 <h2 tabindex="-1" style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
@@ -182,11 +194,23 @@ CONFIG.flavors.forEach(f=>qty[f.id]=0);
 function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${ampm}`;}
 
-function showSending(on){
+function showSending(on,slow){
   const s=$("#sending");
-  if(on){ s.classList.remove("hide","gone"); return; }
+  if(on){ s.classList.remove("hide","gone","s-circle","s-tick"); s.style.transition=""; return; }
+  const ms=slow?1400:600;
+  s.style.transition=`opacity ${ms}ms ease`;
   s.classList.add("gone");
-  setTimeout(()=>{ if(s.classList.contains("gone")) s.classList.add("hide"); },600);
+  setTimeout(()=>{ if(s.classList.contains("gone")){ s.classList.add("hide"); s.classList.remove("s-circle","s-tick"); } },ms);
+}
+
+/* success animation: "Cayers" turns into a circle, a tick draws in, the tick reverses, then the screen fades slowly */
+async function playSuccess(){
+  const s=$("#sending"), sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){ await sleep(500); return; }
+  const note=s.querySelector(".note"); if(note) note.textContent="Order sent";
+  s.classList.add("s-circle"); await sleep(1000);   // text becomes a circle
+  s.classList.add("s-tick");   await sleep(1100);   // tick draws in, short hold
+  s.classList.remove("s-tick"); await sleep(650);   // tick reverses
 }
 
 /* ---- staggered fade-in, top to bottom, for everything below the logo ---- */
@@ -488,7 +512,7 @@ $("#f").addEventListener("submit",async e=>{
     clearTimeout(timer);
     const wait=Math.max(0,1000-(Date.now()-startedAt));
     if(wait) await new Promise(r=>setTimeout(r,wait));
-    showSending(false);
+    if(succeeded){ await playSuccess(); showSending(false,true); } else { showSending(false); }
     document.body.style.overflow="";
     sending=false;
     if(succeeded){ window.scrollTo(0,0); $("#done h2").focus(); }
