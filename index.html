@@ -40,6 +40,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .hide{display:none}
 .done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center}
 .done a{color:var(--berry);font-weight:800}
+.done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:14px 0 8px}
 </style>
 </head>
 <body>
@@ -70,7 +71,10 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 <div id="done" class="done hide">
 <h2 style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
 <p id="sum"></p>
-<p>We’ll confirm with you soon. Questions? Message <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
+<p>Your order is saved. Tap below to send it to us on Instagram and we’ll confirm it there as soon as we’re free.</p>
+<a id="igBtn" class="igbtn" href="#" target="_blank" rel="noopener">Send my order on Instagram</a>
+<p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
+<p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
 </div>
 </div>
 
@@ -84,7 +88,7 @@ const CONFIG = {
     {id:"Dark Land Cayer", desc:"Chocolate cake and whipped cream",            price:3}
   ],
   campusDays: ["Tuesday","Friday"],
-  localDays:  ["Tuesday","Wednesday","Thursday (Evening)","Friday","Saturday"],
+  localDays:  ["Tuesday","Wednesday","Thursday","Friday","Saturday"],
   campusNote: "Ordering on Monday? Campus pickup is only possible on Tuesday. Ordering on Thursday? Campus pickup is only possible on Friday. Want Wednesday or Thursday? DM us on Instagram first.",
   localNote: "Ordering on Monday? Please choose Tuesday or Wednesday. Ordering on Thursday? Please choose Friday or Saturday.",
   minCampus: 1,
@@ -97,6 +101,7 @@ $("#minCampusTxt").textContent=`Minimum ${CONFIG.minCampus} cup${CONFIG.minCampu
 $("#minLocalTxt").textContent=`Minimum ${CONFIG.minLocal} cups`;
 $("#igLink").textContent="@"+CONFIG.instagram;
 $("#igLink").href="https://instagram.com/"+CONFIG.instagram;
+$("#igBtn").href="https://ig.me/m/"+CONFIG.instagram;
 
 $("#flavors").innerHTML=CONFIG.flavors.map((f,i)=>`
 <div class="flavor"><div><b>${f.id}</b><br><span>${f.desc} · ${f.price} AED</span></div>
@@ -128,14 +133,15 @@ $("#f").addEventListener("submit",async e=>{
   const name=$("#name").value.trim(), ig=$("#ig").value.trim(), ph=$("#ph").value.trim();
   const day=(document.querySelector("input[name=day]:checked")||{}).value, t=totals();
   if(!name) return say("Enter your name.","err");
-  if(!ig&&!ph) return say("Enter an Instagram username or a phone number so we can reach you.","err");
+  const noIg=!ig||/^(na|n\/a|none|no|nil|-+)$/i.test(ig);
+  if(noIg&&!ph) return say("Enter an Instagram username or a phone number so we can reach you.","err");
   if(!loc()) return say("Choose campus pickup or local delivery.","err");
   if(!day) return say("Choose a day.","err");
   const min=isCampus()?CONFIG.minCampus:CONFIG.minLocal;
   if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
   if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
 
-  const order={id:orderId,name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c};
+  const order={id:orderId,name,instagram:noIg?"NA":ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c};
   CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
   $("#go").disabled=true; say("Sending your order…");
   const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),20000);
@@ -145,6 +151,11 @@ $("#f").addEventListener("submit",async e=>{
     if(!d.ok) throw new Error(d.error||"not ok");
     $("#f").classList.add("hide"); $("#done").classList.remove("hide");
     $("#sum").textContent=`${t.c} cup${t.c==1?"":"s"} · ${t.p} AED · ${day}`;
+    const ref=orderId.slice(-5).toUpperCase(), parts=CONFIG.flavors.filter(f=>qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
+    const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${t.p} AED), ${loc()}, ${day}. Please confirm.`;
+    $("#sum").textContent+=` · Ref ${ref}`;
+    if(noIg){$("#igBtn").classList.add("hide");$("#igHint").classList.add("hide")}
+    $("#igBtn").addEventListener("click",()=>{try{navigator.clipboard.writeText(msg)}catch(e){};$("#igHint").textContent="Your order message is copied. Paste it into the chat and send."});
     window.scrollTo(0,0);
   }catch(err){say("We couldn’t confirm your order, so please don’t assume it went through. Check your connection and press Place order again (it won’t double-book), or message us on Instagram.","err");$("#go").disabled=false}
   finally{clearTimeout(timer)}
