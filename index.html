@@ -327,7 +327,8 @@ function renderDays(){
     ? `<small class="note" style="color:var(--err)">Your previously selected day is no longer available.</small>`
     : "";
 
-  const cutoffNote = isCampus
+  // FIXED: Added () after isCampus
+  const cutoffNote = isCampus() 
     ? `Order any campus day this week. Same-day campus pickup closes at ${fmtHour(CONFIG.campusSameDayCutoffHour)} Dubai time.`
     : `Same-day orders close at ${fmtHour(CONFIG.localSameDayCutoffHour)} Dubai time. Wednesday closes Tuesday ${fmtHour(CONFIG.campusSameDayCutoffHour)} (campus sellout).`;
 
