@@ -85,12 +85,13 @@ const CONFIG = {
   ],
   campusDays: ["Tuesday","Friday"],
   localDays:  ["Tuesday","Wednesday","Thursday","Friday","Saturday"],
-  campusNote: "Want Wednesday or Thursday? DM us on Instagram first.",
+  campusNote: "Ordering on Monday? Campus pickup is only possible on Tuesday. Ordering on Thursday? Campus pickup is only possible on Friday. Want Wednesday or Thursday? DM us on Instagram first.",
+  localNote: "Ordering on Monday? Please choose Tuesday or Wednesday. Ordering on Thursday? Please choose Friday or Saturday.",
   minCampus: 1,
   minLocal: 3
 };
 // ========================
-const $=s=>document.querySelector(s), qty={};
+const $=s=>document.querySelector(s), qty={}, orderId=Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 CONFIG.flavors.forEach(f=>qty[f.id]=0);
 $("#minCampusTxt").textContent=`Minimum ${CONFIG.minCampus} cup${CONFIG.minCampus>1?"s":""}`;
 $("#minLocalTxt").textContent=`Minimum ${CONFIG.minLocal} cups`;
@@ -117,7 +118,7 @@ document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("chan
   const campus=isCampus(), days=campus?CONFIG.campusDays:CONFIG.localDays;
   $("#dayBox").classList.remove("hide");
   $("#dayLegend").textContent=campus?"Campus pickup day":"Preferred delivery day";
-  $("#days").innerHTML=days.map(d=>`<label class="opt"><input type="radio" name="day" value="${d}"><span>${d}</span></label>`).join("")+(campus?`<small style="color:var(--mute)">${CONFIG.campusNote}</small>`:"");
+  $("#days").innerHTML=days.map(d=>`<label class="opt"><input type="radio" name="day" value="${d}"><span>${d}</span></label>`).join("")+`<small style="color:var(--mute)">${campus?CONFIG.campusNote:CONFIG.localNote}</small>`;
 }));
 
 function say(t,c){const m=$("#msg");m.textContent=t;m.className="msg "+(c||"")}
@@ -134,15 +135,19 @@ $("#f").addEventListener("submit",async e=>{
   if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
   if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
 
-  const order={name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c};
+  const order={id:orderId,name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c};
   CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
   $("#go").disabled=true; say("Sending your order…");
+  const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),20000);
   try{
-    await fetch(CONFIG.endpoint,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(order)});
+    const r=await fetch(CONFIG.endpoint,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(order),signal:ctl.signal});
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error||"not ok");
     $("#f").classList.add("hide"); $("#done").classList.remove("hide");
     $("#sum").textContent=`${t.c} cup${t.c==1?"":"s"} · ${t.p} AED · ${day}`;
     window.scrollTo(0,0);
-  }catch(err){say("Couldn’t send your order. Check your connection and try again.","err");$("#go").disabled=false}
+  }catch(err){say("We couldn’t confirm your order, so please don’t assume it went through. Check your connection and press Place order again (it won’t double-book), or message us on Instagram.","err");$("#go").disabled=false}
+  finally{clearTimeout(timer)}
 });
 </script>
 </body>
