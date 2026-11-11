@@ -14,69 +14,78 @@
 *{box-sizing:border-box}
 html{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito","Segoe UI",system-ui,sans-serif;font-synthesis:none;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
-.wrap{max-width:560px;margin:0 auto;padding:28px 18px 60px}
-h1{font:400 clamp(2.6rem,12vw,4rem)/.95 "Abril Fatface","Georgia",serif;margin:0;color:var(--ink);letter-spacing:-.02em;text-align:center}
-.sub{color:var(--mute);margin:10px 0 26px;text-align:center}
+.wrap{max-width:560px;margin:0 auto;padding:28px 18px 60px;text-align:left}
+h1{font:400 clamp(2.6rem,12vw,4rem)/.95 "Abril Fatface","Georgia",serif;margin:0;color:var(--ink);letter-spacing:-.02em;text-align:center;text-wrap:balance}
+#target-logo{display:inline-block}
+.sub{color:var(--mute);margin:10px 0 26px;text-align:center;text-wrap:balance}
 fieldset{border:0;padding:0;margin:0 0 22px}
-legend,label.l{font-weight:800;margin-bottom:8px;display:block;padding:0}
-input[type=text],input[type=tel]{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit}
+legend,label.l{font-weight:800;margin:0 0 8px;display:block;padding:0;line-height:1.3}
+input[type=text],input[type=tel]{display:block;width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit}
 input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry);outline-offset:2px}
 .row{display:grid;gap:10px}
 .opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}
+.opt input{margin:0;flex:0 0 auto}
+.opt > span{flex:1;min-width:0}
 .opt:has(input:checked){border-color:var(--berry);background:color-mix(in srgb,var(--berry) 10%,var(--card))}
 .opt small{color:var(--mute);display:block}
 .flavor{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);margin-bottom:10px}
-.flavor b{font:400 1.15rem "Abril Fatface",Georgia,serif}
-.flavor > div:first-child{flex:1;min-width:0}
+.flavor b{font:400 1.15rem "Abril Fatface",Georgia,serif;display:block;line-height:1.2}
+.flavor > div:first-child{flex:1;min-width:0;text-align:left}
 .flavor span{color:var(--mute);font-size:.9rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.step{display:flex;align-items:center;gap:12px}
-.step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;cursor:pointer}
+.step{display:flex;align-items:center;gap:12px;flex:0 0 auto}
+.step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
 .step button:disabled{opacity:.4;cursor:default}
-.step output{min-width:1.5ch;text-align:center;font-weight:800;font-size:1.2rem}
-.total{position:sticky;bottom:0;background:var(--cocoa);color:var(--bg);border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin:8px 0 14px;font-weight:800}
+.step output{min-width:1.5ch;text-align:center;font-weight:800;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.total{position:sticky;bottom:0;background:var(--cocoa);color:var(--bg);border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin:8px 0 14px;font-weight:800;font-variant-numeric:tabular-nums}
+.total > div:first-child{text-align:left}
+.total > div:last-child{text-align:right;white-space:nowrap}
 .total small{display:block;font-weight:400;opacity:.85}
-#go{width:100%;padding:16px;border:0;border-radius:14px;background:var(--berry);color:#fff;font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer}
+#go{display:block;width:100%;padding:16px;border:0;border-radius:14px;background:var(--berry);color:#fff;font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer}
 #go:disabled{opacity:.6}
-.msg{margin-top:14px;font-weight:700}
+.msg{margin-top:14px;font-weight:700;text-align:center}
 .err{color:var(--err)}.ok{color:var(--ok)}
 .hide{display:none}
 .hp{position:absolute!important;left:-10000px!important;top:auto;width:1px;height:1px;overflow:hidden}
-.note{color:var(--mute);font-size:.85rem;margin-top:8px}
+.note{color:var(--mute);font-size:.85rem;margin-top:8px;text-align:left}
 .closed{padding:16px;border-radius:12px;background:var(--card);border:1.5px dashed var(--line);text-align:center;color:var(--mute)}
+.closed p{margin:0 0 8px}
+.closed p:last-child{margin:0}
 .closed a{color:var(--berry);font-weight:800}
-.closed-banner{background:rgba(194,48,79,.12);background:color-mix(in srgb,var(--berry) 12%,var(--card));border:1.5px solid var(--berry);border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;font-weight:700}
+.closed-banner{background:color-mix(in srgb,var(--berry) 12%,var(--card));border:1.5px solid var(--berry);border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;font-weight:700}
 .closed-banner a{color:var(--berry)}
+
+/* ---------- splash ---------- */
 #splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease}
 #splash.gone{opacity:0;pointer-events:none}
-.splash-inner{text-align:center}
-.splash-logo{font:400 clamp(3rem,16vw,5rem)/1 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em}
-/* FIXED: removes the negative letter-spacing from the last letter so the logo is perfectly centered */
-.splash-logo span:last-child, #sending .splash-logo { letter-spacing: 0; }
-
-/* splash logo spells in letter by letter, left to right: C, a, y, e, r, s */
+.splash-inner{text-align:center;display:flex;flex-direction:column;align-items:center}
+.splash-logo{font:400 clamp(3rem,16vw,5rem)/.95 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em;text-align:center;will-change:transform,opacity}
+#sending .splash-logo{letter-spacing:0}
 #splash .splash-logo span{display:inline-block;opacity:0;animation:spell .45s cubic-bezier(.2,.7,.3,1) forwards}
-#splash .splash-logo span:nth-child(1){animation-delay:.15s}  /* C */
-#splash .splash-logo span:nth-child(2){animation-delay:.40s}  /* a */
-#splash .splash-logo span:nth-child(3){animation-delay:.65s}  /* y */
-#splash .splash-logo span:nth-child(4){animation-delay:.90s}  /* e */
-#splash .splash-logo span:nth-child(5){animation-delay:1.15s} /* r */
-#splash .splash-logo span:nth-child(6){animation-delay:1.40s} /* s */
+#splash .splash-logo span:nth-child(1){animation-delay:.15s}
+#splash .splash-logo span:nth-child(2){animation-delay:.40s}
+#splash .splash-logo span:nth-child(3){animation-delay:.65s}
+#splash .splash-logo span:nth-child(4){animation-delay:.90s}
+#splash .splash-logo span:nth-child(5){animation-delay:1.15s}
+#splash .splash-logo span:nth-child(6){animation-delay:1.40s}
 @keyframes spell{from{opacity:0;transform:translateY(8px) scale(.85)}to{opacity:1;transform:none}}
-/* dots + caption appear as the word completes, then bounce for ~2.9s until the splash fades */
 #splash .dots,#splash .note{opacity:0;animation:fadein .5s ease 1.6s forwards}
 @keyframes fadein{to{opacity:1}}
-/* margin-top 40px so the dots clear the logo even at the top of the bounce (-12px) */
-.dots{display:flex;gap:10px;justify-content:center;margin-top:40px}
+.dots{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:40px;pointer-events:none;will-change:opacity}
 .dots i{width:12px;height:12px;border-radius:50%;background:var(--berry);animation:bounce 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}
 .dots i:nth-child(3){animation-delay:.3s}
 @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-12px);opacity:1}}
-/* sending overlay mirrors the splash — solid bg + fade, no card, no spinner */
 #sending{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
 #sending.gone{opacity:0;pointer-events:none}
 #sending.hide{display:none}
-/* covers both overlays, and shows everything instantly for reduced-motion users */
 @media(prefers-reduced-motion:reduce){#splash,#sending{transition:none}.dots i{animation:none;opacity:.8}#splash .splash-logo span,#splash .dots,#splash .note{animation:none;opacity:1;transform:none}}
+
+/* ---------- content reveal (top → bottom) ---------- */
+@keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.reveal{opacity:0}
+.reveal.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s)}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1}.reveal.in{animation:none}}
+
 .done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center}
 .done a{color:var(--berry);font-weight:800}
 .done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:14px 0 8px}
@@ -88,11 +97,12 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
   <div class="splash-inner">
     <div class="splash-logo" role="img" aria-label="Cayers"><span aria-hidden="true">C</span><span aria-hidden="true">a</span><span aria-hidden="true">y</span><span aria-hidden="true">e</span><span aria-hidden="true">r</span><span aria-hidden="true">s</span></div>
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <p class="note" style="margin-top:18px">Whipping up something sweet&hellip;</p>
+    <p class="note" style="margin-top:18px;text-align:center">Whipping up something sweet&hellip;</p>
   </div>
 </div>
 <div class="wrap">
-<h1>Cayers</h1>
+<!-- the real header logo — this is what the splash logo turns into -->
+<h1><span id="target-logo">Cayers</span></h1>
 <p class="sub">Dessert cups, made fresh. Pick your flavors and a day, and your order goes straight to us.</p>
 
 <div id="closedBanner" class="closed-banner hide" role="status"></div>
@@ -125,7 +135,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
   <div class="splash-inner">
     <div class="splash-logo">Cayers</div>
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <p class="note" style="margin-top:18px">Sending your order&hellip;</p>
+    <p class="note" style="margin-top:18px;text-align:center">Sending your order&hellip;</p>
   </div>
 </div>
 <div id="done" class="done hide">
@@ -153,8 +163,8 @@ const CONFIG = {
   minLocal: 3,
   maxPerFlavor: 20,
   minFillMs: 2500,
-  localSameDayCutoffHour: 15,   // 3pm Dubai — local same-day closes
-  campusSameDayCutoffHour: 14,  // 2pm Dubai — campus same-day closes AND Wednesday (Tue 2pm+) local sellout
+  localSameDayCutoffHour: 15,
+  campusSameDayCutoffHour: 14,
   timeZone: "Asia/Dubai"
 };
 // ========================
@@ -165,6 +175,7 @@ const pageLoadedAt=Date.now();
 let orderId=makeId();
 let sending=false;
 let renderedDaysKey=null;
+let revealed=false;
 const qty={};
 CONFIG.flavors.forEach(f=>qty[f.id]=0);
 
@@ -178,7 +189,26 @@ function showSending(on){
   setTimeout(()=>{ if(s.classList.contains("gone")) s.classList.add("hide"); },600);
 }
 
-// --- "now" in Dubai wall-clock, independent of the visitor's device timezone ---
+/* ---- staggered fade-in, top to bottom, for everything below the logo ---- */
+function revealContent(){
+  if(revealed) return;
+  revealed=true;
+
+  const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const els=[...document.querySelectorAll(".wrap > *, #f > *")]
+    .filter(el=>!el.classList.contains("hide") && !el.classList.contains("hp") && el.tagName !== "H1");
+
+  if(reduce){ els.forEach(el=>el.classList.add("reveal","in")); return; }
+
+  const STEP=0.07; // seconds between each block
+  els.forEach((el,i)=>{
+    el.style.setProperty("--d",(i*STEP).toFixed(2)+"s");
+    el.classList.add("reveal");
+  });
+  void document.body.offsetWidth;
+  els.forEach(el=>el.classList.add("in"));
+}
+
 function dubaiNowParts(){
   const fmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: CONFIG.timeZone,
@@ -197,13 +227,6 @@ function weekStart(y,m,d){
   return new Date(Date.UTC(y, m-1, d + diff));
 }
 
-/**
- * Availability rules (all times Dubai):
- *  CAMPUS (Tue & Fri): all future class days this week; same-day closes 14:00.
- *  LOCAL  (Mon–Fri):   3-day lookahead; same-day closes 15:00;
- *                      Tue 14:00+ closes Wednesday (campus sellout).
- *  Saturday & Sunday: fully closed.
- */
 function getAvailability(nowD, isCampus){
   const todayDow = new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d)).getUTCDay();
   const todayName = DAY_NAMES[todayDow];
@@ -227,7 +250,6 @@ function getAvailability(nowD, isCampus){
     if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
     if (i === 0 && nowD.hours >= sameDayCutoff) continue;
 
-    // Local-only campus-sellout rule: Tue 14:00+ closes Wednesday.
     if (!isCampus && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour && name === "Wednesday") continue;
 
     const base = d.toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"short", timeZone:"UTC" });
@@ -259,13 +281,10 @@ function closedMessage(nowD, isCampus){
       return "This week’s deliveries are done. We reopen Monday morning.";
   }
 
-  // Note: no inline "DM us" here — the caller appends the Instagram link.
   return `No ${isCampus ? "campus pickup" : "delivery"} slots available right now.`;
 }
 
 function explainUnavailable(dayValue, nowD, isCampus){
-  // dayValue looks like "Tuesday, 11 Nov" or "Tuesday, 11 Nov (today)".
-  // Strip the comma/suffix so we compare against bare day names.
   const dayName = (dayValue || "").split(",")[0].trim();
   const todayName = DAY_NAMES[new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d)).getUTCDay()];
 
@@ -289,7 +308,7 @@ $("#igLink").href="https://instagram.com/"+CONFIG.instagram;
 $("#igBtn").href="https://ig.me/m/"+CONFIG.instagram;
 
 $("#flavors").innerHTML=CONFIG.flavors.map((f,i)=>`
-<div class="flavor"><div><b>${f.id}</b><br><span>${f.desc} · ${f.price} AED</span></div>
+<div class="flavor"><div><b>${f.id}</b><span>${f.desc} · ${f.price} AED</span></div>
 <div class="step"><button type="button" data-i="${i}" data-d="-1" aria-label="Remove one ${f.id}">−</button><output id="q${i}">0</output><button type="button" data-i="${i}" data-d="1" aria-label="Add one ${f.id}">+</button></div></div>`).join("");
 update();
 
@@ -336,7 +355,6 @@ function renderDays(){
   $("#dayBox").classList.remove("hide");
   $("#dayLegend").textContent = isCampus() ? "Campus pickup day" : "Preferred delivery day";
 
-  // Skip re-render when nothing has changed — prevents focus loss / races.
   const key = loc() + "::" + (avail.closed ? "closed" : avail.days.map(d=>d.value).join("|"));
   if (key === renderedDaysKey) return;
   renderedDaysKey = key;
@@ -389,7 +407,6 @@ document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("chan
   updateClosedBanner();
 }));
 
-// --- input cleanup ---
 function cleanIG(s){return s.trim().replace(/^@+/,"")}
 function validIG(s){return /^[A-Za-z0-9._]{1,30}$/.test(s)}
 function cleanPhone(s){return s.replace(/[\s\-().]/g,"")}
@@ -478,16 +495,93 @@ $("#f").addEventListener("submit",async e=>{
   }
 });
 
-// --- splash ---
+/* ----------------------------------------------------------------
+   Fades an element out even if a CSS animation with `forwards`
+   fill-mode is currently controlling its opacity.
+---------------------------------------------------------------- */
+function fadeOutNow(el, ms){
+  if(!el) return;
+  const cur = getComputedStyle(el).opacity;
+  el.style.animation = "none";
+  el.style.opacity = cur;
+  void el.offsetWidth;
+  el.style.transition = `opacity ${ms}ms ease`;
+  el.style.opacity = "0";
+}
+
+// --- splash → header handoff (FLIP on the real logo) ---
 const splashShownAt=Date.now();
 function hideSplash(){
-  const s=$("#splash"); if(!s||s.dataset.done)return; s.dataset.done="1";
-  const wait=Math.max(0,4500-(Date.now()-splashShownAt)); 
-  setTimeout(()=>{s.classList.add("gone");setTimeout(()=>s.remove(),700)},wait);
+  const s=document.getElementById("splash");
+  if(!s || s.dataset.done) return;
+  s.dataset.done="1";
+
+  const wait=Math.max(0,4500-(Date.now()-splashShownAt));
+
+  setTimeout(()=>{
+    const splashLogo = s.querySelector(".splash-logo");
+    const targetLogo = document.getElementById("target-logo");
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if(!splashLogo || !targetLogo || reduce) {
+      s.remove();
+      revealContent();
+      return;
+    }
+
+    /* --- measure the two logos --- */
+    const sRect = splashLogo.getBoundingClientRect();
+    const tRect = targetLogo.getBoundingClientRect();
+
+    /* --- FLIP: put the real logo exactly over the splash logo --- */
+    const scaleX = sRect.width  / tRect.width;
+    const scaleY = sRect.height / tRect.height;
+    const sCX = sRect.left + sRect.width  / 2;
+    const sCY = sRect.top  + sRect.height / 2;
+    const tCX = tRect.left + tRect.width  / 2;
+    const tCY = tRect.top  + tRect.height / 2;
+    const dx = sCX - tCX;
+    const dy = sCY - tCY;
+
+    /* --- instant handoff: splash logo disappears, real logo appears in its place --- */
+    splashLogo.style.opacity = "0";
+    targetLogo.style.position = "relative";
+    targetLogo.style.zIndex = "50";
+    targetLogo.style.transformOrigin = "center center";
+    targetLogo.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+    targetLogo.style.willChange = "transform";
+
+    void targetLogo.offsetWidth; // commit the start state
+
+    /* --- fade the splash background + dots + caption --- */
+    s.style.transition = "background-color .6s ease";
+    s.style.backgroundColor = "transparent";
+    s.style.pointerEvents = "none";
+    fadeOutNow(s.querySelector(".dots"), 250);
+    fadeOutNow(s.querySelector(".note"), 250);
+
+    /* --- page content fades in top → bottom underneath --- */
+    revealContent();
+
+    /* --- glide the real logo home (single element, never re-rendered) --- */
+    targetLogo.style.transition = "transform .85s cubic-bezier(.22,1,.36,1)";
+    targetLogo.style.transform = "translate(0px, 0px) scale(1, 1)";
+
+    /* --- cleanup --- */
+    setTimeout(()=>{
+      targetLogo.style.transition = "";
+      targetLogo.style.transform = "";
+      targetLogo.style.transformOrigin = "";
+      targetLogo.style.willChange = "";
+      targetLogo.style.position = "";
+      targetLogo.style.zIndex = "";
+      s.remove();
+    }, 900);
+  }, wait);
 }
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
 window.addEventListener("load",hideSplash);
-setTimeout(hideSplash,6500); 
+setTimeout(hideSplash,6500);
 
 // --- boot & 30s auto-refresh ---
 updateClosedBanner();
