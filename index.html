@@ -60,7 +60,6 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .done a{color:var(--berry);font-weight:800}
 .done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:14px 0 8px}
 </style>
-<base target="_blank">
 </head>
 <body>
 <div id="splash">
@@ -114,29 +113,36 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 // ====== EDIT THESE ======
 const CONFIG = {
   endpoint: "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec",
-  instagram: "cayers.ae",                     // your Instagram handle
+  instagram: "cayers.ae",
   flavors: [
     {id:"Cloud Cayer",     desc:"Vanilla cake, whipped cream, strawberry jam", price:3},
     {id:"Dark Land Cayer", desc:"Chocolate cake and whipped cream",            price:3}
   ],
   campusDays: ["Tuesday","Friday"],
-  localDays:  ["Tuesday","Wednesday","Thursday","Friday","Saturday"],
+  // Monday included so Monday-evening shows as a same-day slot and a future day
+  localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
   minCampus: 1,
   minLocal: 3,
-  maxTotal: 50,          // maximum cups per order
-  minFillMs: 2500,       // orders submitted faster than this are treated as bots
-  dayWindowDays: 7       // only show slots within the next 7 days (need prep time)
+  maxTotal: 50,
+  minFillMs: 2500,
+
+  // --- Day-window settings ---
+  windowDays: 3,           // today + next 2 calendar days
+  minSlots: 2,             // always offer at least this many bookable days
+  maxSearchDays: 28,       // hard cap when extending the search
+  sameDayCutoffHour: 14    // same-day orders close at 2pm; after that today is hidden
 };
 // ========================
 
 const $=s=>document.querySelector(s);
 const DAY_NAMES=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const pageLoadedAt=Date.now();
-let orderId=makeId();                       // stable across retries so the sheet can dedupe by ID
+let orderId=makeId();
 const qty={};
 CONFIG.flavors.forEach(f=>qty[f.id]=0);
 
 function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${ampm}`;}
 
 $("#minCampusTxt").textContent=`Minimum ${CONFIG.minCampus} cup${CONFIG.minCampus>1?"s":""}`;
 $("#minLocalTxt").textContent=`Minimum ${CONFIG.minLocal} cups`;
@@ -162,18 +168,38 @@ function isCampus(){return loc()&&loc().startsWith("University")}
 function totals(){let c=0,p=0;CONFIG.flavors.forEach(f=>{c+=qty[f.id];p+=qty[f.id]*f.price});return{c,p}}
 function update(){const t=totals();$("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;$("#price").textContent=t.p+" AED"}
 
-// --- date-aware day slots: only real, upcoming days are ever shown ---
+// --- date-aware day slots ---
+// Shows today + (windowDays - 1) upcoming days, filtered to allowed weekdays.
+// Same-day slots only appear before sameDayCutoffHour (2pm) and are labelled
+// "(evening)" to match how the slots are described.
+// If fewer than minSlots are found, the search window is extended so the
+// customer always has at least minSlots to pick from.
 function upcomingSlots(allowedNames){
-  const out=[], now=new Date();
-  for(let i=1;i<=CONFIG.dayWindowDays;i++){           // start tomorrow: same-day pickup needs prep time
-    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);
-    const name=DAY_NAMES[d.getDay()];
-    if(allowedNames.includes(name)){
-      const label=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
-      out.push({value:`${name}, ${d.toLocaleDateString("en-GB",{day:"numeric",month:"short"})}`, label});
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+
+  function collect(daysAhead){
+    const out=[];
+    for(let i=0;i<daysAhead;i++){
+      const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);
+      const name=DAY_NAMES[d.getDay()];
+      if(!allowedNames.includes(name)) continue;
+      // Same-day only allowed before the cutoff
+      if(i===0 && now.getHours()>=CONFIG.sameDayCutoffHour) continue;
+      const base=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
+      const label = i===0 ? `${base} (today, evening)` : base;
+      out.push({value:base,label});
     }
+    return out;
   }
-  return out;
+
+  let slots=collect(CONFIG.windowDays);
+  let extra=7;
+  while(slots.length<CONFIG.minSlots && CONFIG.windowDays+extra<=CONFIG.maxSearchDays){
+    slots=collect(CONFIG.windowDays+extra);
+    extra+=7;
+  }
+  return slots;
 }
 
 document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("change",()=>{
@@ -183,11 +209,11 @@ document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("chan
   $("#dayBox").classList.remove("hide");
   $("#dayLegend").textContent=campus?"Campus pickup day":"Preferred delivery day";
   if(slots.length===0){
-    $("#days").innerHTML=`<p class="note">No ${campus?"campus pickup":"delivery"} slots in the next ${CONFIG.dayWindowDays} days. DM us on Instagram @${CONFIG.instagram} and we&rsquo;ll sort you out.</p>`;
+    $("#days").innerHTML=`<p class="note">No ${campus?"campus pickup":"delivery"} slots available right now. DM us on Instagram @${CONFIG.instagram} and we&rsquo;ll sort you out.</p>`;
     return;
   }
   $("#days").innerHTML=slots.map(s=>`<label class="opt"><input type="radio" name="day" value="${s.value}"${s.value===prev?" checked":""}><span>${s.label}</span></label>`).join("")
-    +`<small class="note">Only the next ${CONFIG.dayWindowDays} days are shown, so your pick is always a real, bookable slot.</small>`;
+    +`<small class="note">Same-day orders close at ${fmtHour(CONFIG.sameDayCutoffHour)}. We only show days we can actually fulfil.</small>`;
 }));
 
 // --- input cleanup ---
@@ -234,7 +260,7 @@ $("#f").addEventListener("submit",async e=>{
     const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${t.p} AED), ${loc()}, ${day}. Please confirm.`;
     $("#sum").textContent+=` · Ref ${ref}`;
     $("#igBtn").addEventListener("click",()=>{try{navigator.clipboard.writeText(msg)}catch(e){};$("#igHint").textContent="Your order message is copied. Paste it into the chat and send."});
-    orderId=makeId();               // a fresh form (after reload) gets a fresh ID; retries keep this one
+    orderId=makeId();
     window.scrollTo(0,0);
   }catch(err){
     if(err.name==="AbortError"){ say("Your connection timed out — we don&rsquo;t know if the order arrived. Please don&rsquo;t assume it went through: message us on Instagram @"+CONFIG.instagram+" to check before reordering.","err"); }
@@ -243,7 +269,8 @@ $("#f").addEventListener("submit",async e=>{
   }
   finally{clearTimeout(timer);$("#sending").classList.add("hide");document.body.style.overflow=""}
 });
-// --- splash: hide once the page is ready, never sooner than 1s, with a hard fallback ---
+
+// --- splash ---
 const splashShownAt=Date.now();
 function hideSplash(){
   const s=$("#splash"); if(!s||s.dataset.done)return; s.dataset.done="1";
