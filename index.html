@@ -129,7 +129,7 @@ const CONFIG = {
   localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday"],
   minCampus: 1,
   minLocal: 3,
-  maxTotal: 50,
+  maxPerFlavor: 20,
   minFillMs: 2500,
   localSameDayCutoffHour: 15,   // 3pm Dubai — local same-day closes
   campusSameDayCutoffHour: 14,  // 2pm Dubai — campus same-day closes AND Wednesday (Tue 2pm+) local sellout
@@ -141,6 +141,8 @@ const $=s=>document.querySelector(s);
 const DAY_NAMES=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const pageLoadedAt=Date.now();
 let orderId=makeId();
+let sending=false;
+let renderedDaysKey=null;
 const qty={};
 CONFIG.flavors.forEach(f=>qty[f.id]=0);
 
@@ -228,16 +230,19 @@ function closedMessage(nowD, isCampus){
       return "This week’s deliveries are done. We reopen Monday morning.";
   }
 
-  return `No ${isCampus ? "campus pickup" : "delivery"} slots available right now. DM us on Instagram @${CONFIG.instagram} and we’ll sort you out.`;
+  // Note: no inline "DM us" here — the caller appends the Instagram link.
+  return `No ${isCampus ? "campus pickup" : "delivery"} slots available right now.`;
 }
 
 function explainUnavailable(dayValue, nowD, isCampus){
-  const dayName = (dayValue || "").split(" ")[0];
+  // dayValue looks like "Tuesday, 11 Nov" or "Tuesday, 11 Nov (today)".
+  // Strip the comma/suffix so we compare against bare day names.
+  const dayName = (dayValue || "").split(",")[0].trim();
   const todayName = DAY_NAMES[new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d)).getUTCDay()];
 
   if (isCampus) {
     if (dayName === todayName && nowD.hours >= CONFIG.campusSameDayCutoffHour)
-      return `Campus ordering for today closed at ${fmtHour(CONFIG.campusSameDayCutoffHour)}. Please pick another day or DM us.`;
+      return `Campus ordering for today closed at ${fmtHour(CONFIG.campusSameDayCutoffHour)}. Please pick another day or DM us on Instagram.`;
     return "That campus day is no longer available — please pick another or DM us on Instagram.";
   }
 
@@ -257,28 +262,42 @@ $("#igBtn").href="https://ig.me/m/"+CONFIG.instagram;
 $("#flavors").innerHTML=CONFIG.flavors.map((f,i)=>`
 <div class="flavor"><div><b>${f.id}</b><br><span>${f.desc} · ${f.price} AED</span></div>
 <div class="step"><button type="button" data-i="${i}" data-d="-1" aria-label="Remove one ${f.id}">−</button><output id="q${i}">0</output><button type="button" data-i="${i}" data-d="1" aria-label="Add one ${f.id}">+</button></div></div>`).join("");
+update();
 
 $("#flavors").addEventListener("click",e=>{
-  const b=e.target.closest("button"); if(!b)return;
+  const b=e.target.closest("button"); if(!b||b.disabled)return;
   const f=CONFIG.flavors[b.dataset.i];
-  const t=totals();
-  if(+b.dataset.d>0 && t.c>=CONFIG.maxTotal){
-    say(`Maximum ${CONFIG.maxTotal} cups per order. For bigger orders, DM us on Instagram.`,"err");
+  if(+b.dataset.d>0 && qty[f.id]>=CONFIG.maxPerFlavor){
+    say(`Maximum ${CONFIG.maxPerFlavor} cups per flavour. For bigger orders, DM us on Instagram.`,"err");
     $("#msg").scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
-  qty[f.id]=Math.max(0,Math.min(CONFIG.maxTotal,qty[f.id]+ +b.dataset.d));
+  qty[f.id]=Math.max(0,Math.min(CONFIG.maxPerFlavor,qty[f.id]+ +b.dataset.d));
   $("#q"+b.dataset.i).textContent=qty[f.id]; update();
 });
 
 function loc(){const r=document.querySelector("input[name=loc]:checked");return r&&r.value}
 function isCampus(){return loc()&&loc().startsWith("University")}
 function totals(){let c=0,p=0;CONFIG.flavors.forEach(f=>{c+=qty[f.id];p+=qty[f.id]*f.price});return{c,p}}
-function update(){const t=totals();$("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;$("#price").textContent=t.p+" AED"}
+
+function updateQtyButtons(){
+  document.querySelectorAll('.step button').forEach(b=>{
+    const f=CONFIG.flavors[+b.dataset.i];
+    const d=+b.dataset.d;
+    b.disabled = d<0 ? qty[f.id]<=0 : qty[f.id]>=CONFIG.maxPerFlavor;
+  });
+}
+function update(){
+  const t=totals();
+  $("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;
+  $("#price").textContent=t.p+" AED";
+  updateQtyButtons();
+}
 
 function say(t,c){const m=$("#msg");m.textContent=t;m.className="msg "+(c||"")}
 
 function renderDays(){
+  if (sending) return;
   if (!loc()) return;
 
   const nowD = dubaiNowParts();
@@ -287,6 +306,11 @@ function renderDays(){
 
   $("#dayBox").classList.remove("hide");
   $("#dayLegend").textContent = isCampus() ? "Campus pickup day" : "Preferred delivery day";
+
+  // Skip re-render when nothing has changed — prevents focus loss / races.
+  const key = loc() + "::" + (avail.closed ? "closed" : avail.days.map(d=>d.value).join("|"));
+  if (key === renderedDaysKey) return;
+  renderedDaysKey = key;
 
   if (avail.closed) {
     $("#days").innerHTML = `<div class="closed"><p>${avail.message}</p><p><a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a></p></div>`;
@@ -320,15 +344,18 @@ function updateClosedBanner(){
   const banner = $("#closedBanner");
 
   if (bothClosed) {
-    banner.innerHTML = campus.message + ` <a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram</a>.`;
+    const dm = `<a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a>`;
+    banner.innerHTML = `<p style="margin:0 0 6px">${campus.message}</p><p style="margin:0 0 6px">${local.message}</p><p style="margin:0">${dm}</p>`;
     banner.classList.remove("hide");
   } else {
     banner.classList.add("hide");
+    banner.innerHTML = "";
   }
   if (!loc()) $("#go").disabled = bothClosed;
 }
 
 document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("change",()=>{
+  if (sending) return;
   renderDays();
   updateClosedBanner();
 }));
@@ -341,6 +368,8 @@ function validPhone(s){return /^\+?\d{7,15}$/.test(s)}
 
 $("#f").addEventListener("submit",async e=>{
   e.preventDefault();
+  if (sending) return;
+
   const name=$("#name").value.trim().replace(/\s+/g," ").slice(0,80);
   const ig=cleanIG($("#ig").value);
   const ph=cleanPhone($("#ph").value);
@@ -359,7 +388,9 @@ $("#f").addEventListener("submit",async e=>{
   const nowD = dubaiNowParts();
   const avail = getAvailability(nowD, isCampus());
   const dayStillValid = !avail.closed && avail.days.some(d => d.value === day);
-  if(!dayStillValid) return say(explainUnavailable(day, nowD, isCampus()),"err");
+  if(!dayStillValid) {
+    return say(avail.closed ? avail.message : explainUnavailable(day, nowD, isCampus()), "err");
+  }
 
   const min=isCampus()?CONFIG.minCampus:CONFIG.minLocal;
   if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
@@ -368,7 +399,13 @@ $("#f").addEventListener("submit",async e=>{
   const order={id:orderId,name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c,
                sentAt:new Date().toISOString()};
   CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
-  $("#go").disabled=true; $("#sending").classList.remove("hide"); document.body.style.overflow="hidden"; say("Sending your order…");
+
+  sending=true;
+  $("#go").disabled=true;
+  $("#sending").classList.remove("hide");
+  document.body.style.overflow="hidden";
+  say("Sending your order…");
+
   const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),30000);
   try{
     const r=await fetch(CONFIG.endpoint,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(order),signal:ctl.signal});
@@ -384,10 +421,11 @@ $("#f").addEventListener("submit",async e=>{
     $("#igBtn").onclick=()=>{
       const ok = () => { $("#igHint").textContent="Your order message is copied. Paste it into the chat and send."; };
       const fail = () => { $("#igHint").textContent="Copy failed — please copy the message manually from above."; };
+      if(!navigator.clipboard || typeof navigator.clipboard.writeText !== "function"){ fail(); return; }
       try{
-        const p=navigator.clipboard&&navigator.clipboard.writeText(msg);
-        if(p&&p.then) p.then(ok).catch(fail); else ok();
-      }catch(e){ fail(); }
+        const p=navigator.clipboard.writeText(msg);
+        if(p && typeof p.then === "function") p.then(ok).catch(fail); else ok();
+      }catch(_){ fail(); }
     };
     orderId=makeId();
     window.scrollTo(0,0);
@@ -400,7 +438,12 @@ $("#f").addEventListener("submit",async e=>{
     }
     $("#go").disabled=false;
   }
-  finally{clearTimeout(timer);$("#sending").classList.add("hide");document.body.style.overflow=""}
+  finally{
+    clearTimeout(timer);
+    $("#sending").classList.add("hide");
+    document.body.style.overflow="";
+    sending=false;
+  }
 });
 
 // --- splash ---
@@ -417,6 +460,7 @@ setTimeout(hideSplash,3000);
 // --- boot & 30s auto-refresh ---
 updateClosedBanner();
 setInterval(()=>{
+  if(sending) return;
   if($("#f").classList.contains("hide")) return;
   updateClosedBanner();
   if(loc()) renderDays();
