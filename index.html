@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cayers.ae </title>
+<title>Cayers.ae</title>
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,28 +30,57 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .flavor span{color:var(--mute);font-size:.9rem}
 .step{display:flex;align-items:center;gap:12px}
 .step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;cursor:pointer}
+.step button:disabled{opacity:.4;cursor:default}
 .step output{min-width:1.5ch;text-align:center;font-weight:800;font-size:1.2rem}
 .total{position:sticky;bottom:0;background:var(--cocoa);color:var(--bg);border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin:8px 0 14px;font-weight:800}
 .total small{display:block;font-weight:400;opacity:.85}
-#go{width:100%;padding:16px;border:0;border-radius:14px;background:var(--berry);color:#fff;font:800 1.1rem inherit;font-family:inherit;cursor:pointer}
+#go{width:100%;padding:16px;border:0;border-radius:14px;background:var(--berry);color:#fff;font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer}
 #go:disabled{opacity:.6}
 .msg{margin-top:14px;font-weight:700}
 .err{color:var(--err)}.ok{color:var(--ok)}
 .hide{display:none}
+.hp{position:absolute!important;left:-10000px!important;top:auto;width:1px;height:1px;overflow:hidden}
+.note{color:var(--mute);font-size:.85rem;margin-top:8px}
+#splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease}
+#splash.gone{opacity:0;pointer-events:none}
+.splash-inner{text-align:center}
+.splash-logo{font:400 clamp(3rem,16vw,5rem)/1 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em}
+.dots{display:flex;gap:10px;justify-content:center;margin-top:22px}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--berry);animation:bounce 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}
+.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-12px);opacity:1}}
+#sending{position:fixed;inset:0;z-index:90;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px}
+#sending.hide{display:none}
+.send-box{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:28px 34px;text-align:center;font-weight:800;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+.spinner{width:44px;height:44px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--line);border-top-color:var(--berry);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#splash{transition:none}.dots i{animation:none;opacity:.8}.spinner{animation-duration:2s}}
 .done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center}
 .done a{color:var(--berry);font-weight:800}
 .done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:14px 0 8px}
 </style>
+<base target="_blank">
 </head>
 <body>
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo">Cayers</div>
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="note" style="margin-top:18px">Whipping up something sweet&hellip;</p>
+  </div>
+</div>
 <div class="wrap">
 <h1>Cayers</h1>
 <p class="sub">Dessert cups, made fresh. Pick your flavors and a day, and your order goes straight to us.</p>
 
 <form id="f" novalidate>
-<fieldset><label class="l" for="name">Your name</label><input id="name" type="text" autocomplete="name"></fieldset>
-<fieldset><label class="l" for="ig">Instagram username</label><input id="ig" type="text" placeholder="Optional if you give a phone number"></fieldset>
-<fieldset><label class="l" for="ph">Phone number</label><input id="ph" type="tel" autocomplete="tel" placeholder="05x xxx xxxx"></fieldset>
+<fieldset><label class="l" for="name">Your name</label><input id="name" type="text" autocomplete="name" maxlength="80"></fieldset>
+<fieldset><label class="l" for="ig">Instagram username</label><input id="ig" type="text" placeholder="Optional if you give a phone number" maxlength="30"></fieldset>
+<fieldset><label class="l" for="ph">Phone number</label><input id="ph" type="tel" autocomplete="tel" placeholder="05x xxx xxxx" maxlength="20"></fieldset>
+
+<!-- honeypot: real customers never see or fill this -->
+<div class="hp" aria-hidden="true"><label>Company<input id="company" type="text" tabindex="-1" autocomplete="off"></label></div>
 
 <fieldset><legend>How do you want to get your order?</legend>
 <div class="row">
@@ -68,10 +97,13 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 <div id="msg" class="msg" role="status"></div>
 </form>
 
+<div id="sending" class="hide" role="status" aria-live="polite">
+  <div class="send-box"><div class="spinner" aria-hidden="true"></div>Sending your order&hellip;</div>
+</div>
 <div id="done" class="done hide">
 <h2 style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
 <p id="sum"></p>
-<p>Your order is saved. Tap below to send it to us on Instagram and we’ll confirm it there as soon as we’re free.</p>
+<p>Your order is saved. Tap below to send it to us on Instagram and we&rsquo;ll confirm it there as soon as we&rsquo;re free.</p>
 <a id="igBtn" class="igbtn" href="#" target="_blank" rel="noopener">Send my order on Instagram</a>
 <p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
 <p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
@@ -89,14 +121,23 @@ const CONFIG = {
   ],
   campusDays: ["Tuesday","Friday"],
   localDays:  ["Tuesday","Wednesday","Thursday","Friday","Saturday"],
-  campusNote: "Ordering on Monday? Campus pickup is only possible on Tuesday. Ordering on Thursday? Campus pickup is only possible on Friday. Want Wednesday or Thursday? DM us on Instagram first.",
-  localNote: "Ordering on Monday? Please choose Tuesday or Wednesday. Ordering on Thursday? Please choose Friday or Saturday.",
   minCampus: 1,
-  minLocal: 3
+  minLocal: 3,
+  maxTotal: 50,          // maximum cups per order
+  minFillMs: 2500,       // orders submitted faster than this are treated as bots
+  dayWindowDays: 7       // only show slots within the next 7 days (need prep time)
 };
 // ========================
-const $=s=>document.querySelector(s), qty={}, orderId=Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+
+const $=s=>document.querySelector(s);
+const DAY_NAMES=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const pageLoadedAt=Date.now();
+let orderId=makeId();                       // stable across retries so the sheet can dedupe by ID
+const qty={};
 CONFIG.flavors.forEach(f=>qty[f.id]=0);
+
+function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+
 $("#minCampusTxt").textContent=`Minimum ${CONFIG.minCampus} cup${CONFIG.minCampus>1?"s":""}`;
 $("#minLocalTxt").textContent=`Minimum ${CONFIG.minLocal} cups`;
 $("#igLink").textContent="@"+CONFIG.instagram;
@@ -110,6 +151,8 @@ $("#flavors").innerHTML=CONFIG.flavors.map((f,i)=>`
 $("#flavors").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b)return;
   const f=CONFIG.flavors[b.dataset.i];
+  const t=totals();
+  if(+b.dataset.d>0 && t.c>=CONFIG.maxTotal) return say(`Maximum ${CONFIG.maxTotal} cups per order. For bigger orders, DM us on Instagram.`,"err");
   qty[f.id]=Math.max(0,Math.min(50,qty[f.id]+ +b.dataset.d));
   $("#q"+b.dataset.i).textContent=qty[f.id]; update();
 });
@@ -119,30 +162,67 @@ function isCampus(){return loc()&&loc().startsWith("University")}
 function totals(){let c=0,p=0;CONFIG.flavors.forEach(f=>{c+=qty[f.id];p+=qty[f.id]*f.price});return{c,p}}
 function update(){const t=totals();$("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;$("#price").textContent=t.p+" AED"}
 
+// --- date-aware day slots: only real, upcoming days are ever shown ---
+function upcomingSlots(allowedNames){
+  const out=[], now=new Date();
+  for(let i=1;i<=CONFIG.dayWindowDays;i++){           // start tomorrow: same-day pickup needs prep time
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);
+    const name=DAY_NAMES[d.getDay()];
+    if(allowedNames.includes(name)){
+      const label=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
+      out.push({value:`${name}, ${d.toLocaleDateString("en-GB",{day:"numeric",month:"short"})}`, label});
+    }
+  }
+  return out;
+}
+
 document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("change",()=>{
   const campus=isCampus(), days=campus?CONFIG.campusDays:CONFIG.localDays;
+  const prev=(document.querySelector("input[name=day]:checked")||{}).value;
+  const slots=upcomingSlots(days);
   $("#dayBox").classList.remove("hide");
   $("#dayLegend").textContent=campus?"Campus pickup day":"Preferred delivery day";
-  $("#days").innerHTML=days.map(d=>`<label class="opt"><input type="radio" name="day" value="${d}"><span>${d}</span></label>`).join("")+`<small style="color:var(--mute)">${campus?CONFIG.campusNote:CONFIG.localNote}</small>`;
+  if(slots.length===0){
+    $("#days").innerHTML=`<p class="note">No ${campus?"campus pickup":"delivery"} slots in the next ${CONFIG.dayWindowDays} days. DM us on Instagram @${CONFIG.instagram} and we&rsquo;ll sort you out.</p>`;
+    return;
+  }
+  $("#days").innerHTML=slots.map(s=>`<label class="opt"><input type="radio" name="day" value="${s.value}"${s.value===prev?" checked":""}><span>${s.label}</span></label>`).join("")
+    +`<small class="note">Only the next ${CONFIG.dayWindowDays} days are shown, so your pick is always a real, bookable slot.</small>`;
 }));
+
+// --- input cleanup ---
+function cleanIG(s){return s.trim().replace(/^@+/,"")}
+function validIG(s){return /^[A-Za-z0-9._]{1,30}$/.test(s)}
+function cleanPhone(s){return s.replace(/[\s\-().]/g,"")}
+function validPhone(s){return /^\+?\d{7,15}$/.test(s)}
 
 function say(t,c){const m=$("#msg");m.textContent=t;m.className="msg "+(c||"")}
 
 $("#f").addEventListener("submit",async e=>{
   e.preventDefault();
-  const name=$("#name").value.trim(), ig=$("#ig").value.trim(), ph=$("#ph").value.trim();
+  const name=$("#name").value.trim().replace(/\s+/g," ").slice(0,80);
+  const ig=cleanIG($("#ig").value);
+  const ph=cleanPhone($("#ph").value);
   const day=(document.querySelector("input[name=day]:checked")||{}).value, t=totals();
+
+  // bot traps
+  if($("#company").value) return say("Something went wrong. Please try again.","err");
+  if(Date.now()-pageLoadedAt<CONFIG.minFillMs) return say("That was too fast for a human — take a breath and press Place order again.","err");
+
   if(!name) return say("Enter your name.","err");
   if(!ig&&!ph) return say("Enter an Instagram username or a phone number so we can reach you.","err");
+  if(ig&&!validIG(ig)) return say("That Instagram username doesn&rsquo;t look right (letters, numbers, dots and underscores only).","err");
+  if(ph&&!validPhone(ph)) return say("That phone number doesn&rsquo;t look right — digits only, e.g. 05x xxx xxxx.","err");
   if(!loc()) return say("Choose campus pickup or local delivery.","err");
   if(!day) return say("Choose a day.","err");
   const min=isCampus()?CONFIG.minCampus:CONFIG.minLocal;
   if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
-  if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
+  if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn&rsquo;t connected to the sheet yet. See setup steps.","err");
 
-  const order={id:orderId,name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c};
+  const order={id:orderId,name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c,
+               company:$("#company").value,sentAt:new Date().toISOString()};
   CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
-  $("#go").disabled=true; say("Sending your order…");
+  $("#go").disabled=true; $("#sending").classList.remove("hide"); document.body.style.overflow="hidden"; say("Sending your order…");
   const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),20000);
   try{
     const r=await fetch(CONFIG.endpoint,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(order),signal:ctl.signal});
@@ -154,10 +234,25 @@ $("#f").addEventListener("submit",async e=>{
     const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${t.p} AED), ${loc()}, ${day}. Please confirm.`;
     $("#sum").textContent+=` · Ref ${ref}`;
     $("#igBtn").addEventListener("click",()=>{try{navigator.clipboard.writeText(msg)}catch(e){};$("#igHint").textContent="Your order message is copied. Paste it into the chat and send."});
+    orderId=makeId();               // a fresh form (after reload) gets a fresh ID; retries keep this one
     window.scrollTo(0,0);
-  }catch(err){say("We couldn’t confirm your order, so please don’t assume it went through. Check your connection and press Place order again (it won’t double-book), or message us on Instagram.","err");$("#go").disabled=false}
-  finally{clearTimeout(timer)}
+  }catch(err){
+    if(err.name==="AbortError"){ say("Your connection timed out — we don&rsquo;t know if the order arrived. Please don&rsquo;t assume it went through: message us on Instagram @"+CONFIG.instagram+" to check before reordering.","err"); }
+    else{ say("We couldn&rsquo;t confirm your order, so please don&rsquo;t assume it went through. Check your connection and press Place order again (it won&rsquo;t double-book), or message us on Instagram.","err"); }
+    $("#go").disabled=false;
+  }
+  finally{clearTimeout(timer);$("#sending").classList.add("hide");document.body.style.overflow=""}
 });
+// --- splash: hide once the page is ready, never sooner than 1s, with a hard fallback ---
+const splashShownAt=Date.now();
+function hideSplash(){
+  const s=$("#splash"); if(!s||s.dataset.done)return; s.dataset.done="1";
+  const wait=Math.max(0,1000-(Date.now()-splashShownAt));
+  setTimeout(()=>{s.classList.add("gone");setTimeout(()=>s.remove(),700)},wait);
+}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
+window.addEventListener("load",hideSplash);
+setTimeout(hideSplash,3000);
 </script>
 </body>
 </html>
