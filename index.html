@@ -50,9 +50,11 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 #splash.gone{opacity:0;pointer-events:none}
 .splash-inner{text-align:center}
 .splash-logo{font:400 clamp(3rem,16vw,5rem)/1 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em}
+/* FIXED: removes the negative letter-spacing from the last letter so the logo is perfectly centered */
+.splash-logo span:last-child, #sending .splash-logo { letter-spacing: 0; }
+
 /* splash logo spells in letter by letter, left to right: C, a, y, e, r, s */
-#splash .splash-logo span{display:inline-block;opacity:0;animation:spell .45s cubic-bezier(.2,.7,.3,1) forwards} /* CHANGED: back to .45s */
-/* CHANGED: restored original 0.25s cadence */
+#splash .splash-logo span{display:inline-block;opacity:0;animation:spell .45s cubic-bezier(.2,.7,.3,1) forwards}
 #splash .splash-logo span:nth-child(1){animation-delay:.15s}  /* C */
 #splash .splash-logo span:nth-child(2){animation-delay:.40s}  /* a */
 #splash .splash-logo span:nth-child(3){animation-delay:.65s}  /* y */
@@ -480,12 +482,12 @@ $("#f").addEventListener("submit",async e=>{
 const splashShownAt=Date.now();
 function hideSplash(){
   const s=$("#splash"); if(!s||s.dataset.done)return; s.dataset.done="1";
-  const wait=Math.max(0,4500-(Date.now()-splashShownAt)); /* CHANGED: was 3000 — gives the dots a longer run */
+  const wait=Math.max(0,4500-(Date.now()-splashShownAt)); 
   setTimeout(()=>{s.classList.add("gone");setTimeout(()=>s.remove(),700)},wait);
 }
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
 window.addEventListener("load",hideSplash);
-setTimeout(hideSplash,6500); /* CHANGED: was 5000 — true fallback behind the 4.5s hold */
+setTimeout(hideSplash,6500); 
 
 // --- boot & 30s auto-refresh ---
 updateClosedBanner();
