@@ -50,7 +50,8 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 #splash.gone{opacity:0;pointer-events:none}
 .splash-inner{text-align:center}
 .splash-logo{font:400 clamp(3rem,16vw,5rem)/1 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em}
-.dots{display:flex;gap:10px;justify-content:center;margin-top:22px}
+/* CHANGED: margin-top 22px -> 40px so the dots clear the logo even at the top of the bounce (-12px) */
+.dots{display:flex;gap:10px;justify-content:center;margin-top:40px}
 .dots i{width:12px;height:12px;border-radius:50%;background:var(--berry);animation:bounce 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}
 .dots i:nth-child(3){animation-delay:.3s}
