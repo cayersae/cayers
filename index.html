@@ -7,13 +7,13 @@
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#ffe4b5;--card:#fff;--ink:#7a0505;--mute:#8a6a70;--berry:#c2304f;--cocoa:#4a2a22;--line:#f0d9d6;--ok:#2f7d4f;--err:#b3261e}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#241517;--card:#33201f;--ink:#fbeae6;--mute:#c4a29f;--berry:#ff7d96;--cocoa:#e8c4b0;--line:#4b3030;--ok:#6fd59a;--err:#ff8a80}}
 *{box-sizing:border-box}
 html{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Abril Fatface","Nunito","Segoe UI",system-ui,sans-serif;font-synthesis:none;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito","Segoe UI",system-ui,sans-serif;font-synthesis:none;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
 .wrap{max-width:560px;margin:0 auto;padding:28px 18px 60px}
 h1{font:400 clamp(2.6rem,12vw,4rem)/.95 "Abril Fatface","Georgia",serif;margin:0;color:var(--ink);letter-spacing:-.02em;text-align:center}
 .sub{color:var(--mute);margin:10px 0 26px;text-align:center}
@@ -41,6 +41,10 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .hide{display:none}
 .hp{position:absolute!important;left:-10000px!important;top:auto;width:1px;height:1px;overflow:hidden}
 .note{color:var(--mute);font-size:.85rem;margin-top:8px}
+.closed{padding:16px;border-radius:12px;background:var(--card);border:1.5px dashed var(--line);text-align:center;color:var(--mute)}
+.closed a{color:var(--berry);font-weight:800}
+.closed-banner{background:rgba(194,48,79,.12);background:color-mix(in srgb,var(--berry) 12%,var(--card));border:1.5px solid var(--berry);border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;font-weight:700}
+.closed-banner a{color:var(--berry)}
 #splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease}
 #splash.gone{opacity:0;pointer-events:none}
 .splash-inner{text-align:center}
@@ -50,7 +54,8 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .dots i:nth-child(2){animation-delay:.15s}
 .dots i:nth-child(3){animation-delay:.3s}
 @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-12px);opacity:1}}
-#sending{position:fixed;inset:0;z-index:90;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px}
+#sending{position:fixed;inset:0;z-index:90;background:rgba(255,228,181,.82);background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) #sending{background:rgba(36,21,23,.82);background:color-mix(in srgb,var(--bg) 82%,transparent)}}
 #sending.hide{display:none}
 .send-box{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:28px 34px;text-align:center;font-weight:800;box-shadow:0 12px 40px rgba(0,0,0,.18)}
 .spinner{width:44px;height:44px;margin:0 auto 14px;border-radius:50%;border:5px solid var(--line);border-top-color:var(--berry);animation:spin .8s linear infinite}
@@ -72,6 +77,8 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 <div class="wrap">
 <h1>Cayers</h1>
 <p class="sub">Dessert cups, made fresh. Pick your flavors and a day, and your order goes straight to us.</p>
+
+<div id="closedBanner" class="closed-banner hide" role="status"></div>
 
 <form id="f" novalidate>
 <fieldset><label class="l" for="name">Your name</label><input id="name" type="text" autocomplete="name" maxlength="80"></fieldset>
@@ -100,7 +107,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
   <div class="send-box"><div class="spinner" aria-hidden="true"></div>Sending your order&hellip;</div>
 </div>
 <div id="done" class="done hide">
-<h2 style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
+<h2 tabindex="-1" style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
 <p id="sum"></p>
 <p>Your order is saved. Tap below to send it to us on Instagram and we&rsquo;ll confirm it there as soon as we&rsquo;re free.</p>
 <a id="igBtn" class="igbtn" href="#" target="_blank" rel="noopener">Send my order on Instagram</a>
@@ -119,15 +126,14 @@ const CONFIG = {
     {id:"Dark Land Cayer", desc:"Chocolate cake and whipped cream",            price:3}
   ],
   campusDays: ["Tuesday","Friday"],
-  localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+  localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday"],
   minCampus: 1,
   minLocal: 3,
   maxTotal: 50,
   minFillMs: 2500,
-
-  // --- Day-window settings ---
-  weekStartsOn: 1,       // 1 = Monday, so "this week" = Mon -> Sun
-  sameDayCutoffHour: 14  // same-day orders close at 2pm; after that today is hidden
+  localSameDayCutoffHour: 15,   // 3pm Dubai — local same-day closes
+  campusSameDayCutoffHour: 14,  // 2pm Dubai — campus same-day closes AND Wednesday (Tue 2pm+) local sellout
+  timeZone: "Asia/Dubai"
 };
 // ========================
 
@@ -140,6 +146,107 @@ CONFIG.flavors.forEach(f=>qty[f.id]=0);
 
 function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${ampm}`;}
+
+// --- "now" in Dubai wall-clock, independent of the visitor's device timezone ---
+function dubaiNowParts(){
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: CONFIG.timeZone,
+    year:"numeric", month:"2-digit", day:"2-digit",
+    hour:"2-digit", hour12:false
+  });
+  const map = {};
+  fmt.formatToParts(new Date()).forEach(p => { if (p.type !== "literal") map[p.type] = p.value; });
+  return { y:+map.year, m:+map.month, d:+map.day, hours:(+map.hour)%24 };
+}
+
+function weekStart(y,m,d){
+  const dt = new Date(Date.UTC(y, m-1, d));
+  const dow = dt.getUTCDay();
+  const diff = (dow === 0 ? -6 : 1 - dow);
+  return new Date(Date.UTC(y, m-1, d + diff));
+}
+
+/**
+ * Availability rules (all times Dubai):
+ *  CAMPUS (Tue & Fri): all future class days this week; same-day closes 14:00.
+ *  LOCAL  (Mon–Fri):   3-day lookahead; same-day closes 15:00;
+ *                      Tue 14:00+ closes Wednesday (campus sellout).
+ *  Saturday & Sunday: fully closed.
+ */
+function getAvailability(nowD, isCampus){
+  const todayDow = new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d)).getUTCDay();
+  const todayName = DAY_NAMES[todayDow];
+
+  if (todayDow === 0) {
+    return { closed:true, days:[], message:"We’re closed on Sundays. Orders reopen Monday morning." };
+  }
+
+  const allowedNames = isCampus ? CONFIG.campusDays : CONFIG.localDays;
+  const sameDayCutoff = isCampus ? CONFIG.campusSameDayCutoffHour : CONFIG.localSameDayCutoffHour;
+  const thisWeekStart = weekStart(nowD.y, nowD.m, nowD.d).getTime();
+  const lookahead = isCampus ? 7 : 3;
+
+  const days = [];
+  for (let i = 0; i < lookahead; i++) {
+    const d = new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d + i));
+    const dow = d.getUTCDay();
+    if (dow === 0) continue;
+    const name = DAY_NAMES[dow];
+    if (!allowedNames.includes(name)) continue;
+    if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
+    if (i === 0 && nowD.hours >= sameDayCutoff) continue;
+
+    // Local-only campus-sellout rule: Tue 14:00+ closes Wednesday.
+    if (!isCampus && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour && name === "Wednesday") continue;
+
+    const base = d.toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"short", timeZone:"UTC" });
+    const label = i === 0 ? `${base} (today)` : base;
+    days.push({ value: base, label, name });
+  }
+
+  if (days.length === 0) {
+    return { closed:true, days:[], message: closedMessage(nowD, isCampus) };
+  }
+  return { closed:false, days };
+}
+
+function closedMessage(nowD, isCampus){
+  const todayDow = new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d)).getUTCDay();
+  const todayName = DAY_NAMES[todayDow];
+
+  if (todayDow === 0) return "We’re closed on Sundays. Orders reopen Monday morning.";
+
+  if (isCampus) {
+    if (todayName === "Friday" && nowD.hours >= CONFIG.campusSameDayCutoffHour)
+      return "Today’s campus pickup has ended. Next campus day is Tuesday — ordering reopens Monday.";
+    if (todayName === "Saturday")
+      return "This week’s campus days are done. Next campus pickup is Tuesday — ordering reopens Monday.";
+  } else {
+    if (todayName === "Friday" && nowD.hours >= CONFIG.localSameDayCutoffHour)
+      return "This week’s deliveries are done. We reopen Monday morning.";
+    if (todayName === "Saturday")
+      return "This week’s deliveries are done. We reopen Monday morning.";
+  }
+
+  return `No ${isCampus ? "campus pickup" : "delivery"} slots available right now. DM us on Instagram @${CONFIG.instagram} and we’ll sort you out.`;
+}
+
+function explainUnavailable(dayValue, nowD, isCampus){
+  const dayName = (dayValue || "").split(" ")[0];
+  const todayName = DAY_NAMES[new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d)).getUTCDay()];
+
+  if (isCampus) {
+    if (dayName === todayName && nowD.hours >= CONFIG.campusSameDayCutoffHour)
+      return `Campus ordering for today closed at ${fmtHour(CONFIG.campusSameDayCutoffHour)}. Please pick another day or DM us.`;
+    return "That campus day is no longer available — please pick another or DM us on Instagram.";
+  }
+
+  if (dayName === "Wednesday" && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour)
+    return `Wednesday just sold out from our campus sales — DM us on Instagram @${CONFIG.instagram} and we’ll see what we can do.`;
+  if (dayName === todayName && nowD.hours >= CONFIG.localSameDayCutoffHour)
+    return "Same-day ordering just closed for today. Please pick another day or DM us.";
+  return "That day is no longer available — please pick another.";
+}
 
 $("#minCampusTxt").textContent=`Minimum ${CONFIG.minCampus} cup${CONFIG.minCampus>1?"s":""}`;
 $("#minLocalTxt").textContent=`Minimum ${CONFIG.minLocal} cups`;
@@ -155,8 +262,12 @@ $("#flavors").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b)return;
   const f=CONFIG.flavors[b.dataset.i];
   const t=totals();
-  if(+b.dataset.d>0 && t.c>=CONFIG.maxTotal) return say(`Maximum ${CONFIG.maxTotal} cups per order. For bigger orders, DM us on Instagram.`,"err");
-  qty[f.id]=Math.max(0,Math.min(50,qty[f.id]+ +b.dataset.d));
+  if(+b.dataset.d>0 && t.c>=CONFIG.maxTotal){
+    say(`Maximum ${CONFIG.maxTotal} cups per order. For bigger orders, DM us on Instagram.`,"err");
+    $("#msg").scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  qty[f.id]=Math.max(0,Math.min(CONFIG.maxTotal,qty[f.id]+ +b.dataset.d));
   $("#q"+b.dataset.i).textContent=qty[f.id]; update();
 });
 
@@ -165,47 +276,61 @@ function isCampus(){return loc()&&loc().startsWith("University")}
 function totals(){let c=0,p=0;CONFIG.flavors.forEach(f=>{c+=qty[f.id];p+=qty[f.id]*f.price});return{c,p}}
 function update(){const t=totals();$("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;$("#price").textContent=t.p+" AED"}
 
-// --- date-aware day slots: THIS WEEK ONLY ---
-// Walks from today to the end of the current week (week starts on CONFIG.weekStartsOn)
-// and returns only allowed weekdays. Same-day only appears before sameDayCutoffHour.
-// Nothing next week is ever shown — once this week's slots run out, we say so.
-function upcomingSlots(allowedNames){
-  const now=new Date();
-  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+function say(t,c){const m=$("#msg");m.textContent=t;m.className="msg "+(c||"")}
 
-  // find the start of this week
-  const dow=now.getDay();                                  // 0 = Sun .. 6 = Sat
-  const back=(dow-CONFIG.weekStartsOn+7)%7;
-  const weekStart=new Date(today.getFullYear(),today.getMonth(),today.getDate()-back);
-  const weekEnd=new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+6);
+function renderDays(){
+  if (!loc()) return;
 
-  const out=[];
-  for(let i=0;i<7;i++){
-    const d=new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+i);
-    if(d>weekEnd) break;
-    if(d<today) continue;                                  // past days of this week
-    const name=DAY_NAMES[d.getDay()];
-    if(!allowedNames.includes(name)) continue;
-    const isToday=d.getTime()===today.getTime();
-    if(isToday && now.getHours()>=CONFIG.sameDayCutoffHour) continue;
-    const base=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
-    out.push({value:base, label: isToday ? `${base} (today, evening)` : base});
+  const nowD = dubaiNowParts();
+  const avail = getAvailability(nowD, isCampus());
+  const prev = (document.querySelector("input[name=day]:checked")||{}).value;
+
+  $("#dayBox").classList.remove("hide");
+  $("#dayLegend").textContent = isCampus() ? "Campus pickup day" : "Preferred delivery day";
+
+  if (avail.closed) {
+    $("#days").innerHTML = `<div class="closed"><p>${avail.message}</p><p><a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a></p></div>`;
+    $("#go").disabled = true;
+    return;
   }
-  return out;
+
+  $("#go").disabled = false;
+
+  const prevStillValid = avail.days.some(d => d.value === prev);
+  const checkedValue = prevStillValid ? prev : "";
+
+  const lostNote = (prev && !prevStillValid)
+    ? `<small class="note" style="color:var(--err)">Your previously selected day is no longer available.</small>`
+    : "";
+
+  const cutoffNote = isCampus
+    ? `Order any campus day this week. Same-day campus pickup closes at ${fmtHour(CONFIG.campusSameDayCutoffHour)} Dubai time.`
+    : `Same-day orders close at ${fmtHour(CONFIG.localSameDayCutoffHour)} Dubai time. Wednesday closes Tuesday ${fmtHour(CONFIG.campusSameDayCutoffHour)} (campus sellout).`;
+
+  $("#days").innerHTML = avail.days.map(d =>
+    `<label class="opt"><input type="radio" name="day" value="${d.value}"${d.value === checkedValue ? " checked" : ""}><span>${d.label}</span></label>`
+  ).join("") + lostNote + `<small class="note">${cutoffNote}</small>`;
+}
+
+function updateClosedBanner(){
+  const nowD = dubaiNowParts();
+  const campus = getAvailability(nowD, true);
+  const local  = getAvailability(nowD, false);
+  const bothClosed = campus.closed && local.closed;
+  const banner = $("#closedBanner");
+
+  if (bothClosed) {
+    banner.innerHTML = campus.message + ` <a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram</a>.`;
+    banner.classList.remove("hide");
+  } else {
+    banner.classList.add("hide");
+  }
+  if (!loc()) $("#go").disabled = bothClosed;
 }
 
 document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("change",()=>{
-  const campus=isCampus(), days=campus?CONFIG.campusDays:CONFIG.localDays;
-  const prev=(document.querySelector("input[name=day]:checked")||{}).value;
-  const slots=upcomingSlots(days);
-  $("#dayBox").classList.remove("hide");
-  $("#dayLegend").textContent=campus?"Campus pickup day":"Preferred delivery day";
-  if(slots.length===0){
-    $("#days").innerHTML=`<p class="note">No ${campus?"campus pickup":"delivery"} slots left this week. DM us on Instagram @${CONFIG.instagram} and we&rsquo;ll sort you out.</p>`;
-    return;
-  }
-  $("#days").innerHTML=slots.map(s=>`<label class="opt"><input type="radio" name="day" value="${s.value}"${s.value===prev?" checked":""}><span>${s.label}</span></label>`).join("")
-    +`<small class="note">Orders are only taken for this week. Same-day orders close at ${fmtHour(CONFIG.sameDayCutoffHour)}.</small>`;
+  renderDays();
+  updateClosedBanner();
 }));
 
 // --- input cleanup ---
@@ -214,8 +339,6 @@ function validIG(s){return /^[A-Za-z0-9._]{1,30}$/.test(s)}
 function cleanPhone(s){return s.replace(/[\s\-().]/g,"")}
 function validPhone(s){return /^\+?\d{7,15}$/.test(s)}
 
-function say(t,c){const m=$("#msg");m.textContent=t;m.className="msg "+(c||"")}
-
 $("#f").addEventListener("submit",async e=>{
   e.preventDefault();
   const name=$("#name").value.trim().replace(/\s+/g," ").slice(0,80);
@@ -223,40 +346,58 @@ $("#f").addEventListener("submit",async e=>{
   const ph=cleanPhone($("#ph").value);
   const day=(document.querySelector("input[name=day]:checked")||{}).value, t=totals();
 
-  // bot traps
   if($("#company").value) return say("Something went wrong. Please try again.","err");
   if(Date.now()-pageLoadedAt<CONFIG.minFillMs) return say("That was too fast for a human — take a breath and press Place order again.","err");
 
   if(!name) return say("Enter your name.","err");
   if(!ig&&!ph) return say("Enter an Instagram username or a phone number so we can reach you.","err");
-  if(ig&&!validIG(ig)) return say("That Instagram username doesn&rsquo;t look right (letters, numbers, dots and underscores only).","err");
-  if(ph&&!validPhone(ph)) return say("That phone number doesn&rsquo;t look right — digits only, e.g. 05x xxx xxxx.","err");
+  if(ig&&!validIG(ig)) return say("That Instagram username doesn’t look right (letters, numbers, dots and underscores only).","err");
+  if(ph&&!validPhone(ph)) return say("That phone number doesn’t look right — digits only, e.g. 05x xxx xxxx.","err");
   if(!loc()) return say("Choose campus pickup or local delivery.","err");
   if(!day) return say("Choose a day.","err");
+
+  const nowD = dubaiNowParts();
+  const avail = getAvailability(nowD, isCampus());
+  const dayStillValid = !avail.closed && avail.days.some(d => d.value === day);
+  if(!dayStillValid) return say(explainUnavailable(day, nowD, isCampus()),"err");
+
   const min=isCampus()?CONFIG.minCampus:CONFIG.minLocal;
   if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
-  if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn&rsquo;t connected to the sheet yet. See setup steps.","err");
+  if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
 
   const order={id:orderId,name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c,
-               company:$("#company").value,sentAt:new Date().toISOString()};
+               sentAt:new Date().toISOString()};
   CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
   $("#go").disabled=true; $("#sending").classList.remove("hide"); document.body.style.overflow="hidden"; say("Sending your order…");
-  const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),20000);
+  const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),30000);
   try{
     const r=await fetch(CONFIG.endpoint,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(order),signal:ctl.signal});
     const d=await r.json();
     if(!d.ok) throw new Error(d.error||"not ok");
+
     $("#f").classList.add("hide"); $("#done").classList.remove("hide");
-    $("#sum").textContent=`${t.c} cup${t.c==1?"":"s"} · ${t.p} AED · ${day}`;
-    const ref=orderId.slice(-5).toUpperCase(), parts=CONFIG.flavors.filter(f=>qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
+    say("");
+    const ref=orderId.slice(-5).toUpperCase();
+    const parts=CONFIG.flavors.filter(f=>qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
+    $("#sum").textContent=`${parts} · ${t.c} cup${t.c==1?"":"s"} · ${t.p} AED · ${day} · Ref ${ref}`;
     const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${t.p} AED), ${loc()}, ${day}. Please confirm.`;
-    $("#sum").textContent+=` · Ref ${ref}`;
-    $("#igBtn").addEventListener("click",()=>{try{navigator.clipboard.writeText(msg)}catch(e){};$("#igHint").textContent="Your order message is copied. Paste it into the chat and send."});
+    $("#igBtn").onclick=()=>{
+      const ok = () => { $("#igHint").textContent="Your order message is copied. Paste it into the chat and send."; };
+      const fail = () => { $("#igHint").textContent="Copy failed — please copy the message manually from above."; };
+      try{
+        const p=navigator.clipboard&&navigator.clipboard.writeText(msg);
+        if(p&&p.then) p.then(ok).catch(fail); else ok();
+      }catch(e){ fail(); }
+    };
     orderId=makeId();
     window.scrollTo(0,0);
+    $("#done h2").focus();
   }catch(err){
-    if(err.name==="AbortError"){ say("Your connection timed out — we don&rsquo;t know if the order arrived. Please don&rsquo;t assume it went through: message us on Instagram @"+CONFIG.instagram+" to check before reordering.","err"); }
-    else{ say("We couldn&rsquo;t confirm your order, so please don&rsquo;t assume it went through. Check your connection and press Place order again (it won&rsquo;t double-book), or message us on Instagram.","err"); }
+    if(err.name==="AbortError"){
+      say("Your connection timed out — we don’t know if the order arrived. Please don’t assume it went through: message us on Instagram @"+CONFIG.instagram+" to check before reordering.","err");
+    }else{
+      say("We couldn’t confirm your order, so please don’t assume it went through. Check your connection and press Place order again (it won’t double-book), or message us on Instagram.","err");
+    }
     $("#go").disabled=false;
   }
   finally{clearTimeout(timer);$("#sending").classList.add("hide");document.body.style.overflow=""}
@@ -272,6 +413,14 @@ function hideSplash(){
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
 window.addEventListener("load",hideSplash);
 setTimeout(hideSplash,3000);
+
+// --- boot & 30s auto-refresh ---
+updateClosedBanner();
+setInterval(()=>{
+  if($("#f").classList.contains("hide")) return;
+  updateClosedBanner();
+  if(loc()) renderDays();
+}, 30000);
 </script>
 </body>
 </html>
