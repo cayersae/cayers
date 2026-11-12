@@ -33,16 +33,29 @@ input:checked + .slider{background-color:var(--ok)}
 input:checked + .slider:before{transform:translateX(24px)}
 input:disabled + .slider{opacity:.6;cursor:default}
 
-/* ---------- per-flavour stock controls ---------- */
+/* ---------- per-flavour stock ---------- */
 .flavor-admin{padding:16px 0;border-bottom:1px solid var(--line)}
 .flavor-admin:first-child{padding-top:0}
 .flavor-admin:last-child{border-bottom:0;padding-bottom:0}
-.flavor-admin-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.flavor-admin-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
 .flavor-admin-head > span{font-weight:800}
-.qty-label{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0;font-weight:700;font-size:.9rem;color:var(--mute)}
-.qty-label input{width:104px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-weight:800;font-size:1rem;text-align:center}
+.flavor-admin.is-out .flavor-admin-head > span{color:var(--mute);text-decoration:line-through}
+.flavor-grid{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
+.qty-label{display:block;margin:0;font-weight:700;font-size:.8rem;color:var(--mute)}
+.qty-label > span{display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.qty-label input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-weight:800;font-size:1.05rem;text-align:center;-moz-appearance:textfield}
+.qty-label input::-webkit-outer-spin-button,
+.qty-label input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .qty-label input:disabled{opacity:.5}
-.flavor-admin.is-out .qty-label{opacity:.55}
+.left-box{text-align:right;line-height:1.1;min-width:96px}
+.left-box > span{display:block;font-size:.7rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.left-box output{font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ok)}
+.left-box.is-zero output{color:var(--err)}
+.left-box small{display:block;margin-top:4px;font-size:.72rem;color:var(--mute);font-weight:700}
+.refresh-row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:16px}
+.refresh-row p{margin:0;font-size:.78rem;color:var(--mute);line-height:1.4}
+#refreshCounts{width:auto;flex:0 0 auto;padding:10px 16px;font-size:.9rem;background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.stock-hint{font-size:.78rem;color:var(--err);margin:12px 0 0;line-height:1.4}
 
 .hide{display:none!important}
 .msg{text-align:center;font-weight:700;margin-top:16px;min-height:24px}
@@ -206,10 +219,15 @@ input[type="number"]:focus-visible,
       <div class="toggle-row"><span id="day-fri">Friday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Friday" aria-labelledby="day-fri"><span class="slider" aria-hidden="true"></span></label></div>
     </div>
 
-    <!-- NEW: per-flavour stock + sold out -->
+    <!-- FLAVOURS & STOCK -->
     <div class="card">
       <label>Flavours &amp; Stock</label>
       <div id="flavorRows"></div>
+      <p id="stockHint" class="stock-hint hide">Order counts aren’t coming back from the sheet yet — the Apps Script needs the new version for “Left” to update itself.</p>
+      <div class="refresh-row">
+        <p>Left = baked − cups already in the sheet. Delete an order, then tap Refresh.</p>
+        <button type="button" id="refreshCounts">Refresh</button>
+      </div>
     </div>
 
     <button id="saveBtn" style="background:var(--cocoa);color:var(--bg);margin-bottom:12px">Save Changes</button>
@@ -222,10 +240,10 @@ input[type="number"]:focus-visible,
 <script>
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec";
 
-/* ---- flavour list — must match CONFIG.flavors ids in cayers.html ---- */
-const FLAVORS       = ["Cloud Cayer", "Dark Land Cayer"];
-const DEFAULT_STOCK = 20;   // used when the sheet has no value yet
-const MAX_STOCK     = 999;
+/* ---- must match MENU_FLAVORS in the Apps Script ---- */
+const FLAVORS          = ["Cloud Cayer", "Dark Land Cayer"];
+const DEFAULT_PRODUCED = 20;   // matches DEFAULT_PRODUCED in the script
+const MAX_STOCK        = 999;
 
 const TIMING = {
   splashMin: 2000,
@@ -261,6 +279,10 @@ const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)")
 let pin = "";
 let isSaving = false;
 let dashboardSettingsPromise = null;
+
+/* how many cups of each flavour are already in the sheet */
+const orderedCounts = {};
+FLAVORS.forEach(f => orderedCounts[f] = 0);
 
 /* ================================================================
    API helpers
@@ -379,10 +401,7 @@ async function hideSplash() {
 
   if (dashboardSettingsPromise) {
     try {
-      await Promise.race([
-        dashboardSettingsPromise,
-        sleep(TIMING.settingsWaitMaxMs)
-      ]);
+      await Promise.race([dashboardSettingsPromise, sleep(TIMING.settingsWaitMaxMs)]);
     } catch {}
   }
 
@@ -498,9 +517,6 @@ async function playSuccess(el, text) {
   el.classList.add("s-undo");   await sleep(TIMING.successUndo);
 }
 
-/* ================================================================
-   Error animation — ring draws in red, cross draws, then reverses
-   ================================================================ */
 async function playError(el, text) {
   if (!el) return;
   const oktext = el.querySelector(".oktext");
@@ -672,7 +688,7 @@ function showLogin(message = "") {
 }
 
 /* ================================================================
-   Flavour stock rows  (NEW)
+   Flavour rows
    ================================================================ */
 function buildFlavorRows() {
   const box = $("#flavorRows");
@@ -689,31 +705,57 @@ function buildFlavorRows() {
           <span class="slider" aria-hidden="true"></span>
         </label>
       </div>
-      <label class="qty-label" for="qty-${slug}"><span>Available to order</span>
-        <input type="number" id="qty-${slug}" class="flavorQty" data-flavor="${name}"
-               min="0" max="${MAX_STOCK}" step="1" inputmode="numeric"
-               value="${DEFAULT_STOCK}" aria-label="${name} available quantity">
-      </label>
+      <div class="flavor-grid">
+        <label class="qty-label" for="prod-${slug}"><span>Baked</span>
+          <input type="number" id="prod-${slug}" class="flavorProduced" data-flavor="${name}"
+                 min="0" max="${MAX_STOCK}" step="1" inputmode="numeric" value="${DEFAULT_PRODUCED}">
+        </label>
+        <div class="left-box">
+          <span>Left to sell</span>
+          <output class="flavorLeft" data-flavor="${name}">${DEFAULT_PRODUCED}</output>
+          <small class="flavorOrdered" data-flavor="${name}">none ordered yet</small>
+        </div>
+      </div>
     </div>`;
   }).join("");
 }
 
 buildFlavorRows();
 
-/* keep the number box sane */
-$("#flavorRows").addEventListener("change", e => {
-  const inp = e.target.closest(".flavorQty");
-  if (!inp) return;
-  const n = parseInt(inp.value, 10);
-  inp.value = String(Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, n)) : 0);
+function renderLeft(name) {
+  const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
+  const out = document.querySelector(`.flavorLeft[data-flavor="${name}"]`);
+  const sub = document.querySelector(`.flavorOrdered[data-flavor="${name}"]`);
+  if (!inp || !out) return;
+
+  const baked = parseInt(inp.value, 10);
+  const ordered = orderedCounts[name] || 0;
+  const left = Math.max(0, (Number.isFinite(baked) ? baked : 0) - ordered);
+
+  out.textContent = String(left);
+  const box = out.closest(".left-box");
+  if (box) box.classList.toggle("is-zero", left === 0);
+  if (sub) sub.textContent = ordered > 0 ? `${ordered} already ordered` : "none ordered yet";
+}
+
+$("#flavorRows").addEventListener("input", e => {
+  const inp = e.target.closest(".flavorProduced");
+  if (inp) renderLeft(inp.dataset.flavor);
 });
 
-/* dim the row when it's marked sold out (purely visual) */
 $("#flavorRows").addEventListener("change", e => {
+  const inp = e.target.closest(".flavorProduced");
+  if (inp) {
+    const n = parseInt(inp.value, 10);
+    inp.value = String(Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, Math.floor(n))) : 0);
+    renderLeft(inp.dataset.flavor);
+    return;
+  }
   const cb = e.target.closest(".flavorSoldOut");
-  if (!cb) return;
-  const row = cb.closest(".flavor-admin");
-  if (row) row.classList.toggle("is-out", cb.checked);
+  if (cb) {
+    const row = cb.closest(".flavor-admin");
+    if (row) row.classList.toggle("is-out", cb.checked);
+  }
 });
 
 /* ================================================================
@@ -723,7 +765,7 @@ async function loadSettings() {
   try {
     const d = await getSettings();
     if (!d.ok) {
-      showDashMsg("Failed to load settings: " + (d.error || "unknown error"), "err");
+      showDashMsg("Failed to load settings: " + (d.error || d.message || "unknown error"), "err");
       return;
     }
 
@@ -738,25 +780,71 @@ async function loadSettings() {
       });
     }
 
-    /* ---- flavours ---- */
-    const fs = (d.flavorSettings && typeof d.flavorSettings === "object") ? d.flavorSettings : {};
+    /* ---- flavours: baked / ordered / left ---- */
+    const live   = (d.flavors && typeof d.flavors === "object") ? d.flavors : null;
+    const legacy = (d.flavorSettings && typeof d.flavorSettings === "object") ? d.flavorSettings : {};
 
-    $$(".flavorSoldOut").forEach(cb => {
-      const s = fs[cb.dataset.flavor] || {};
-      cb.checked = !!s.soldOut;
-      const row = cb.closest(".flavor-admin");
-      if (row) row.classList.toggle("is-out", cb.checked);
-    });
+    $("#stockHint").classList.toggle("hide", !!live);
 
-    $$(".flavorQty").forEach(inp => {
-      const s = fs[inp.dataset.flavor] || {};
-      const n = Number(s.available);
-      inp.value = String(Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, Math.floor(n))) : DEFAULT_STOCK);
+    FLAVORS.forEach(name => {
+      const info = (live && live[name]) || {};
+      const old  = legacy[name] || {};
+
+      const soldOut = info.soldOut !== undefined ? !!info.soldOut : !!old.soldOut;
+      const cb = document.querySelector(`.flavorSoldOut[data-flavor="${name}"]`);
+      if (cb) {
+        cb.checked = soldOut;
+        const row = cb.closest(".flavor-admin");
+        if (row) row.classList.toggle("is-out", soldOut);
+      }
+
+      let baked;
+      if (info.produced !== undefined)      baked = Number(info.produced);
+      else if (old.produced !== undefined)  baked = Number(old.produced);
+      else if (old.available !== undefined) baked = Number(old.available);
+      else                                  baked = DEFAULT_PRODUCED;
+
+      const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
+      if (inp) {
+        inp.value = String(Number.isFinite(baked) ? Math.max(0, Math.min(MAX_STOCK, Math.floor(baked))) : DEFAULT_PRODUCED);
+      }
+
+      orderedCounts[name] = Number(info.ordered) || 0;
+      renderLeft(name);
     });
   } catch {
     showDashMsg("Failed to load settings", "err");
   }
 }
+
+/* re-read only the order counts — never touches the Baked inputs */
+async function refreshCounts() {
+  try {
+    const d = await getSettings();
+    if (!d.ok || !d.flavors) {
+      $("#stockHint").classList.remove("hide");
+      return;
+    }
+    $("#stockHint").classList.add("hide");
+    FLAVORS.forEach(name => {
+      const info = d.flavors[name] || {};
+      orderedCounts[name] = Number(info.ordered) || 0;
+      renderLeft(name);
+    });
+  } catch {
+    /* offline — leave the last numbers alone */
+  }
+}
+
+$("#refreshCounts").addEventListener("click", async () => {
+  const b = $("#refreshCounts");
+  if (b.disabled) return;
+  b.disabled = true;
+  b.textContent = "…";
+  await refreshCounts();
+  b.disabled = false;
+  b.textContent = "Refresh";
+});
 
 /* ================================================================
    Status toggle
@@ -796,15 +884,14 @@ $("#saveBtn").addEventListener("click", async () => {
     const storeStatus = $("#storeStatus").checked ? "OPEN" : "CLOSED";
     const soldOutDays = Array.from($$(".soldOutDay:checked")).map(cb => cb.value);
 
-    /* ---- collect flavours ---- */
     const flavorSettings = {};
-    $$(".flavorSoldOut").forEach(cb => {
-      const name = cb.dataset.flavor;
-      const inp  = document.querySelector(`.flavorQty[data-flavor="${name}"]`);
-      const n    = inp ? parseInt(inp.value, 10) : NaN;
+    FLAVORS.forEach(name => {
+      const cb  = document.querySelector(`.flavorSoldOut[data-flavor="${name}"]`);
+      const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
+      const n = inp ? parseInt(inp.value, 10) : 0;
       flavorSettings[name] = {
-        soldOut: cb.checked,
-        available: Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, n)) : 0
+        soldOut: !!(cb && cb.checked),
+        produced: Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, n)) : 0
       };
     });
 
@@ -825,11 +912,11 @@ $("#saveBtn").addEventListener("click", async () => {
       if (d.ok) {
         succeeded = true;
       } else {
-        const errText = String(d.error || "").toLowerCase();
+        const errText = String(d.error || d.message || "").toLowerCase();
         if (/pin|auth|session|expired/.test(errText)) {
           sessionExpired = true;
         } else {
-          showDashMsg("Error saving: " + (d.error || "unknown error"), "err");
+          showDashMsg("Error saving: " + (d.error || d.message || "unknown error"), "err");
         }
       }
     } catch {
@@ -843,6 +930,7 @@ $("#saveBtn").addEventListener("click", async () => {
       await playSuccess(saving, "Changes saved");
       await showOverlay(saving, false, { slow: true });
       showDashMsg("Saved successfully!", "ok");
+      await refreshCounts();
     } else {
       await showOverlay(saving, false);
     }
@@ -906,7 +994,7 @@ async function validateSession() {
 }
 
 /* ================================================================
-   Periodic expiry check
+   Periodic checks
    ================================================================ */
 setInterval(() => {
   if (!$("#dashView").classList.contains("hide") && !sessionValid()) {
@@ -914,6 +1002,14 @@ setInterval(() => {
     showLogin("Session expired due to inactivity.");
   }
 }, 60 * 1000);
+
+/* keep the "ordered" numbers current while the dashboard is open */
+setInterval(() => {
+  if (isSaving) return;
+  if ($("#dashView").classList.contains("hide")) return;
+  if (document.visibilityState !== "visible") return;
+  refreshCounts();
+}, 30 * 1000);
 </script>
 </body>
 </html>
