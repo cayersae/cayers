@@ -41,7 +41,7 @@ body{
 .wrap{
   width:100%;
   max-width:480px;
-  margin:auto; /* Centers vertically and horizontally on login */
+  margin:auto;
   padding-top:20px;
   padding-bottom:20px;
 }
@@ -78,14 +78,13 @@ label{font-weight:800;display:block;margin-bottom:12px;font-size:0.95rem}
   border-color:var(--ink);
   transform:scale(1.15);
 }
-/* The real input is invisible but covers the dots so tapping anywhere works */
 #pin{
   position:absolute;
   inset:0;
   width:100%;
   height:100%;
-  opacity:0.01; 
-  font-size:16px; /* Prevents iOS zoom */
+  opacity:0.01;
+  font-size:16px;
   caret-color:transparent;
   cursor:pointer;
 }
@@ -148,6 +147,19 @@ input:disabled + .slider{opacity:.6;cursor:default}
 
 /* ---------- in-person sale ---------- */
 .sale-intro{font-size:.8rem;color:var(--mute);margin:-4px 0 14px;line-height:1.4}
+/* Note shown only while the store is CLOSED, so it's clear sales still work */
+.sale-store-note{
+  margin:-4px 0 14px;
+  padding:9px 12px;
+  border-radius:10px;
+  background:color-mix(in srgb,var(--err) 12%,var(--card));
+  border:1px solid color-mix(in srgb,var(--err) 40%,var(--line));
+  color:var(--err);
+  font-size:.78rem;
+  font-weight:800;
+  text-align:center;
+  line-height:1.35;
+}
 .sale-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
 .sale-row:first-child{padding-top:4px}
 .sale-row:last-child{border-bottom:0}
@@ -232,7 +244,7 @@ input:disabled + .slider{opacity:.6;cursor:default}
 button:focus-visible,
 input:focus-visible,
 .switch input:focus-visible + .slider{outline:2px solid var(--ink);outline-offset:3px}
-#pin:focus-visible { outline: none; } /* handled by .pin-container:focus-within */
+#pin:focus-visible { outline: none; }
 
 #splash{
   position:fixed;inset:0;z-index:100;background:var(--bg);
@@ -324,7 +336,7 @@ input:focus-visible,
 /* ---------- small-screen tuning ---------- */
 @media (max-width:420px){
   body{
-    padding:16px 14px; /* fallback */
+    padding:16px 14px;
     padding:
       calc(16px + env(safe-area-inset-top, 0px))
       calc(14px + env(safe-area-inset-right, 0px))
@@ -379,7 +391,6 @@ input:focus-visible,
 
   <div id="loginView" class="card">
     <label for="pin">Enter PIN</label>
-    <!-- Custom PIN UI -->
     <div class="pin-container" id="pinContainer">
       <input type="password" id="pin" inputmode="numeric" pattern="[0-9]*" maxlength="6"
              autocomplete="off" spellcheck="false" aria-label="Admin PIN">
@@ -397,12 +408,10 @@ input:focus-visible,
 
   <div id="dashView" class="hide">
 
-    <!-- log out — top right -->
     <div class="top-bar no-reveal">
       <button id="logoutBtn" type="button">Log Out</button>
     </div>
 
-    <!-- 1 · store status + sold-out days -->
     <div class="card" id="statusCard">
       <div class="status-block">
         <div class="toggle-row">
@@ -430,10 +439,10 @@ input:focus-visible,
       </div>
     </div>
 
-    <!-- 2 · in-person sale -->
     <div class="card" id="saleCard">
       <label>Record In-Person Sale</label>
       <p class="sale-intro">Log cups you sold directly (market, walk-in, DM). They count against stock everywhere — the customer site and this dashboard.</p>
+      <p class="sale-store-note" id="saleStoreNote" hidden>Customer site is paused. In-person sales below still work.</p>
 
       <div id="saleRows"></div>
 
@@ -456,7 +465,6 @@ input:focus-visible,
       <div id="saleMsg" class="msg" role="status" aria-live="polite"></div>
     </div>
 
-    <!-- 3 · flavours & stock -->
     <div class="card">
       <label>Flavours &amp; Stock</label>
       <div id="flavorRows"></div>
@@ -470,7 +478,6 @@ input:focus-visible,
     <div id="dashMsg" class="msg" role="status" aria-live="polite"></div>
     <p class="session-note">Session ends after 30 minutes of inactivity.</p>
 
-    <!-- save — sticks bottom-right inside the column -->
     <div class="save-bar no-reveal">
       <button id="saveBtn" type="button">Save Changes</button>
     </div>
@@ -523,6 +530,7 @@ const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)")
 
 let pin = "";
 let isSaving = false;
+let isLoggingIn = false;
 
 const orderedCounts = {};
 FLAVORS.forEach(f => orderedCounts[f] = 0);
@@ -549,10 +557,9 @@ pinInput.addEventListener("input", e => {
   if (e.target.value !== cleaned) e.target.value = cleaned;
   updatePinDots();
 
-  // Auto-submit when 6 digits are entered
   if (cleaned.length === 6) {
-    pinInput.blur(); // Hide the keyboard
-    setTimeout(handleLogin, 150); // Short delay so the user sees the last dot fill
+    pinInput.blur();
+    setTimeout(handleLogin, 150);
   }
 });
 
@@ -816,12 +823,13 @@ async function playError(el, text) {
    Login
    ================================================================ */
 async function handleLogin() {
+  if (isLoggingIn) return;
   const enteredPin = pinInput.value.trim();
   const msg = $("#loginMsg");
-  
-  // Only attempt login if length is exactly 6
+
   if (!enteredPin || enteredPin.length !== 6) return;
-  
+
+  isLoggingIn = true;
   msg.textContent = "";
   msg.classList.remove("err", "ok");
   document.body.style.overflow = "hidden";
@@ -852,18 +860,17 @@ async function handleLogin() {
     await playError(authing, errorMsg);
     await showOverlay(authing, false);
     document.body.style.overflow = "";
-    
-    // Reset the input and dots on failure
+
     pinInput.value = "";
     updatePinDots();
-    
+
     msg.classList.add("err");
     msg.textContent = errorMsg;
     await sleep(TIMING.failedLoginDelay);
-    
-    // Refocus so they can try again immediately
-    pinInput.focus();
+
+    try { pinInput.focus(); } catch(_) {}
   }
+  isLoggingIn = false;
 }
 
 pinInput.addEventListener("keydown", e => {
@@ -935,11 +942,10 @@ function showLogin(message = "") {
   $("#dashView").classList.add("hide");
   const lv = $("#loginView");
   lv.classList.remove("hide", "reveal", "in");
-  
-  // Reset the PIN UI
+
   pinInput.value = "";
   updatePinDots();
-  
+
   const msg = $("#loginMsg");
   msg.classList.remove("ok");
   msg.classList.add("err");
@@ -1374,12 +1380,30 @@ function applySettings(d) {
     else if (old.available !== undefined) baked = Number(old.available);
     else                                  baked = DEFAULT_PRODUCED;
 
+    const safeBaked = Number.isFinite(baked)
+      ? Math.max(0, Math.min(MAX_STOCK, Math.floor(baked)))
+      : DEFAULT_PRODUCED;
+
     const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
     if (inp) {
-      inp.value = String(Number.isFinite(baked) ? Math.max(0, Math.min(MAX_STOCK, Math.floor(baked))) : DEFAULT_PRODUCED);
+      inp.value = String(safeBaked);
     }
 
-    orderedCounts[name] = Number(info.ordered) || 0;
+    // Prefer the sheet's explicit "ordered" count. If it's missing, fall back
+    // to the backend's own "remaining" (so the in-person sale cap stays accurate
+    // even when store status bookkeeping gets out of sync).
+    let ordered;
+    if (info.ordered !== undefined) {
+      ordered = Number(info.ordered) || 0;
+    } else {
+      const remNum = Number(info.remaining);
+      if (Number.isFinite(remNum)) {
+        ordered = Math.max(0, safeBaked - Math.max(0, Math.floor(remNum)));
+      } else {
+        ordered = 0;
+      }
+    }
+    orderedCounts[name] = ordered;
     renderLeft(name);
   });
 
@@ -1416,7 +1440,24 @@ async function refreshCounts() {
     writeCache(d);
     FLAVORS.forEach(name => {
       const info = d.flavors[name] || {};
-      orderedCounts[name] = Number(info.ordered) || 0;
+
+      // Match applySettings(): prefer the explicit "ordered" count; only
+      // derive from "remaining" when "ordered" isn't provided.
+      const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
+      const bakedNum = inp ? parseInt(inp.value, 10) : NaN;
+
+      let ordered;
+      if (info.ordered !== undefined) {
+        ordered = Number(info.ordered) || 0;
+      } else {
+        const remNum = Number(info.remaining);
+        if (Number.isFinite(remNum) && Number.isFinite(bakedNum)) {
+          ordered = Math.max(0, Math.floor(bakedNum) - Math.max(0, Math.floor(remNum)));
+        } else {
+          ordered = 0;
+        }
+      }
+      orderedCounts[name] = ordered;
       renderLeft(name);
     });
     renderSaleForm();
@@ -1444,6 +1485,11 @@ function updateStatusText() {
   el.style.color = open ? "var(--ok)" : "var(--err)";
   const card = $("#statusCard");
   if (card) card.classList.toggle("is-closed", !open);
+
+  // Closing the store only pauses the customer site — in-person sales
+  // in this dashboard keep working. Show a clear note while it's paused.
+  const note = $("#saleStoreNote");
+  if (note) note.hidden = open;
 }
 
 /* ================================================================
