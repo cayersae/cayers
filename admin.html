@@ -43,8 +43,48 @@ h1{font:400 2rem/1 "Abril Fatface",Georgia,serif;margin:0 0 20px;text-align:cent
 .card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
 label{font-weight:800;display:block;margin-bottom:12px;font-size:0.95rem}
 #loginView label{text-align:center}
-input[type="password"]{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;margin-bottom:16px;text-align:center;letter-spacing:4px;font-size:1.2rem}
-button{width:100%;padding:16px;border-radius:14px;border:0;background:var(--berry);color:var(--bg);font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer;touch-action:manipulation}
+
+/* ---------- custom PIN input ---------- */
+.pin-container{position:relative;margin-bottom:16px;cursor:pointer}
+.pin-dots{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  padding:16px;
+  background:var(--bg);
+  border:1.5px solid var(--line);
+  border-radius:12px;
+  transition:border-color .25s ease;
+}
+.pin-container:focus-within .pin-dots{
+  border-color:var(--berry);
+}
+.pin-dot{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:2px solid var(--line);
+  background:transparent;
+  transition:background-color .2s ease, border-color .2s ease, transform .1s ease;
+}
+.pin-dot.filled{
+  background:var(--ink);
+  border-color:var(--ink);
+  transform:scale(1.15);
+}
+/* The real input is invisible but covers the dots so tapping anywhere works */
+#pin{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0.01; 
+  font-size:16px; /* Prevents iOS zoom */
+  caret-color:transparent;
+  cursor:pointer;
+}
+
+button{width:100%;padding:16px;border-radius:14px;border:0;background:var(--berry);color:var(--bg);font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer;touch-action:manipulation;transition:opacity .2s ease}
 button:disabled{opacity:0.5;cursor:default}
 .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
 .toggle-row:last-child{border:0;padding-bottom:0}
@@ -184,11 +224,9 @@ input:disabled + .slider{opacity:.6;cursor:default}
 .session-note{text-align:center;color:var(--mute);font-size:.8rem;margin:0 0 16px}
 
 button:focus-visible,
-input[type="password"]:focus-visible,
-input[type="number"]:focus-visible,
-input[type="text"]:focus-visible,
-input[type="date"]:focus-visible,
+input:focus-visible,
 .switch input:focus-visible + .slider{outline:2px solid var(--ink);outline-offset:3px}
+#pin:focus-visible { outline: none; } /* handled by .pin-container:focus-within */
 
 #splash{
   position:fixed;inset:0;z-index:100;background:var(--bg);
@@ -335,9 +373,20 @@ input[type="date"]:focus-visible,
 
   <div id="loginView" class="card">
     <label for="pin">Enter PIN</label>
-    <input type="password" id="pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
-           placeholder="••••••" autocomplete="off" spellcheck="false" aria-label="Admin PIN">
-    <button id="loginBtn" type="button">Authorise</button>
+    <!-- Custom PIN UI -->
+    <div class="pin-container" id="pinContainer">
+      <input type="password" id="pin" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             autocomplete="off" spellcheck="false" aria-label="Admin PIN">
+      <div class="pin-dots">
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+      </div>
+    </div>
+    <button id="loginBtn" type="button" disabled>Authorise</button>
     <div id="loginMsg" class="msg err" role="status" aria-live="polite"></div>
   </div>
 
@@ -475,6 +524,35 @@ FLAVORS.forEach(f => orderedCounts[f] = 0);
 
 const saleQty = {};
 FLAVORS.forEach(f => saleQty[f] = 0);
+
+/* ================================================================
+   Custom PIN UI Logic
+   ================================================================ */
+const pinInput = $("#pin");
+const pinDots = $$(".pin-dot");
+const loginBtn = $("#loginBtn");
+
+function updatePinDots() {
+  const val = pinInput.value;
+  pinDots.forEach((dot, i) => {
+    if (i < val.length) dot.classList.add("filled");
+    else dot.classList.remove("filled");
+  });
+  // Only enable the button if exactly 6 digits are entered
+  loginBtn.disabled = val.length !== 6;
+}
+
+pinInput.addEventListener("input", e => {
+  const cleaned = e.target.value.replace(/\D/g, "").slice(0, 6);
+  if (e.target.value !== cleaned) e.target.value = cleaned;
+  updatePinDots();
+
+  // Auto-submit when 6 digits are entered
+  if (cleaned.length === 6) {
+    pinInput.blur(); // Hide the keyboard
+    setTimeout(handleLogin, 150); // Short delay so the user sees the last dot fill
+  }
+});
 
 /* ================================================================
    API helpers
@@ -736,8 +814,8 @@ async function playError(el, text) {
    Login
    ================================================================ */
 async function handleLogin() {
-  const enteredPin = $("#pin").value.trim();
-  const btn = $("#loginBtn");
+  const enteredPin = pinInput.value.trim();
+  const btn = loginBtn;
   const msg = $("#loginMsg");
   if (!enteredPin || btn.disabled) return;
   btn.disabled = true;
@@ -771,6 +849,11 @@ async function handleLogin() {
     await playError(authing, errorMsg);
     await showOverlay(authing, false);
     document.body.style.overflow = "";
+    
+    // Reset the input and dots on failure
+    pinInput.value = "";
+    updatePinDots();
+    
     msg.classList.add("err");
     msg.textContent = errorMsg;
     await sleep(TIMING.failedLoginDelay);
@@ -778,13 +861,9 @@ async function handleLogin() {
   }
 }
 
-$("#loginBtn").addEventListener("click", handleLogin);
-$("#pin").addEventListener("keydown", e => {
+loginBtn.addEventListener("click", handleLogin);
+pinInput.addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
-});
-$("#pin").addEventListener("input", e => {
-  const cleaned = e.target.value.replace(/\D/g, "").slice(0, 6);
-  if (e.target.value !== cleaned) e.target.value = cleaned;
 });
 
 /* ================================================================
@@ -852,8 +931,11 @@ function showLogin(message = "") {
   $("#dashView").classList.add("hide");
   const lv = $("#loginView");
   lv.classList.remove("hide", "reveal", "in");
-  $("#pin").value = "";
-  $("#loginBtn").disabled = false;
+  
+  // Reset the PIN UI
+  pinInput.value = "";
+  updatePinDots();
+  
   const msg = $("#loginMsg");
   msg.classList.remove("ok");
   msg.classList.add("err");
