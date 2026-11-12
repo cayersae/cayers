@@ -18,6 +18,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito","Sego
 h1{font:400 2rem/1 "Abril Fatface",Georgia,serif;margin:0 0 20px;text-align:center;color:var(--ink)}
 .card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
 label{font-weight:800;display:block;margin-bottom:12px;font-size:0.95rem}
+#loginView label{text-align:center}
 input[type="password"]{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;margin-bottom:16px;text-align:center;letter-spacing:4px;font-size:1.2rem}
 button{width:100%;padding:16px;border-radius:14px;border:0;background:var(--berry);color:var(--bg);font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer}
 button:disabled{opacity:0.5;cursor:default}
@@ -35,6 +36,8 @@ input:disabled + .slider{opacity:.6;cursor:default}
 .msg{text-align:center;font-weight:700;margin-top:16px;min-height:24px}
 .msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
 #dashView.busy{pointer-events:none}
+#logoutBtn{background:transparent;color:var(--mute);border:1.5px solid var(--line);margin-bottom:12px}
+.session-note{text-align:center;color:var(--mute);font-size:.8rem;margin:0 0 16px}
 
 /* focus-visible */
 button:focus-visible,
@@ -71,27 +74,27 @@ input[type="password"]:focus-visible,
 .reveal.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s)}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1}.reveal.in{animation:none}}
 
-/* ---------- saving overlay ---------- */
-#saving{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
-#saving.gone{opacity:0;pointer-events:none}
-#saving.hide{display:none}
-#saving .splash-logo{transition:opacity .45s ease,transform .45s ease}
-#saving .dots,#saving .note{transition:opacity .3s ease}
+/* ---------- shared overlay (saving + authing) ---------- */
+.overlay{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
+.overlay.gone{opacity:0;pointer-events:none}
+.overlay.hide{display:none}
+.overlay .splash-logo{transition:opacity .45s ease,transform .45s ease}
+.overlay .dots,.overlay .note{transition:opacity .3s ease}
 .okwrap{position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;opacity:0;transform:scale(.45);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.8,.3,1.2);pointer-events:none}
 .okwrap svg{width:100%;height:100%;display:block;overflow:visible}
 .okwrap .ring{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round;stroke-dasharray:1 2;stroke-dashoffset:1.06;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .7s ease}
 .okwrap .tick{fill:none;stroke:var(--ink);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 2;stroke-dashoffset:1.06;transition:stroke-dashoffset .55s ease}
-#saving.s-circle .splash-logo{opacity:0;transform:scale(.35)}
-#saving.s-circle .dots,#saving.s-circle .note{opacity:0}
-#saving.s-circle .okwrap{opacity:1;transform:scale(1)}
-#saving.s-circle .ring{stroke-dashoffset:0}
-#saving.s-tick .tick{stroke-dashoffset:0}
+.overlay.s-circle .splash-logo{opacity:0;transform:scale(.35)}
+.overlay.s-circle .dots,.overlay.s-circle .note{opacity:0}
+.overlay.s-circle .okwrap{opacity:1;transform:scale(1)}
+.overlay.s-circle .ring{stroke-dashoffset:0}
+.overlay.s-tick .tick{stroke-dashoffset:0}
 .oktext{position:absolute;left:0;right:0;top:50%;margin-top:88px;text-align:center;font:400 1.7rem/1.1 "Abril Fatface",Georgia,serif;color:var(--ink);opacity:0;transition:opacity .5s ease;pointer-events:none}
-#saving.s-tick .oktext{opacity:1}
-#saving.s-undo .ring{stroke-dashoffset:1.06;transition:stroke-dashoffset .7s ease .25s}
-#saving.s-undo .okwrap{opacity:0;transition:opacity 1.2s ease .1s}
-#saving.s-undo .oktext{opacity:0;transition:opacity 1.2s ease}
-@media(prefers-reduced-motion:reduce){#splash,#saving{transition:none}.dots i{animation:none;opacity:.8}#splash .splash-logo span,#splash .dots,#splash .note{animation:none;opacity:1;transform:none}}
+.overlay.s-tick .oktext{opacity:1}
+.overlay.s-undo .ring{stroke-dashoffset:1.06;transition:stroke-dashoffset .7s ease .25s}
+.overlay.s-undo .okwrap{opacity:0;transition:opacity 1.2s ease .1s}
+.overlay.s-undo .oktext{opacity:0;transition:opacity 1.2s ease}
+@media(prefers-reduced-motion:reduce){#splash,.overlay{transition:none}.dots i{animation:none;opacity:.8}#splash .splash-logo span,#splash .dots,#splash .note{animation:none;opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -106,7 +109,7 @@ input[type="password"]:focus-visible,
 </div>
 
 <!-- SAVING OVERLAY -->
-<div id="saving" class="hide" role="status" aria-live="polite">
+<div id="saving" class="overlay hide" role="status" aria-live="polite">
   <div class="splash-inner">
     <div class="splash-logo">Cayers</div>
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -116,15 +119,26 @@ input[type="password"]:focus-visible,
   <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
 </div>
 
+<!-- AUTHING OVERLAY -->
+<div id="authing" class="overlay hide" role="status" aria-live="polite">
+  <div class="splash-inner">
+    <div class="splash-logo">Cayers</div>
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="note" style="margin-top:18px;text-align:center;color:var(--mute);font-size:.9rem">Logging in&hellip;</p>
+  </div>
+  <div class="oktext" aria-hidden="true">Logged In</div>
+  <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
+</div>
+
 <div class="wrap">
   <h1><span id="target-logo">Cayers</span><span id="admin-word" style="opacity:0"> Admin</span></h1>
 
   <!-- LOGIN SCREEN -->
   <div id="loginView" class="card">
     <label for="pin">Enter PIN</label>
-    <input type="password" id="pin" inputmode="numeric" placeholder="••••"
-           autocomplete="off" spellcheck="false" maxlength="12" aria-label="Admin PIN">
-    <button id="loginBtn">Unlock Dashboard</button>
+    <input type="password" id="pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+           placeholder="••••••" autocomplete="off" spellcheck="false" aria-label="Admin PIN">
+    <button id="loginBtn">Authorise</button>
     <div id="loginMsg" class="msg err" role="status" aria-live="polite"></div>
   </div>
 
@@ -150,7 +164,9 @@ input[type="password"]:focus-visible,
       <div class="toggle-row"><span id="day-fri">Friday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Friday" aria-labelledby="day-fri"><span class="slider" aria-hidden="true"></span></label></div>
     </div>
 
-    <button id="saveBtn" style="background:var(--cocoa);color:var(--bg);margin-bottom:24px">Save Changes</button>
+    <button id="saveBtn" style="background:var(--cocoa);color:var(--bg);margin-bottom:12px">Save Changes</button>
+    <button id="logoutBtn">Log Out</button>
+    <p class="session-note">Session ends after 30 minutes of inactivity.</p>
     <div id="dashMsg" class="msg" role="status" aria-live="polite"></div>
   </div>
 </div>
@@ -165,15 +181,18 @@ const TIMING = {
   splashFlipMs: 850,
   splashFlipCleanup: 950,
   splashAdminDelay: 550,
-  saveMin: 800,
-  saveFadeMs: 600,
-  saveFadeSlowMs: 1000,
+  overlayMinVisible: 800,
+  overlayFadeMs: 600,
+  overlayFadeSlowMs: 1000,
   successCircle: 400,
   successTick: 700,
   successUndo: 500,
   revealStep: 0.07,
   failedLoginDelay: 800
 };
+
+const SESSION_MAX_MS  = 8 * 60 * 60 * 1000; // 8h hard cap
+const SESSION_IDLE_MS = 30 * 60 * 1000;     // 30min inactivity
 
 const $  = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
@@ -203,7 +222,46 @@ async function getSettings() {
 }
 
 /* ================================================================
-   Reveal helper — same "riseIn" cascade
+   Session storage — idle + absolute timeout
+   ================================================================ */
+function saveSession(value) {
+  const now = Date.now();
+  sessionStorage.setItem("cayers_pin", value);
+  sessionStorage.setItem("cayers_exp", String(now + SESSION_MAX_MS));
+  sessionStorage.setItem("cayers_last", String(now));
+}
+
+function touchSession() {
+  if (sessionStorage.getItem("cayers_pin")) {
+    sessionStorage.setItem("cayers_last", String(Date.now()));
+  }
+}
+
+function sessionValid() {
+  const p   = sessionStorage.getItem("cayers_pin");
+  const exp = Number(sessionStorage.getItem("cayers_exp"));
+  const last = Number(sessionStorage.getItem("cayers_last"));
+  if (!p || !exp || !last) return false;
+  if (!isFinite(exp) || !isFinite(last)) return false;
+  const now = Date.now();
+  if (now > exp) return false;
+  if (now - last > SESSION_IDLE_MS) return false;
+  return true;
+}
+
+function clearSession() {
+  sessionStorage.removeItem("cayers_pin");
+  sessionStorage.removeItem("cayers_exp");
+  sessionStorage.removeItem("cayers_last");
+  pin = "";
+}
+
+["pointerdown", "keydown", "touchstart"].forEach(ev =>
+  document.addEventListener(ev, touchSession, { passive: true })
+);
+
+/* ================================================================
+   Reveal helper
    ================================================================ */
 function revealEls(els) {
   els = els.filter(el => el && !el.classList.contains("hide") && !el.classList.contains("reveal"));
@@ -222,7 +280,6 @@ function revealEls(els) {
     void document.body.offsetWidth;
     els.forEach(el => el.classList.add("in"));
   } catch {
-    // Hard fallback: never leave content invisible.
     els.forEach(el => el.classList.add("reveal", "in"));
   }
 }
@@ -271,7 +328,6 @@ async function hideSplash() {
     return;
   }
 
-  /* ---- measure both logos ---- */
   const sRect = splashLogo.getBoundingClientRect();
   const tRect = targetLogo.getBoundingClientRect();
   const scaleX = sRect.width / tRect.width;
@@ -279,7 +335,6 @@ async function hideSplash() {
   const dx = (sRect.left + sRect.width / 2) - (tRect.left + tRect.width / 2);
   const dy = (sRect.top + sRect.height / 2) - (tRect.top + tRect.height / 2);
 
-  /* ---- instant handoff ---- */
   splashLogo.style.opacity = "0";
   targetLogo.style.position = "relative";
   targetLogo.style.zIndex = "50";
@@ -288,7 +343,6 @@ async function hideSplash() {
   targetLogo.style.willChange = "transform";
   void targetLogo.offsetWidth;
 
-  /* ---- fade splash chrome ---- */
   s.style.transition = "background-color .6s ease";
   s.style.backgroundColor = "transparent";
   s.style.pointerEvents = "none";
@@ -297,7 +351,6 @@ async function hideSplash() {
 
   revealCurrentView();
 
-  /* ---- glide real logo home ---- */
   targetLogo.style.transition = `transform ${TIMING.splashFlipMs}ms cubic-bezier(.22,1,.36,1)`;
   targetLogo.style.transform = "translate(0px, 0px) scale(1, 1)";
 
@@ -324,79 +377,52 @@ window.addEventListener("load", hideSplash);
 setTimeout(hideSplash, TIMING.splashFallback);
 
 /* ================================================================
-   Saving overlay (returns a promise that resolves after fade-out)
+   Shared overlay helper — used by both #saving and #authing
    ================================================================ */
-function showSaving(on, opts = {}) {
-  const s = $("#saving");
-  if (!s) return Promise.resolve();
-  const { slow = false } = opts;
+function showOverlay(el, on, opts = {}) {
+  if (!el) return Promise.resolve();
+  const { slow = false, note } = opts;
 
   if (on) {
-    // Reset any leftover success state from a previous save
-    const note = s.querySelector(".note");
-    if (note) note.textContent = "Saving your changes…";
-    s.classList.remove("s-circle", "s-tick", "s-undo");
-    s.style.transition = "none";
-    s.classList.remove("hide");
-    s.classList.add("gone");
-    void s.offsetWidth;
-    s.style.transition = "opacity .7s ease";
-    s.classList.remove("gone");
+    const noteEl = el.querySelector(".note");
+    if (noteEl && note) noteEl.textContent = note;
+    el.classList.remove("s-circle", "s-tick", "s-undo");
+    el.style.transition = "none";
+    el.classList.remove("hide");
+    el.classList.add("gone");
+    void el.offsetWidth;
+    el.style.transition = "opacity .7s ease";
+    el.classList.remove("gone");
     return Promise.resolve();
   }
 
-  const ms = slow ? TIMING.saveFadeSlowMs : TIMING.saveFadeMs;
+  const ms = slow ? TIMING.overlayFadeSlowMs : TIMING.overlayFadeMs;
   return new Promise(resolve => {
-    s.style.transition = `opacity ${ms}ms ease`;
-    s.classList.add("gone");
+    el.style.transition = `opacity ${ms}ms ease`;
+    el.classList.add("gone");
     setTimeout(() => {
-      if (s.classList.contains("gone")) {
-        s.classList.add("hide");
-        s.classList.remove("s-circle", "s-tick", "s-undo");
+      if (el.classList.contains("gone")) {
+        el.classList.add("hide");
+        el.classList.remove("s-circle", "s-tick", "s-undo");
       }
       resolve();
     }, ms);
   });
 }
 
-async function playSuccess() {
-  const s = $("#saving");
-  if (!s) return;
+async function playSuccess(el, text) {
+  if (!el) return;
   if (reduceMotion()) { await sleep(300); return; }
-  const note = s.querySelector(".note");
-  if (note) note.textContent = "Changes saved";
-  s.classList.add("s-circle"); await sleep(TIMING.successCircle);
-  s.classList.add("s-tick");   await sleep(TIMING.successTick);
-  s.classList.remove("s-tick");
-  s.classList.add("s-undo");   await sleep(TIMING.successUndo);
+  const note = el.querySelector(".note");
+  if (note) note.textContent = text;
+  el.classList.add("s-circle"); await sleep(TIMING.successCircle);
+  el.classList.add("s-tick");   await sleep(TIMING.successTick);
+  el.classList.remove("s-tick");
+  el.classList.add("s-undo");   await sleep(TIMING.successUndo);
 }
 
 /* ================================================================
-   Boot — restore session + background validation
-   ================================================================ */
-async function validateSession() {
-  const saved = sessionStorage.getItem("cayers_pin");
-  if (!saved) return;
-  try {
-    const d = await postJSON({ action: "admin", type: "check", pin: saved });
-    if (!d.ok) {
-      sessionStorage.removeItem("cayers_pin");
-      pin = "";
-      showLogin("Session expired. Please log in again.");
-    }
-  } catch {
-    // network failure — keep session so the user can retry
-  }
-}
-
-if (sessionStorage.getItem("cayers_pin")) {
-  pin = sessionStorage.getItem("cayers_pin");
-  showDashboard();
-  validateSession();
-}
-
-/* ================================================================
-   Login
+   Login — Authorise → overlay → Logged In
    ================================================================ */
 async function handleLogin() {
   const enteredPin = $("#pin").value.trim();
@@ -405,30 +431,48 @@ async function handleLogin() {
   if (!enteredPin || btn.disabled) return;
 
   btn.disabled = true;
-  msg.classList.remove("ok");
-  msg.classList.add("err");
-  msg.textContent = "Checking…";
+  msg.textContent = "";
+  msg.classList.remove("err", "ok");
+  document.body.style.overflow = "hidden";
+
+  const authing = $("#authing");
+  const startedAt = Date.now();
+
+  await showOverlay(authing, true, { note: "Logging in…" });
+  await sleep(100); // let overlay paint
 
   let success = false;
+  let errorMsg = "";
+
   try {
     const d = await postJSON({ action: "admin", type: "check", pin: enteredPin });
     if (d.ok) {
-      pin = enteredPin;
-      sessionStorage.setItem("cayers_pin", pin);
-      msg.textContent = "";
       success = true;
+      pin = enteredPin;
+      saveSession(pin);
     } else {
-      msg.textContent = "Wrong PIN";
+      errorMsg = "Wrong PIN";
     }
   } catch {
-    msg.textContent = "Connection error.";
+    errorMsg = "Connection error.";
   }
 
+  // Keep the loading state visible long enough to feel intentional
+  const remaining = Math.max(0, TIMING.overlayMinVisible - (Date.now() - startedAt));
+  if (remaining) await sleep(remaining);
+
   if (success) {
+    await playSuccess(authing, "Logged In");
+    const fadePromise = showOverlay(authing, false, { slow: true });
     await showDashboard();
+    await fadePromise;
+    document.body.style.overflow = "";
   } else {
-    // small delay to slow brute-force
-    await sleep(TIMING.failedLoginDelay);
+    await showOverlay(authing, false);
+    document.body.style.overflow = "";
+    msg.classList.add("err");
+    msg.textContent = errorMsg;
+    await sleep(TIMING.failedLoginDelay); // slow brute-force
     btn.disabled = false;
   }
 }
@@ -436,6 +480,18 @@ async function handleLogin() {
 $("#loginBtn").addEventListener("click", handleLogin);
 $("#pin").addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
+});
+$("#pin").addEventListener("input", e => {
+  const cleaned = e.target.value.replace(/\D/g, "").slice(0, 6);
+  if (e.target.value !== cleaned) e.target.value = cleaned;
+});
+
+/* ================================================================
+   Log out
+   ================================================================ */
+$("#logoutBtn").addEventListener("click", () => {
+  clearSession();
+  showLogin("Logged out.");
 });
 
 /* ================================================================
@@ -446,6 +502,9 @@ async function showDashboard() {
   const dash = $("#dashView");
   dash.classList.remove("hide");
   dash.classList.add("busy");
+
+  // Clear stale reveal classes so re-login animates again
+  $$("#dashView > *").forEach(el => el.classList.remove("reveal", "in"));
 
   const loadPromise = loadSettings();
 
@@ -470,7 +529,10 @@ function showLogin(message = "") {
   msg.classList.add("err");
   msg.textContent = message;
 
-  requestAnimationFrame(() => revealEls([lv]));
+  const splash = document.getElementById("splash");
+  if (!splash || splash.dataset.done) {
+    requestAnimationFrame(() => revealEls([lv]));
+  }
 }
 
 /* ================================================================
@@ -500,7 +562,7 @@ async function loadSettings() {
 }
 
 /* ================================================================
-   Store status toggle
+   Status toggle
    ================================================================ */
 $("#storeStatus").addEventListener("change", updateStatusText);
 function updateStatusText() {
@@ -514,13 +576,19 @@ function updateStatusText() {
    Save
    ================================================================ */
 function setDashInputsDisabled(disabled) {
-  $$("#dashView input, #dashView button").forEach(el => el.disabled = disabled);
+  $$("#dashView input, #dashView button:not(#logoutBtn)").forEach(el => el.disabled = disabled);
 }
 
 $("#saveBtn").addEventListener("click", async () => {
   if (isSaving) return;
-  isSaving = true;
 
+  if (!sessionValid()) {
+    clearSession();
+    showLogin("Session expired. Please log in again.");
+    return;
+  }
+
+  isSaving = true;
   const btn = $("#saveBtn");
   btn.disabled = true;
   setDashInputsDisabled(true);
@@ -532,10 +600,13 @@ $("#saveBtn").addEventListener("click", async () => {
     const soldOutDays = Array.from($$(".soldOutDay:checked")).map(cb => cb.value);
     const startedAt = Date.now();
 
-    showSaving(true);
-    await sleep(100); // let the overlay paint
+    const saving = $("#saving");
+    await showOverlay(saving, true, { note: "Saving your changes…" });
+    await sleep(100);
 
     let succeeded = false;
+    let sessionExpired = false;
+
     try {
       const d = await postJSON({
         action: "admin", type: "update", pin,
@@ -544,22 +615,31 @@ $("#saveBtn").addEventListener("click", async () => {
       if (d.ok) {
         succeeded = true;
       } else {
-        showDashMsg("Error saving: " + (d.error || "unknown error"), "err");
+        const errText = String(d.error || "").toLowerCase();
+        if (/pin|auth|session|expired/.test(errText)) {
+          sessionExpired = true;
+        } else {
+          showDashMsg("Error saving: " + (d.error || "unknown error"), "err");
+        }
       }
     } catch {
       showDashMsg("Connection error.", "err");
     }
 
-    // keep the "Saving..." state visible long enough to feel intentional
-    const remaining = Math.max(0, TIMING.saveMin - (Date.now() - startedAt));
+    const remaining = Math.max(0, TIMING.overlayMinVisible - (Date.now() - startedAt));
     if (remaining) await sleep(remaining);
 
     if (succeeded) {
-      await playSuccess();
-      await showSaving(false, { slow: true });
+      await playSuccess(saving, "Changes saved");
+      await showOverlay(saving, false, { slow: true });
       showDashMsg("Saved successfully!", "ok");
     } else {
-      await showSaving(false);
+      await showOverlay(saving, false);
+    }
+
+    if (sessionExpired) {
+      clearSession();
+      showLogin("Session expired. Please log in again.");
     }
   } finally {
     document.body.style.overflow = "";
@@ -578,6 +658,52 @@ function showDashMsg(text, type) {
   m.classList.remove("err", "ok");
   if (type) m.classList.add(type);
 }
+
+/* ================================================================
+   Boot — restore session with validity checks
+   ================================================================ */
+(function bootSession() {
+  const raw = sessionStorage.getItem("cayers_pin");
+  if (!raw) return;
+
+  if (!sessionValid()) {
+    clearSession();
+    $("#loginMsg").textContent = "Session expired. Please log in again.";
+    return;
+  }
+
+  pin = raw;
+  showDashboard();
+  validateSession();
+})();
+
+async function validateSession() {
+  if (!sessionValid()) {
+    clearSession();
+    showLogin("Session expired. Please log in again.");
+    return;
+  }
+  const stored = sessionStorage.getItem("cayers_pin");
+  try {
+    const d = await postJSON({ action: "admin", type: "check", pin: stored });
+    if (!d.ok) {
+      clearSession();
+      showLogin("Session expired. Please log in again.");
+    }
+  } catch {
+    // network failure — keep session so the user can retry
+  }
+}
+
+/* ================================================================
+   Periodic expiry check — kicks user out mid-dashboard
+   ================================================================ */
+setInterval(() => {
+  if (!$("#dashView").classList.contains("hide") && !sessionValid()) {
+    clearSession();
+    showLogin("Session expired due to inactivity.");
+  }
+}, 60 * 1000);
 </script>
 </body>
 </html>
