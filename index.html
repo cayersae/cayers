@@ -202,7 +202,16 @@ function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${
 
 function showSending(on,slow){
   const s=$("#sending");
-  if(on){ s.classList.remove("hide","gone","s-circle","s-tick","s-undo"); s.style.transition=""; return; }
+  if(on){
+    /* fade the Cayers loading screen in over the form instead of snapping it on */
+    s.classList.remove("s-circle","s-tick","s-undo");
+    s.style.transition="none";
+    s.classList.remove("hide"); s.classList.add("gone");   // display on, but fully transparent
+    void s.offsetWidth;                                     // let the browser register that start state
+    s.style.transition="opacity .7s ease";
+    s.classList.remove("gone");                             // now fade up to opaque
+    return;
+  }
   const ms=slow?1400:600;
   s.style.transition=`opacity ${ms}ms ease`;
   s.classList.add("gone");
@@ -517,7 +526,7 @@ $("#f").addEventListener("submit",async e=>{
   }
   finally{
     clearTimeout(timer);
-    const wait=Math.max(0,1000-(Date.now()-startedAt));
+    const wait=Math.max(0,(succeeded?2000:1000)-(Date.now()-startedAt));   // success: loading screen stays visible long enough to read
     if(wait) await new Promise(r=>setTimeout(r,wait));
     if(succeeded){ await playSuccess(); showSending(false,true); } else { showSending(false); }
     document.body.style.overflow="";
