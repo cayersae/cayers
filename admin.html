@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#241517">
 <title>Cayers Admin</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
@@ -17,7 +19,7 @@ h1{font:400 2rem/1 "Abril Fatface",Georgia,serif;margin:0 0 20px;text-align:cent
 .card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
 label{font-weight:800;display:block;margin-bottom:12px;font-size:0.95rem}
 input[type="password"]{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;margin-bottom:16px;text-align:center;letter-spacing:4px;font-size:1.2rem}
-button{width:100%;padding:16px;border-radius:14px;border:0;background:var(--berry);color:#fff;font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer}
+button{width:100%;padding:16px;border-radius:14px;border:0;background:var(--berry);color:var(--bg);font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer}
 button:disabled{opacity:0.5;cursor:default}
 .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
 .toggle-row:last-child{border:0;padding-bottom:0}
@@ -28,9 +30,19 @@ button:disabled{opacity:0.5;cursor:default}
 .slider:before{position:absolute;content:"";height:24px;width:24px;left:4px;bottom:4px;background-color:white;transition:.3s;border-radius:50%}
 input:checked + .slider{background-color:var(--ok)}
 input:checked + .slider:before{transform:translateX(24px)}
+input:disabled + .slider{opacity:.6;cursor:default}
 .hide{display:none!important}
 .msg{text-align:center;font-weight:700;margin-top:16px;min-height:24px}
 .msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+#dashView.busy{pointer-events:none}
+
+/* focus-visible */
+button:focus-visible,
+input[type="password"]:focus-visible,
+.switch input:focus-visible + .slider{
+  outline:2px solid var(--ink);
+  outline-offset:3px;
+}
 
 /* ---------- splash ---------- */
 #splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease}
@@ -38,14 +50,14 @@ input:checked + .slider:before{transform:translateX(24px)}
 .splash-inner{text-align:center;display:flex;flex-direction:column;align-items:center}
 .splash-logo{font:400 clamp(3rem,16vw,5rem)/.95 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em;text-align:center;will-change:transform,opacity}
 #splash .splash-logo span{display:inline-block;opacity:0;animation:spell .45s cubic-bezier(.2,.7,.3,1) forwards}
-#splash .splash-logo span:nth-child(1){animation-delay:.15s}
-#splash .splash-logo span:nth-child(2){animation-delay:.40s}
-#splash .splash-logo span:nth-child(3){animation-delay:.65s}
-#splash .splash-logo span:nth-child(4){animation-delay:.90s}
-#splash .splash-logo span:nth-child(5){animation-delay:1.15s}
-#splash .splash-logo span:nth-child(6){animation-delay:1.40s}
+#splash .splash-logo span:nth-child(1){animation-delay:.10s}
+#splash .splash-logo span:nth-child(2){animation-delay:.30s}
+#splash .splash-logo span:nth-child(3){animation-delay:.50s}
+#splash .splash-logo span:nth-child(4){animation-delay:.70s}
+#splash .splash-logo span:nth-child(5){animation-delay:.90s}
+#splash .splash-logo span:nth-child(6){animation-delay:1.10s}
 @keyframes spell{from{opacity:0;transform:translateY(8px) scale(.85)}to{opacity:1;transform:none}}
-#splash .dots,#splash .note{opacity:0;animation:fadein .5s ease 1.6s forwards}
+#splash .dots,#splash .note{opacity:0;animation:fadein .5s ease 1.30s forwards}
 @keyframes fadein{to{opacity:1}}
 .dots{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:40px;pointer-events:none;will-change:opacity}
 .dots i{width:12px;height:12px;border-radius:50%;background:var(--berry);animation:bounce 1s infinite}
@@ -109,20 +121,21 @@ input:checked + .slider:before{transform:translateX(24px)}
 
   <!-- LOGIN SCREEN -->
   <div id="loginView" class="card">
-    <label>Enter PIN</label>
-    <input type="password" id="pin" inputmode="numeric" placeholder="••••">
+    <label for="pin">Enter PIN</label>
+    <input type="password" id="pin" inputmode="numeric" placeholder="••••"
+           autocomplete="off" spellcheck="false" maxlength="12" aria-label="Admin PIN">
     <button id="loginBtn">Unlock Dashboard</button>
-    <div id="loginMsg" class="msg err"></div>
+    <div id="loginMsg" class="msg err" role="status" aria-live="polite"></div>
   </div>
 
   <!-- DASHBOARD -->
   <div id="dashView" class="hide">
     <div class="card">
       <div class="toggle-row">
-        <span>Store Status</span>
+        <span id="status-label">Store Status</span>
         <label class="switch">
-          <input type="checkbox" id="storeStatus">
-          <span class="slider"></span>
+          <input type="checkbox" id="storeStatus" aria-labelledby="status-label">
+          <span class="slider" aria-hidden="true"></span>
         </label>
       </div>
       <p id="statusText" style="text-align:center;font-weight:800;color:var(--ok);margin:10px 0 0">OPEN</p>
@@ -130,56 +143,105 @@ input:checked + .slider:before{transform:translateX(24px)}
 
     <div class="card">
       <label>Mark Days as SOLD OUT</label>
-      <div class="toggle-row"><span>Monday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Monday"><span class="slider"></span></label></div>
-      <div class="toggle-row"><span>Tuesday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Tuesday"><span class="slider"></span></label></div>
-      <div class="toggle-row"><span>Wednesday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Wednesday"><span class="slider"></span></label></div>
-      <div class="toggle-row"><span>Thursday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Thursday"><span class="slider"></span></label></div>
-      <div class="toggle-row"><span>Friday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Friday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span id="day-mon">Monday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Monday" aria-labelledby="day-mon"><span class="slider" aria-hidden="true"></span></label></div>
+      <div class="toggle-row"><span id="day-tue">Tuesday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Tuesday" aria-labelledby="day-tue"><span class="slider" aria-hidden="true"></span></label></div>
+      <div class="toggle-row"><span id="day-wed">Wednesday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Wednesday" aria-labelledby="day-wed"><span class="slider" aria-hidden="true"></span></label></div>
+      <div class="toggle-row"><span id="day-thu">Thursday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Thursday" aria-labelledby="day-thu"><span class="slider" aria-hidden="true"></span></label></div>
+      <div class="toggle-row"><span id="day-fri">Friday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Friday" aria-labelledby="day-fri"><span class="slider" aria-hidden="true"></span></label></div>
     </div>
 
     <button id="saveBtn" style="background:var(--cocoa);color:var(--bg);margin-bottom:24px">Save Changes</button>
-    <div id="dashMsg" class="msg"></div>
+    <div id="dashMsg" class="msg" role="status" aria-live="polite"></div>
   </div>
 </div>
 
 <script>
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec";
 
-const $ = s => document.querySelector(s);
+const TIMING = {
+  splashMin: 2000,
+  splashReduceMin: 500,
+  splashFallback: 6500,
+  splashFlipMs: 850,
+  splashFlipCleanup: 950,
+  splashAdminDelay: 550,
+  saveMin: 800,
+  saveFadeMs: 600,
+  saveFadeSlowMs: 1000,
+  successCircle: 400,
+  successTick: 700,
+  successUndo: 500,
+  revealStep: 0.07,
+  failedLoginDelay: 800
+};
+
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 let pin = "";
+let isSaving = false;
 
 /* ================================================================
-   Reveal helper — same "riseIn" cascade used in cayers.html
+   API helpers
    ================================================================ */
-function revealEls(els){
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  els = els.filter(el => el && !el.classList.contains("hide") && !el.classList.contains("reveal"));
-  if(!els.length) return;
-  if(reduce){ els.forEach(el => el.classList.add("reveal","in")); return; }
-  const STEP = 0.07;
-  els.forEach((el,i) => {
-    el.style.setProperty("--d",(i*STEP).toFixed(2)+"s");
-    el.classList.add("reveal");
+async function postJSON(payload) {
+  const r = await fetch(ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
   });
-  void document.body.offsetWidth;
-  els.forEach(el => el.classList.add("in"));
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
 }
 
-function revealCurrentView(){
-  if(!$("#dashView").classList.contains("hide")){
-    revealEls([...document.querySelectorAll("#dashView > *")]);
+async function getSettings() {
+  const r = await fetch(ENDPOINT + "?action=get_settings");
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+/* ================================================================
+   Reveal helper — same "riseIn" cascade
+   ================================================================ */
+function revealEls(els) {
+  els = els.filter(el => el && !el.classList.contains("hide") && !el.classList.contains("reveal"));
+  if (!els.length) return;
+
+  if (reduceMotion()) {
+    els.forEach(el => el.classList.add("reveal", "in"));
+    return;
+  }
+
+  try {
+    els.forEach((el, i) => {
+      el.style.setProperty("--d", (i * TIMING.revealStep).toFixed(2) + "s");
+      el.classList.add("reveal");
+    });
+    void document.body.offsetWidth;
+    els.forEach(el => el.classList.add("in"));
+  } catch {
+    // Hard fallback: never leave content invisible.
+    els.forEach(el => el.classList.add("reveal", "in"));
+  }
+}
+
+function revealCurrentView() {
+  if (!$("#dashView").classList.contains("hide")) {
+    revealEls([...$$("#dashView > *")]);
   } else {
-    revealEls([...document.querySelectorAll(".wrap > *")].filter(el => el.tagName !== "H1"));
+    revealEls([...$$(".wrap > *")].filter(el => el.tagName !== "H1"));
   }
 }
 
 /* ================================================================
-   Splash → header FLIP (same as cayers.html)
+   Splash → header FLIP
    ================================================================ */
 const splashShownAt = Date.now();
 
-function fadeOutNow(el, ms){
-  if(!el) return;
+function fadeOutNow(el, ms) {
+  if (!el) return;
   const cur = getComputedStyle(el).opacity;
   el.style.animation = "none";
   el.style.opacity = cur;
@@ -188,181 +250,227 @@ function fadeOutNow(el, ms){
   el.style.opacity = "0";
 }
 
-function hideSplash(){
+async function hideSplash() {
   const s = document.getElementById("splash");
-  if(!s || s.dataset.done) return;
+  if (!s || s.dataset.done) return;
   s.dataset.done = "1";
 
-  const wait = Math.max(0, 4500 - (Date.now() - splashShownAt));
+  const reduce = reduceMotion();
+  const minMs = reduce ? TIMING.splashReduceMin : TIMING.splashMin;
+  const wait = Math.max(0, minMs - (Date.now() - splashShownAt));
+  if (wait) await sleep(wait);
+
+  const adminWord = document.getElementById("admin-word");
+  const splashLogo = s.querySelector(".splash-logo");
+  const targetLogo = document.getElementById("target-logo");
+
+  if (reduce || !splashLogo || !targetLogo) {
+    s.remove();
+    if (adminWord) adminWord.style.opacity = "1";
+    revealCurrentView();
+    return;
+  }
+
+  /* ---- measure both logos ---- */
+  const sRect = splashLogo.getBoundingClientRect();
+  const tRect = targetLogo.getBoundingClientRect();
+  const scaleX = sRect.width / tRect.width;
+  const scaleY = sRect.height / tRect.height;
+  const dx = (sRect.left + sRect.width / 2) - (tRect.left + tRect.width / 2);
+  const dy = (sRect.top + sRect.height / 2) - (tRect.top + tRect.height / 2);
+
+  /* ---- instant handoff ---- */
+  splashLogo.style.opacity = "0";
+  targetLogo.style.position = "relative";
+  targetLogo.style.zIndex = "50";
+  targetLogo.style.transformOrigin = "center center";
+  targetLogo.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+  targetLogo.style.willChange = "transform";
+  void targetLogo.offsetWidth;
+
+  /* ---- fade splash chrome ---- */
+  s.style.transition = "background-color .6s ease";
+  s.style.backgroundColor = "transparent";
+  s.style.pointerEvents = "none";
+  fadeOutNow(s.querySelector(".dots"), 250);
+  fadeOutNow(s.querySelector(".note"), 250);
+
+  revealCurrentView();
+
+  /* ---- glide real logo home ---- */
+  targetLogo.style.transition = `transform ${TIMING.splashFlipMs}ms cubic-bezier(.22,1,.36,1)`;
+  targetLogo.style.transform = "translate(0px, 0px) scale(1, 1)";
+
+  if (adminWord) {
+    setTimeout(() => {
+      adminWord.style.transition = "opacity .5s ease";
+      adminWord.style.opacity = "1";
+    }, TIMING.splashAdminDelay);
+  }
 
   setTimeout(() => {
-    const splashLogo = s.querySelector(".splash-logo");
-    const targetLogo = document.getElementById("target-logo");
-    const adminWord = document.getElementById("admin-word");
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if(!splashLogo || !targetLogo || reduce){
-      s.remove();
-      if(adminWord) adminWord.style.opacity = "1";
-      revealCurrentView();
-      return;
-    }
-
-    /* ---- measure both logos ---- */
-    const sRect = splashLogo.getBoundingClientRect();
-    const tRect = targetLogo.getBoundingClientRect();
-
-    const scaleX = sRect.width  / tRect.width;
-    const scaleY = sRect.height / tRect.height;
-    const sCX = sRect.left + sRect.width  / 2;
-    const sCY = sRect.top  + sRect.height / 2;
-    const tCX = tRect.left + tRect.width  / 2;
-    const tCY = tRect.top  + tRect.height / 2;
-    const dx = sCX - tCX;
-    const dy = sCY - tCY;
-
-    /* ---- instant handoff ---- */
-    splashLogo.style.opacity = "0";
-    targetLogo.style.position = "relative";
-    targetLogo.style.zIndex = "50";
-    targetLogo.style.transformOrigin = "center center";
-    targetLogo.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
-    targetLogo.style.willChange = "transform";
-
-    void targetLogo.offsetWidth;
-
-    /* ---- fade the splash bg, dots, caption ---- */
-    s.style.transition = "background-color .6s ease";
-    s.style.backgroundColor = "transparent";
-    s.style.pointerEvents = "none";
-    fadeOutNow(s.querySelector(".dots"), 250);
-    fadeOutNow(s.querySelector(".note"), 250);
-
-    /* ---- page content fades in top → bottom underneath ---- */
-    revealCurrentView();
-
-    /* ---- glide the real logo home ---- */
-    targetLogo.style.transition = "transform .85s cubic-bezier(.22,1,.36,1)";
-    targetLogo.style.transform = "translate(0px, 0px) scale(1, 1)";
-
-    /* ---- "Admin" fades in near the end of the glide ---- */
-    if(adminWord){
-      setTimeout(() => {
-        adminWord.style.transition = "opacity .5s ease";
-        adminWord.style.opacity = "1";
-      }, 600);
-    }
-
-    /* ---- cleanup ---- */
-    setTimeout(() => {
-      targetLogo.style.transition = "";
-      targetLogo.style.transform = "";
-      targetLogo.style.transformOrigin = "";
-      targetLogo.style.willChange = "";
-      targetLogo.style.position = "";
-      targetLogo.style.zIndex = "";
-      s.remove();
-    }, 900);
-  }, wait);
+    targetLogo.style.transition = "";
+    targetLogo.style.transform = "";
+    targetLogo.style.transformOrigin = "";
+    targetLogo.style.willChange = "";
+    targetLogo.style.position = "";
+    targetLogo.style.zIndex = "";
+    s.remove();
+  }, TIMING.splashFlipCleanup);
 }
 
-if(document.fonts && document.fonts.ready) document.fonts.ready.then(hideSplash);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(hideSplash);
 window.addEventListener("load", hideSplash);
-setTimeout(hideSplash, 6500);
+setTimeout(hideSplash, TIMING.splashFallback);
 
 /* ================================================================
-   Saving overlay helpers (circle + tick success animation)
+   Saving overlay (returns a promise that resolves after fade-out)
    ================================================================ */
-function showSaving(on, slow){
+function showSaving(on, opts = {}) {
   const s = $("#saving");
-  if(on){
-    s.classList.remove("s-circle","s-tick","s-undo");
+  if (!s) return Promise.resolve();
+  const { slow = false } = opts;
+
+  if (on) {
+    // Reset any leftover success state from a previous save
+    const note = s.querySelector(".note");
+    if (note) note.textContent = "Saving your changes…";
+    s.classList.remove("s-circle", "s-tick", "s-undo");
     s.style.transition = "none";
     s.classList.remove("hide");
     s.classList.add("gone");
     void s.offsetWidth;
     s.style.transition = "opacity .7s ease";
     s.classList.remove("gone");
-    return;
+    return Promise.resolve();
   }
-  const ms = slow ? 1400 : 600;
-  s.style.transition = `opacity ${ms}ms ease`;
-  s.classList.add("gone");
-  setTimeout(() => {
-    if(s.classList.contains("gone")){
-      s.classList.add("hide");
-      s.classList.remove("s-circle","s-tick","s-undo");
-    }
-  }, ms);
+
+  const ms = slow ? TIMING.saveFadeSlowMs : TIMING.saveFadeMs;
+  return new Promise(resolve => {
+    s.style.transition = `opacity ${ms}ms ease`;
+    s.classList.add("gone");
+    setTimeout(() => {
+      if (s.classList.contains("gone")) {
+        s.classList.add("hide");
+        s.classList.remove("s-circle", "s-tick", "s-undo");
+      }
+      resolve();
+    }, ms);
+  });
 }
 
-async function playSuccess(){
-  const s = $("#saving"), sleep = ms => new Promise(r => setTimeout(r, ms));
-  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){ await sleep(500); return; }
+async function playSuccess() {
+  const s = $("#saving");
+  if (!s) return;
+  if (reduceMotion()) { await sleep(300); return; }
   const note = s.querySelector(".note");
-  if(note) note.textContent = "Changes saved";
-  s.classList.add("s-circle"); await sleep(1000);
-  s.classList.add("s-tick");   await sleep(1700);
+  if (note) note.textContent = "Changes saved";
+  s.classList.add("s-circle"); await sleep(TIMING.successCircle);
+  s.classList.add("s-tick");   await sleep(TIMING.successTick);
   s.classList.remove("s-tick");
-  s.classList.add("s-undo");   await sleep(1400);
+  s.classList.add("s-undo");   await sleep(TIMING.successUndo);
 }
 
 /* ================================================================
-   Boot — restore session
+   Boot — restore session + background validation
    ================================================================ */
+async function validateSession() {
+  const saved = sessionStorage.getItem("cayers_pin");
+  if (!saved) return;
+  try {
+    const d = await postJSON({ action: "admin", type: "check", pin: saved });
+    if (!d.ok) {
+      sessionStorage.removeItem("cayers_pin");
+      pin = "";
+      showLogin("Session expired. Please log in again.");
+    }
+  } catch {
+    // network failure — keep session so the user can retry
+  }
+}
+
 if (sessionStorage.getItem("cayers_pin")) {
   pin = sessionStorage.getItem("cayers_pin");
   showDashboard();
+  validateSession();
 }
 
 /* ================================================================
    Login
    ================================================================ */
-$("#loginBtn").addEventListener("click", async () => {
-  const enteredPin = $("#pin").value;
-  if (!enteredPin) return;
+async function handleLogin() {
+  const enteredPin = $("#pin").value.trim();
+  const btn = $("#loginBtn");
+  const msg = $("#loginMsg");
+  if (!enteredPin || btn.disabled) return;
 
-  $("#loginBtn").disabled = true;
-  $("#loginMsg").textContent = "Checking...";
+  btn.disabled = true;
+  msg.classList.remove("ok");
+  msg.classList.add("err");
+  msg.textContent = "Checking…";
 
+  let success = false;
   try {
-    const r = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: {"Content-Type": "text/plain;charset=utf-8"},
-      body: JSON.stringify({ action: "admin", type: "check", pin: enteredPin })
-    });
-    const d = await r.json();
-
+    const d = await postJSON({ action: "admin", type: "check", pin: enteredPin });
     if (d.ok) {
       pin = enteredPin;
       sessionStorage.setItem("cayers_pin", pin);
-      $("#loginMsg").textContent = "";
-      showDashboard();
+      msg.textContent = "";
+      success = true;
     } else {
-      $("#loginMsg").textContent = "Wrong PIN";
+      msg.textContent = "Wrong PIN";
     }
-  } catch (e) {
-    $("#loginMsg").textContent = "Connection error.";
+  } catch {
+    msg.textContent = "Connection error.";
   }
-  $("#loginBtn").disabled = false;
+
+  if (success) {
+    await showDashboard();
+  } else {
+    // small delay to slow brute-force
+    await sleep(TIMING.failedLoginDelay);
+    btn.disabled = false;
+  }
+}
+
+$("#loginBtn").addEventListener("click", handleLogin);
+$("#pin").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
 });
 
 /* ================================================================
-   Show dashboard (with reveal)
+   View switching
    ================================================================ */
 async function showDashboard() {
   $("#loginView").classList.add("hide");
-  $("#dashView").classList.remove("hide");
+  const dash = $("#dashView");
+  dash.classList.remove("hide");
+  dash.classList.add("busy");
 
-  await loadSettings();
+  const loadPromise = loadSettings();
 
-  /* Only animate if the splash is no longer covering the screen.
-     If the splash is still on-screen (session-restore case), the
-     splash's hideSplash() call to revealCurrentView() handles it. */
   const splash = document.getElementById("splash");
-  if(!splash || splash.dataset.done){
-    revealEls([...document.querySelectorAll("#dashView > *")]);
+  if (!splash || splash.dataset.done) {
+    revealEls([...$$("#dashView > *")]);
   }
+
+  await loadPromise;
+  dash.classList.remove("busy");
+}
+
+function showLogin(message = "") {
+  $("#dashView").classList.add("hide");
+  const lv = $("#loginView");
+  lv.classList.remove("hide", "reveal", "in");
+  $("#pin").value = "";
+  $("#loginBtn").disabled = false;
+
+  const msg = $("#loginMsg");
+  msg.classList.remove("ok");
+  msg.classList.add("err");
+  msg.textContent = message;
+
+  requestAnimationFrame(() => revealEls([lv]));
 }
 
 /* ================================================================
@@ -370,21 +478,23 @@ async function showDashboard() {
    ================================================================ */
 async function loadSettings() {
   try {
-    const r = await fetch(ENDPOINT + "?action=get_settings");
-    const d = await r.json();
-    if (d.ok) {
-      $("#storeStatus").checked = (d.storeStatus === "OPEN");
-      updateStatusText();
-
-      document.querySelectorAll(".soldOutDay").forEach(cb => cb.checked = false);
-      if (d.soldOutDays && d.soldOutDays.length > 0) {
-        d.soldOutDays.forEach(day => {
-          const cb = document.querySelector(`.soldOutDay[value="${day}"]`);
-          if (cb) cb.checked = true;
-        });
-      }
+    const d = await getSettings();
+    if (!d.ok) {
+      showDashMsg("Failed to load settings: " + (d.error || "unknown error"), "err");
+      return;
     }
-  } catch (e) {
+
+    $("#storeStatus").checked = (d.storeStatus === "OPEN");
+    updateStatusText();
+
+    $$(".soldOutDay").forEach(cb => cb.checked = false);
+    if (Array.isArray(d.soldOutDays)) {
+      d.soldOutDays.forEach(day => {
+        const cb = document.querySelector(`.soldOutDay[value="${day}"]`);
+        if (cb) cb.checked = true;
+      });
+    }
+  } catch {
     showDashMsg("Failed to load settings", "err");
   }
 }
@@ -394,70 +504,79 @@ async function loadSettings() {
    ================================================================ */
 $("#storeStatus").addEventListener("change", updateStatusText);
 function updateStatusText() {
-  const isOpen = $("#storeStatus").checked;
-  $("#statusText").textContent = isOpen ? "OPEN" : "CLOSED";
-  $("#statusText").style.color = isOpen ? "var(--ok)" : "var(--err)";
+  const open = $("#storeStatus").checked;
+  const el = $("#statusText");
+  el.textContent = open ? "OPEN" : "CLOSED";
+  el.style.color = open ? "var(--ok)" : "var(--err)";
 }
 
 /* ================================================================
-   Save — with overlay + success tick animation
+   Save
    ================================================================ */
+function setDashInputsDisabled(disabled) {
+  $$("#dashView input, #dashView button").forEach(el => el.disabled = disabled);
+}
+
 $("#saveBtn").addEventListener("click", async () => {
+  if (isSaving) return;
+  isSaving = true;
+
   const btn = $("#saveBtn");
   btn.disabled = true;
+  setDashInputsDisabled(true);
   showDashMsg("", "");
   document.body.style.overflow = "hidden";
 
-  const storeStatus = $("#storeStatus").checked ? "OPEN" : "CLOSED";
-  const soldOutDays = Array.from(document.querySelectorAll(".soldOutDay:checked")).map(cb => cb.value);
-
-  const savingStart = Date.now();
-  showSaving(true);
-  await new Promise(r => setTimeout(r, 100)); // let the overlay paint
-
-  let succeeded = false;
   try {
-    const r = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: {"Content-Type": "text/plain;charset=utf-8"},
-      body: JSON.stringify({
-        action: "admin", type: "update", pin: pin,
-        storeStatus: storeStatus, soldOutDays: soldOutDays
-      })
-    });
-    const d = await r.json();
-    if (d.ok) succeeded = true;
-    else showDashMsg("Error saving: " + d.error, "err");
-  } catch (e) {
-    showDashMsg("Connection error.", "err");
+    const storeStatus = $("#storeStatus").checked ? "OPEN" : "CLOSED";
+    const soldOutDays = Array.from($$(".soldOutDay:checked")).map(cb => cb.value);
+    const startedAt = Date.now();
+
+    showSaving(true);
+    await sleep(100); // let the overlay paint
+
+    let succeeded = false;
+    try {
+      const d = await postJSON({
+        action: "admin", type: "update", pin,
+        storeStatus, soldOutDays
+      });
+      if (d.ok) {
+        succeeded = true;
+      } else {
+        showDashMsg("Error saving: " + (d.error || "unknown error"), "err");
+      }
+    } catch {
+      showDashMsg("Connection error.", "err");
+    }
+
+    // keep the "Saving..." state visible long enough to feel intentional
+    const remaining = Math.max(0, TIMING.saveMin - (Date.now() - startedAt));
+    if (remaining) await sleep(remaining);
+
+    if (succeeded) {
+      await playSuccess();
+      await showSaving(false, { slow: true });
+      showDashMsg("Saved successfully!", "ok");
+    } else {
+      await showSaving(false);
+    }
+  } finally {
+    document.body.style.overflow = "";
+    btn.disabled = false;
+    setDashInputsDisabled(false);
+    isSaving = false;
   }
-
-  // keep the "Saving..." state visible long enough to feel intentional
-  const minSavingMs = 800;
-  const elapsed = Date.now() - savingStart;
-  const remaining = Math.max(0, minSavingMs - elapsed);
-  if(remaining) await new Promise(r => setTimeout(r, remaining));
-
-  if(succeeded){
-    await playSuccess();
-    showSaving(false, true);
-    showDashMsg("Saved successfully!", "ok");
-  } else {
-    showSaving(false);
-  }
-
-  document.body.style.overflow = "";
-  btn.disabled = false;
 });
 
 /* ================================================================
-   Message helper — preserves .reveal / .in classes
+   Message helper
    ================================================================ */
 function showDashMsg(text, type) {
   const m = $("#dashMsg");
   m.textContent = text;
   m.classList.remove("err", "ok");
-  if(type) m.classList.add(type);
+  if (type) m.classList.add(type);
 }
 </script>
 </body>
