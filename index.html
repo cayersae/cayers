@@ -767,6 +767,11 @@ function updateClosedBanner(){
   const banner = $("#closedBanner");
   const form   = $("#f");
 
+  /* Once the order-confirmation screen is showing, never re-show the form.
+     A background status refresh runs right after a successful order and
+     would otherwise bring the form back alongside the confirmation card. */
+  if (!$("#done").classList.contains("hide")) return;
+
   if (storeStatus === "CLOSED") {
     const dm = `<a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a>`;
     banner.innerHTML =
