@@ -33,19 +33,25 @@ body{
     calc(16px + env(safe-area-inset-bottom, 0px))
     calc(16px + env(safe-area-inset-left, 0px));
   display:flex;
-  justify-content:center;
+  flex-direction:column;
   min-height:100vh;
   min-height:100dvh;
   -webkit-tap-highlight-color:transparent;
 }
-.wrap{width:100%;max-width:480px;margin-top:16px}
+.wrap{
+  width:100%;
+  max-width:480px;
+  margin:auto; /* Centers vertically and horizontally on login */
+  padding-top:20px;
+  padding-bottom:20px;
+}
 h1{font:400 2rem/1 "Abril Fatface",Georgia,serif;margin:0 0 20px;text-align:center;color:var(--ink)}
 .card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
 label{font-weight:800;display:block;margin-bottom:12px;font-size:0.95rem}
 #loginView label{text-align:center}
 
 /* ---------- custom PIN input ---------- */
-.pin-container{position:relative;margin-bottom:16px;cursor:pointer}
+.pin-container{position:relative;margin-bottom:8px;cursor:pointer}
 .pin-dots{
   display:flex;
   justify-content:center;
@@ -325,7 +331,7 @@ input:focus-visible,
       calc(16px + env(safe-area-inset-bottom, 0px))
       calc(14px + env(safe-area-inset-left, 0px));
   }
-  .wrap{margin-top:12px}
+  .wrap{padding-top:16px; padding-bottom:16px;}
   .card{padding:18px}
 }
 </style>
@@ -386,8 +392,7 @@ input:focus-visible,
         <div class="pin-dot"></div>
       </div>
     </div>
-    <button id="loginBtn" type="button" disabled>Authorise</button>
-    <div id="loginMsg" class="msg err" role="status" aria-live="polite"></div>
+    <div id="loginMsg" class="msg err" role="status" aria-live="polite" style="margin-top:20px"></div>
   </div>
 
   <div id="dashView" class="hide">
@@ -530,7 +535,6 @@ FLAVORS.forEach(f => saleQty[f] = 0);
    ================================================================ */
 const pinInput = $("#pin");
 const pinDots = $$(".pin-dot");
-const loginBtn = $("#loginBtn");
 
 function updatePinDots() {
   const val = pinInput.value;
@@ -538,8 +542,6 @@ function updatePinDots() {
     if (i < val.length) dot.classList.add("filled");
     else dot.classList.remove("filled");
   });
-  // Only enable the button if exactly 6 digits are entered
-  loginBtn.disabled = val.length !== 6;
 }
 
 pinInput.addEventListener("input", e => {
@@ -815,10 +817,11 @@ async function playError(el, text) {
    ================================================================ */
 async function handleLogin() {
   const enteredPin = pinInput.value.trim();
-  const btn = loginBtn;
   const msg = $("#loginMsg");
-  if (!enteredPin || btn.disabled) return;
-  btn.disabled = true;
+  
+  // Only attempt login if length is exactly 6
+  if (!enteredPin || enteredPin.length !== 6) return;
+  
   msg.textContent = "";
   msg.classList.remove("err", "ok");
   document.body.style.overflow = "hidden";
@@ -857,11 +860,12 @@ async function handleLogin() {
     msg.classList.add("err");
     msg.textContent = errorMsg;
     await sleep(TIMING.failedLoginDelay);
-    btn.disabled = false;
+    
+    // Refocus so they can try again immediately
+    pinInput.focus();
   }
 }
 
-loginBtn.addEventListener("click", handleLogin);
 pinInput.addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
 });
