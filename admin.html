@@ -33,7 +33,6 @@ input:checked + .slider{background-color:var(--ok)}
 input:checked + .slider:before{transform:translateX(24px)}
 input:disabled + .slider{opacity:.6;cursor:default}
 
-/* ---------- per-flavour stock ---------- */
 .flavor-admin{padding:16px 0;border-bottom:1px solid var(--line)}
 .flavor-admin:first-child{padding-top:0}
 .flavor-admin:last-child{border-bottom:0;padding-bottom:0}
@@ -65,9 +64,8 @@ input:disabled + .slider{opacity:.6;cursor:default}
 .sale-row.is-out{opacity:.55}
 .sale-flavor-name{flex:1;min-width:0}
 .sale-flavor-name b{display:block;line-height:1.2;font-weight:800}
-.sale-flavor-name .fl-badge{display:inline-block;margin-top:4px;font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ok) 14%,var(--card));color:var(--ok)}
+.sale-flavor-name .fl-badge{display:inline-block;margin-top:4px;font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ok) 14%,var(--card));color:var(--ok);font-variant-numeric:tabular-nums}
 .sale-flavor-name .fl-badge.out{background:color-mix(in srgb,var(--err) 14%,var(--card));color:var(--err)}
-.sale-flavor-name .fl-badge.empty{display:none}
 .step{display:flex;align-items:center;gap:10px;flex:0 0 auto}
 .step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
 .step button:disabled{opacity:.4;cursor:default}
@@ -81,6 +79,24 @@ input:disabled + .slider{opacity:.6;cursor:default}
 .sale-field{display:block;margin:0 0 12px;font-weight:700;font-size:.75rem;color:var(--mute)}
 .sale-field > span{display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
 .sale-field input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-weight:700}
+
+/* date input — click anywhere to open the native calendar */
+.sale-field input[type="date"]{
+  cursor:pointer;
+  position:relative;
+  appearance:none;
+  -webkit-appearance:none;
+  min-height:46px;
+}
+.sale-field input[type="date"]::-webkit-calendar-picker-indicator{
+  cursor:pointer;
+  filter:invert(0.85);
+  opacity:1;
+}
+.sale-field input[type="date"]::-webkit-datetime-edit{color:var(--ink)}
+.sale-field input[type="date"]::-webkit-datetime-edit-fields-wrapper{padding:0}
+.sale-field input[type="date"]::-webkit-inner-spin-button{display:none}
+
 .sale-btn{background:var(--ok);color:var(--bg)}
 
 .hide{display:none!important}
@@ -98,7 +114,6 @@ input[type="text"]:focus-visible,
 input[type="date"]:focus-visible,
 .switch input:focus-visible + .slider{outline:2px solid var(--ink);outline-offset:3px}
 
-/* ---------- splash ---------- */
 #splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease}
 #splash.gone{opacity:0;pointer-events:none}
 .splash-inner{text-align:center;display:flex;flex-direction:column;align-items:center}
@@ -248,7 +263,7 @@ input[type="date"]:focus-visible,
       </div>
     </div>
 
-    <!-- NEW: in-person sale recording -->
+    <!-- in-person sale -->
     <div class="card" id="saleCard">
       <label>Record In-Person Sale</label>
       <p class="sale-intro">Log cups you sold directly (market, walk-in, DM). They count against stock everywhere — the customer site and this dashboard.</p>
@@ -331,7 +346,6 @@ let dashboardSettingsPromise = null;
 const orderedCounts = {};
 FLAVORS.forEach(f => orderedCounts[f] = 0);
 
-/* in-person sale form state — separate from saved stock */
 const saleQty = {};
 FLAVORS.forEach(f => saleQty[f] = 0);
 
@@ -768,7 +782,10 @@ function renderLeft(name) {
 
 $("#flavorRows").addEventListener("input", e => {
   const inp = e.target.closest(".flavorProduced");
-  if (inp) renderLeft(inp.dataset.flavor);
+  if (inp) {
+    renderLeft(inp.dataset.flavor);
+    updateSaleTotals();
+  }
 });
 $("#flavorRows").addEventListener("change", e => {
   const inp = e.target.closest(".flavorProduced");
@@ -776,13 +793,14 @@ $("#flavorRows").addEventListener("change", e => {
     const n = parseInt(inp.value, 10);
     inp.value = String(Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, Math.floor(n))) : 0);
     renderLeft(inp.dataset.flavor);
+    updateSaleTotals();
     return;
   }
   const cb = e.target.closest(".flavorSoldOut");
   if (cb) {
     const row = cb.closest(".flavor-admin");
     if (row) row.classList.toggle("is-out", cb.checked);
-    updateSaleFormCap();
+    renderSaleForm();
   }
 });
 
@@ -806,11 +824,18 @@ function saleCapFor(name) {
   return getRemainingFor(name);
 }
 
+/* Rebuild the sale form rows. Badges show how many are still addable
+   (remaining − in-cart) and get updated live by updateSaleBadges(). */
 function renderSaleForm() {
   const box = $("#saleRows");
   if (!box) return;
 
-  /* don't rebuild if someone is mid-typing into a sale quantity box */
+  /* if any flavour just went sold out, empty its cart slot */
+  FLAVORS.forEach(name => {
+    if (getSoldOutFor(name)) saleQty[name] = 0;
+  });
+
+  /* don't rebuild while someone is typing into a sale qty box */
   const active = document.activeElement;
   if (active && active.classList && active.classList.contains("qty-input") && box.contains(active)) {
     updateSaleTotals();
@@ -820,16 +845,28 @@ function renderSaleForm() {
   box.innerHTML = FLAVORS.map((name, i) => {
     const out = getSoldOutFor(name);
     const rem = getRemainingFor(name);
+    const inCart = saleQty[name] || 0;
     const disabled = out ? " disabled" : "";
-    let badge = "";
-    if (out) badge = `<span class="fl-badge out">Sold out</span>`;
-    else if (rem <= 0) badge = `<span class="fl-badge out">Sold out</span>`;
-    else badge = `<span class="fl-badge">${rem} left</span>`;
+
+    let badgeClass = "fl-badge";
+    let badgeText = "";
+
+    if (out) {
+      badgeClass = "fl-badge out";
+      badgeText = "Sold out";
+    } else if (rem <= 0) {
+      badgeClass = "fl-badge out";
+      badgeText = "Sold out";
+    } else {
+      const available = Math.max(0, rem - inCart);
+      if (available === 0) badgeClass = "fl-badge out";
+      badgeText = `${available} left`;
+    }
 
     return `<div class="sale-row${out ? " is-out" : ""}">
       <div class="sale-flavor-name">
         <b>${name}</b>
-        ${badge}
+        <span id="saleBadge${i}" class="${badgeClass}">${badgeText}</span>
       </div>
       <div class="step">
         <button type="button" data-i="${i}" data-d="-1" aria-label="Remove one ${name}"${disabled}>−</button>
@@ -845,26 +882,53 @@ function renderSaleForm() {
   updateSaleTotals();
 }
 
-function updateSaleFormCap() {
-  /* only touch the buttons, don't rebuild — keeps any typed value */
-  document.querySelectorAll("#saleRows .step button").forEach(b => {
-    const name = FLAVORS[+b.dataset.i];
-    if (!name) return;
-    const d = +b.dataset.d;
+/* Live "N left" badge in the sale form.
+   Shows remaining − what's already in the sale cart, so it counts
+   down as the admin adds cups and back up as they remove them. */
+function updateSaleBadges() {
+  FLAVORS.forEach((name, i) => {
+    const el = document.getElementById("saleBadge" + i);
+    if (!el) return;
+
     const out = getSoldOutFor(name);
-    if (out) { b.disabled = true; return; }
-    const cap = saleCapFor(name);
-    b.disabled = d < 0 ? saleQty[name] <= 0 : saleQty[name] >= cap;
+    const rem = getRemainingFor(name);
+    const inCart = saleQty[name] || 0;
+
+    if (out) {
+      el.className = "fl-badge out";
+      el.textContent = "Sold out";
+      return;
+    }
+    if (rem <= 0) {
+      el.className = "fl-badge out";
+      el.textContent = "Sold out";
+      return;
+    }
+    const available = Math.max(0, rem - inCart);
+    el.className = "fl-badge" + (available === 0 ? " out" : "");
+    el.textContent = `${available} left`;
   });
 }
 
+/* clamp saleQty against the current cap, refresh totals + badges
+   + button enabled state. Called on every +/- click, keystroke,
+   and whenever the stock card's baked number changes. */
 function updateSaleTotals() {
   let cups = 0, price = 0;
-  FLAVORS.forEach(name => {
+
+  FLAVORS.forEach((name, i) => {
+    const cap = saleCapFor(name);
+    if (saleQty[name] > cap) {
+      saleQty[name] = Math.max(0, cap);
+      /* reflect the clamp back into the input unless it's focused */
+      const inp = document.querySelector(`#saleRows .qty-input[data-i="${i}"]`);
+      if (inp && document.activeElement !== inp) inp.value = String(saleQty[name]);
+    }
     const q = saleQty[name] || 0;
     cups += q;
     price += q * (PRICES[name] || 0);
   });
+
   $("#saleCupsCount").textContent = `${cups} cup${cups === 1 ? "" : "s"}`;
   $("#saleTotalPrice").textContent = `${price} AED`;
 
@@ -875,18 +939,19 @@ function updateSaleTotals() {
     const out = getSoldOutFor(name);
     if (out) { b.disabled = true; return; }
     const cap = saleCapFor(name);
-    b.disabled = d < 0 ? saleQty[name] <= 0 : saleQty[name] >= cap;
+    b.disabled = d < 0 ? (saleQty[name] || 0) <= 0 : (saleQty[name] || 0) >= cap;
   });
+
+  updateSaleBadges();
 }
 
-/* +/- buttons in sale form */
+/* +/- buttons */
 $("#saleRows").addEventListener("click", e => {
   const b = e.target.closest("button");
   if (!b || b.disabled) return;
   const i = +b.dataset.i;
   const name = FLAVORS[i];
   if (!name) return;
-
   if (getSoldOutFor(name)) return;
 
   const cap = saleCapFor(name);
@@ -894,13 +959,12 @@ $("#saleRows").addEventListener("click", e => {
   const next = Math.max(0, Math.min(cap, (saleQty[name] || 0) + d));
   saleQty[name] = next;
 
-  /* update just this row's input + totals, not the whole form */
   const inp = b.parentElement.querySelector(".qty-input");
   if (inp) inp.value = String(next);
   updateSaleTotals();
 });
 
-/* typing into a sale quantity box */
+/* typing directly — numeric keypad on phones, digits-only on web */
 $("#saleRows").addEventListener("input", e => {
   const inp = e.target.closest(".qty-input");
   if (!inp) return;
@@ -947,15 +1011,28 @@ $("#saleRows").addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); inp.blur(); }
 });
 
-/* set today's date in the sale date field */
-(function setSaleDateDefault(){
+/* date: click anywhere on the field → open the native calendar */
+(function setupDatePicker(){
   const d = $("#saleDate");
-  if (!d || d.value) return;
-  const now = new Date();
-  const iso = now.getFullYear() + "-" +
-              String(now.getMonth() + 1).padStart(2, "0") + "-" +
-              String(now.getDate()).padStart(2, "0");
-  d.value = iso;
+  if (!d) return;
+
+  /* default to today */
+  if (!d.value) {
+    const now = new Date();
+    const iso = now.getFullYear() + "-" +
+                String(now.getMonth() + 1).padStart(2, "0") + "-" +
+                String(now.getDate()).padStart(2, "0");
+    d.value = iso;
+  }
+
+  /* force the calendar to open on click (Safari / older browsers
+     don't auto-open it just from focusing the field) */
+  d.addEventListener("click", () => {
+    try { if (typeof d.showPicker === "function") d.showPicker(); } catch(_) {}
+  });
+  d.addEventListener("focus", () => {
+    try { if (typeof d.showPicker === "function") d.showPicker(); } catch(_) {}
+  });
 })();
 
 /* record sale */
@@ -968,7 +1045,6 @@ $("#recordSaleBtn").addEventListener("click", async () => {
     return;
   }
 
-  /* finalize any focused sale box first */
   const active = document.activeElement;
   if (active && active.classList && active.classList.contains("qty-input") && $("#saleRows").contains(active)) {
     finalizeSaleInput(active);
@@ -1036,13 +1112,11 @@ $("#recordSaleBtn").addEventListener("click", async () => {
     await playSuccess(saving, "Sale recorded");
     await showOverlay(saving, false, { slow: true });
 
-    /* reset form */
     FLAVORS.forEach(f => saleQty[f] = 0);
     $("#saleNote").value = "";
     renderSaleForm();
     showSaleMsg("Sale recorded ✓", "ok");
 
-    /* refresh counts so Left updates immediately */
     await refreshCounts();
   } else {
     await showOverlay(saving, false);
@@ -1135,9 +1209,7 @@ async function refreshCounts() {
       renderLeft(name);
     });
     renderSaleForm();
-  } catch {
-    /* offline — leave the last numbers alone */
-  }
+  } catch {}
 }
 
 $("#refreshCounts").addEventListener("click", async () => {
