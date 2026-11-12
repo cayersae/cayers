@@ -301,7 +301,6 @@ function flavorSignature(){
   }).join("|");
 }
 
-// ADMIN ADDITION: Fetch settings (store status, sold-out days, flavour stock) from Google Sheets
 async function fetchStoreStatus() {
   try {
     const r = await fetch(CONFIG.endpoint + "?action=get_settings");
@@ -560,11 +559,8 @@ $("#flavors").addEventListener("input", e => {
   const info = flavorInfo[f.id] || {};
   if (info.soldOut) { inp.value = String(qty[f.id]); return; }
 
-  /* digits only on the web too — strip anything else on the fly */
   let raw = inp.value.replace(/\D+/g, "");
   if (raw !== inp.value) inp.value = raw;
-
-  /* cap the length so a stray paste can't blow up the layout */
   if (raw.length > 4) { raw = raw.slice(0, 4); inp.value = raw; }
 
   const n = raw === "" ? 0 : Math.min(parseInt(raw, 10) || 0, 9999);
@@ -572,7 +568,6 @@ $("#flavors").addEventListener("input", e => {
   update();
 });
 
-/* --------- finalize (clamp) when they finish typing --------- */
 function finalizeQtyInput(inp){
   const i = +inp.dataset.i;
   const f = CONFIG.flavors[i];
@@ -583,15 +578,11 @@ function finalizeQtyInput(inp){
 
   let n = parseInt(inp.value, 10);
   if (!Number.isFinite(n) || n < 0) n = 0;
-
-  /* silently clamp to whatever's in stock — no "adjusted to" message */
   if (n > cap) n = cap;
 
   qty[f.id] = n;
   inp.value = String(n);
 
-  /* still surface the one case where the user's choice is impossible
-     because the flavour just went sold out while they were typing */
   if (info.soldOut) say(`${f.id} is sold out.`, "err");
 
   update();
@@ -603,7 +594,6 @@ $("#flavors").addEventListener("focusout", e => {
   finalizeQtyInput(inp);
 });
 
-/* select the current number on focus, so typing replaces it */
 $("#flavors").addEventListener("focusin", e => {
   const inp = e.target.closest(".qty-input");
   if (!inp) return;
@@ -612,7 +602,6 @@ $("#flavors").addEventListener("focusin", e => {
   }, 0);
 });
 
-/* Enter in the quantity box blurs the field — doesn't submit the form */
 $("#flavors").addEventListener("keydown", e => {
   const inp = e.target.closest(".qty-input");
   if (!inp) return;
@@ -633,8 +622,6 @@ function updateQtyButtons(){
   });
 }
 
-/* Live "N left" pill — shows stock MINUS what's already in the cart.
-   Sold-out toggle ALWAYS wins: when on, no count is shown. */
 function updateFlavorBadges(){
   CONFIG.flavors.forEach((f, i) => {
     const el = document.getElementById("fb" + i);
@@ -683,7 +670,6 @@ function update(){
       if (inp.value !== "0") inp.value = "0";
     } else {
       inp.disabled = false;
-      /* never fight the user's typing — only refresh the box when it's not focused */
       if (document.activeElement !== inp) inp.value = String(qty[f.id]);
     }
   });
@@ -692,8 +678,6 @@ function update(){
   updateFlavorBadges();
 }
 
-/* Rebuild the flavour cards. Each row gets an editable quantity input
-   that looks like plain text until focused. */
 function renderFlavors(){
   const container = $("#flavors");
   if (!container) return;
@@ -817,7 +801,6 @@ $("#f").addEventListener("submit",async e=>{
   e.preventDefault();
   if (sending) return;
 
-  /* if a quantity box is still focused, finalize it before validating */
   const activeQty = document.activeElement && document.activeElement.classList.contains("qty-input")
     ? document.activeElement : null;
   if (activeQty) finalizeQtyInput(activeQty);
