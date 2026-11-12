@@ -370,9 +370,9 @@ function getAvailability(nowD, isCampus){
     if (dow === 0) continue;
     const name = DAY_NAMES[dow];
     if (!allowedNames.includes(name)) continue;
-    
+
     // ADMIN ADDITION: Skip days marked as sold out
-    if (soldOutDays.includes(name)) continue; 
+    if (soldOutDays.includes(name)) continue;
 
     if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
     if (i === 0 && nowD.hours >= sameDayCutoff) continue;
@@ -512,15 +512,23 @@ function renderDays(){
 
 function updateClosedBanner(){
   const banner = $("#closedBanner");
-  
-  // ADMIN ADDITION: Check if manually closed
+  const form   = $("#f");
+
+  // ADMIN: store manually closed
   if (storeStatus === "CLOSED") {
     const dm = `<a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a>`;
-    banner.innerHTML = `<p style="margin:0 0 6px">We are currently sold out and not taking new orders.</p><p style="margin:0">${dm}</p>`;
+    banner.innerHTML =
+      `<p style="margin:0 0 6px">We are currently sold out and not taking new orders.</p>` +
+      `<p style="margin:0 0 6px">${dm}</p>` +
+      `<p style="margin:0">Stay tuned on Instagram for updates.</p>`;
     banner.classList.remove("hide");
+    form.classList.add("hide");
     $("#go").disabled = true;
     return;
   }
+
+  // Store is open again — bring the form back
+  form.classList.remove("hide");
 
   const nowD = dubaiNowParts();
   const campus = getAvailability(nowD, true);
@@ -535,7 +543,7 @@ function updateClosedBanner(){
     banner.classList.add("hide");
     banner.innerHTML = "";
   }
-  if (!loc()) $("#go").disabled = bothClosed || storeStatus === "CLOSED";
+  if (!loc()) $("#go").disabled = bothClosed;
 }
 
 document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("change",()=>{
@@ -729,7 +737,7 @@ updateClosedBanner();
 
 setInterval(()=>{
   if(sending) return;
-  if($("#f").classList.contains("hide")) return;
+  if(!$("#done").classList.contains("hide")) return;
   fetchStoreStatus(); // ADMIN ADDITION: Keep checking every 30s
   updateClosedBanner();
   if(loc()) renderDays();
@@ -738,14 +746,14 @@ setInterval(()=>{
 // ADMIN ADDITION: Wake up logic when user returns to the tab
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    if (sending || $("#f").classList.contains("hide")) return;
-    
+    if (sending || !$("#done").classList.contains("hide")) return;
+
     const hadSelectedDay = !!(document.querySelector("input[name=day]:checked"));
-    
+
     fetchStoreStatus(); // Force immediate recalculation
     updateClosedBanner();
     if (loc()) renderDays();
-    
+
     if (hadSelectedDay && !document.querySelector("input[name=day]:checked")) {
       say("The day you selected is no longer available because the cutoff time passed or it sold out. Please pick a new day.", "err");
     }
