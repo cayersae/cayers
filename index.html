@@ -78,6 +78,21 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 #sending{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
 #sending.gone{opacity:0;pointer-events:none}
 #sending.hide{display:none}
+#review{position:fixed;inset:0;z-index:80;background:rgba(58,15,15,.45);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:18px;opacity:1;transition:opacity .35s ease}
+#review.gone{opacity:0;pointer-events:none}
+#review.hide{display:none}
+.rv-card{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:18px;padding:22px;width:100%;max-width:420px;max-height:90vh;overflow:auto;transform:none;transition:transform .35s ease}
+#review.gone .rv-card{transform:translateY(14px) scale(.97)}
+.rv-card h2{font:400 1.6rem/1.1 "Abril Fatface",Georgia,serif;margin:0 0 4px}
+.rv-sub{color:var(--mute);font-size:.9rem;margin:0 0 14px}
+.rv-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-weight:700}
+.rv-total{display:flex;justify-content:space-between;font-weight:800;font-size:1.1rem;padding:10px 0 4px}
+.rv-meta{margin:12px 0 0;font-size:.95rem;line-height:1.4}
+.rv-meta small{display:block;color:var(--mute);margin-top:8px}
+.rv-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:16px}
+.rv-actions button{padding:13px;border-radius:12px;font-size:1rem;font-weight:800;font-family:inherit;cursor:pointer;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.rv-actions .primary{background:var(--berry);color:#fff;border-color:var(--berry)}
+@media(prefers-reduced-motion:reduce){#review,.rv-card{transition:none}}
 #sending .splash-logo{transition:opacity .45s ease,transform .45s ease}
 #sending .dots,#sending .note{transition:opacity .3s ease}
 .okwrap{position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;opacity:0;transform:scale(.45);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.8,.3,1.2);pointer-events:none}
@@ -147,6 +162,16 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 </form>
 
 <!-- reuses the splash markup (logo + dots) — plain text here, no spelling -->
+<div id="review" class="hide" role="dialog" aria-modal="true" aria-labelledby="rvTitle">
+  <div class="rv-card">
+    <h2 id="rvTitle">Check your order</h2>
+    <p class="rv-sub">Please make sure everything is right before you confirm.</p>
+    <div id="rvItems"></div>
+    <div class="rv-total"><span id="rvCups"></span><span id="rvTotal"></span></div>
+    <div class="rv-meta"><small>For</small><div id="rvWho"></div><small>Pickup or delivery</small><div id="rvWhen"></div></div>
+    <div class="rv-actions"><button type="button" id="rvBack">Edit order</button><button type="button" id="rvConfirm" class="primary">Confirm order</button></div>
+  </div>
+</div>
 <div id="sending" class="hide" role="status" aria-live="polite">
   <div class="splash-inner">
     <div class="splash-logo">Cayers</div>
@@ -192,6 +217,7 @@ const DAY_NAMES=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Sa
 const pageLoadedAt=Date.now();
 let orderId=makeId();
 let sending=false;
+let reviewOK=false, reviewOpen=false;
 let renderedDaysKey=null;
 let revealed=false;
 const qty={};
@@ -217,6 +243,44 @@ function showSending(on,slow){
   s.classList.add("gone");
   setTimeout(()=>{ if(s.classList.contains("gone")){ s.classList.add("hide"); s.classList.remove("s-circle","s-tick","s-undo"); } },ms);
 }
+
+/* ---- order review popup (fades in and out) ---- */
+function openReview(d){
+  const box=$("#rvItems"); box.textContent="";
+  CONFIG.flavors.filter(f=>qty[f.id]).forEach(f=>{
+    const r=document.createElement("div"); r.className="rv-row";
+    const a=document.createElement("span"), b=document.createElement("span");
+    a.textContent=`${qty[f.id]} × ${f.id}`; b.textContent=`${qty[f.id]*f.price} AED`;
+    r.append(a,b); box.append(r);
+  });
+  $("#rvCups").textContent=`Total · ${d.t.c} cup${d.t.c==1?"":"s"}`;
+  $("#rvTotal").textContent=`${d.t.p} AED`;
+  $("#rvWho").textContent=[d.name,d.ig?"@"+d.ig:"",d.ph].filter(Boolean).join(" · ");
+  $("#rvWhen").textContent=`${loc()} · ${d.day}`;
+  const r=$("#review");
+  r.style.transition="none"; r.classList.remove("hide"); r.classList.add("gone");
+  void r.offsetWidth; r.style.transition=""; r.classList.remove("gone");
+  reviewOpen=true; document.body.style.overflow="hidden";
+  setTimeout(()=>$("#rvConfirm").focus(),50);
+}
+function closeReview(){
+  if(!reviewOpen) return;
+  reviewOpen=false;
+  const r=$("#review"); r.classList.add("gone");
+  document.body.style.overflow="";
+  setTimeout(()=>{ if(r.classList.contains("gone")) r.classList.add("hide"); },380);
+}
+$("#rvBack").addEventListener("click",()=>{ reviewOK=false; closeReview(); $("#go").focus(); });
+$("#review").addEventListener("click",e=>{ if(e.target.id==="review"){ reviewOK=false; closeReview(); } });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&reviewOpen){ reviewOK=false; closeReview(); } });
+$("#rvConfirm").addEventListener("click",()=>{
+  if(!reviewOpen) return;
+  reviewOK=true; closeReview();                         // popup fades out...
+  setTimeout(()=>{                                      // ...then the order is sent and the tick animation plays
+    const f=$("#f");
+    f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit",{cancelable:true,bubbles:true}));
+  },400);
+});
 
 /* success animation: "Cayers" turns into a circle, a tick draws in, the tick reverses, then the screen fades slowly */
 async function playSuccess(){
@@ -485,6 +549,9 @@ $("#f").addEventListener("submit",async e=>{
   const order={id:orderId,name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c,
                sentAt:new Date().toISOString()};
   CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
+
+  if(!reviewOK){ openReview({name,ig,ph,day,t}); return; }   // first press: show the review popup
+  reviewOK=false;
 
   sending=true;
   $("#go").disabled=true;
