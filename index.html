@@ -288,6 +288,11 @@ async function fetchStoreStatus() {
           remaining: isFinite(rem) ? Math.max(0, Math.floor(rem)) : Infinity
         };
       });
+    } else {
+      // backend didn't send flavors (old script) — ensure sane defaults
+      CONFIG.flavors.forEach(f => {
+        if (!flavorInfo[f.id]) flavorInfo[f.id] = { soldOut:false, remaining: Infinity };
+      });
     }
 
     const clamped = clampCartToStock();
@@ -547,7 +552,7 @@ function update(){
 }
 
 /* re-render the flavour cards with badges + disabled states.
-   Called on initial load and whenever the stock signature changes. */
+   Sold-out toggle ALWAYS wins: when it's on, no count is shown at all. */
 function renderFlavors(){
   const container = $("#flavors");
   if (!container) return;
@@ -556,10 +561,22 @@ function renderFlavors(){
     const info = flavorInfo[f.id] || {};
     const out  = !!info.soldOut;
     const rem  = info.remaining;
-    let badge  = "";
 
-    if (out) badge = `<span class="fl-badge out">Sold out</span>`;
-    else if (isFinite(rem) && rem <= 8) badge = `<span class="fl-badge">Only ${rem} left</span>`;
+    /* badge priority:
+       1. sold-out toggle ON          → "Sold out", never a count
+       2. toggle OFF + stock hit 0    → "Sold out", never a count
+       3. toggle OFF + stock > 0      → "N left"
+       4. toggle OFF + no live data   → nothing (falls back to flat 20-cap) */
+    let badge = "";
+    if (out) {
+      badge = `<span class="fl-badge out">Sold out</span>`;
+    } else if (isFinite(rem)) {
+      if (rem <= 0) {
+        badge = `<span class="fl-badge out">Sold out</span>`;
+      } else {
+        badge = `<span class="fl-badge">${rem} left</span>`;
+      }
+    }
 
     const disabled = out ? " disabled" : "";
 
