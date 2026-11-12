@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Cayers Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#241517;--card:#33201f;--ink:#fbeae6;--mute:#c4a29f;--berry:#ff7d96;--cocoa:#e8c4b0;--line:#4b3030;--ok:#6fd59a;--err:#ff8a80}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito","Segoe UI",system-ui,sans-serif;padding:24px;display:flex;justify-content:center;min-height:100vh}
+.wrap{width:100%;max-width:420px;margin-top:40px}
+h1{font:400 2rem/1 "Abril Fatface",Georgia,serif;margin:0 0 20px;text-align:center;color:var(--ink)}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
+label{font-weight:800;display:block;margin-bottom:12px;font-size:0.95rem}
+input[type="password"]{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;margin-bottom:16px;text-align:center;letter-spacing:4px;font-size:1.2rem}
+button{width:100%;padding:16px;border-radius:14px;border:0;background:var(--berry);color:#fff;font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer}
+button:disabled{opacity:0.5;cursor:default}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.toggle-row:last-child{border:0;padding-bottom:0}
+.toggle-row span{font-weight:800}
+.switch{position:relative;display:inline-block;width:56px;height:32px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#4b3030;transition:.3s;border-radius:32px}
+.slider:before{position:absolute;content:"";height:24px;width:24px;left:4px;bottom:4px;background-color:white;transition:.3s;border-radius:50%}
+input:checked + .slider{background-color:var(--ok)}
+input:checked + .slider:before{transform:translateX(24px)}
+.hide{display:none!important}
+.msg{text-align:center;font-weight:700;margin-top:16px;min-height:24px}
+.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Cayers Admin</h1>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginView" class="card">
+    <label>Enter PIN</label>
+    <input type="password" id="pin" inputmode="numeric" placeholder="••••">
+    <button id="loginBtn">Unlock Dashboard</button>
+    <div id="loginMsg" class="msg err"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashView" class="hide">
+    <div class="card">
+      <div class="toggle-row">
+        <span>Store Status</span>
+        <label class="switch">
+          <input type="checkbox" id="storeStatus">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <p id="statusText" style="text-align:center;font-weight:800;color:var(--ok);margin:10px 0 0">OPEN</p>
+    </div>
+
+    <div class="card">
+      <label>Mark Days as SOLD OUT</label>
+      <div class="toggle-row"><span>Monday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Monday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Tuesday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Tuesday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Wednesday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Wednesday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Thursday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Thursday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Friday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Friday"><span class="slider"></span></label></div>
+    </div>
+
+    <button id="saveBtn" style="background:var(--cocoa);color:var(--bg);margin-bottom:24px">Save Changes</button>
+    <div id="dashMsg" class="msg"></div>
+  </div>
+</div>
+
+<script>
+// YOUR GOOGLE APPS SCRIPT URL
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec"; 
+
+const $ = s => document.querySelector(s);
+let pin = "";
+
+if (sessionStorage.getItem("cayers_pin")) {
+  pin = sessionStorage.getItem("cayers_pin");
+  showDashboard();
+}
+
+$("#loginBtn").addEventListener("click", async () => {
+  const enteredPin = $("#pin").value;
+  if (!enteredPin) return;
+  
+  $("#loginBtn").disabled = true;
+  $("#loginMsg").textContent = "Checking...";
+  
+  try {
+    const r = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: {"Content-Type": "text/plain;charset=utf-8"},
+      body: JSON.stringify({ action: "admin", type: "check", pin: enteredPin })
+    });
+    const d = await r.json();
+    
+    if (d.ok) {
+      pin = enteredPin;
+      sessionStorage.setItem("cayers_pin", pin);
+      showDashboard();
+    } else {
+      $("#loginMsg").textContent = "Wrong PIN";
+    }
+  } catch (e) {
+    $("#loginMsg").textContent = "Connection error.";
+  }
+  $("#loginBtn").disabled = false;
+});
+
+async function showDashboard() {
+  $("#loginView").classList.add("hide");
+  $("#dashView").classList.remove("hide");
+  await loadSettings();
+}
+
+async function loadSettings() {
+  try {
+    const r = await fetch(ENDPOINT + "?action=get_settings");
+    const d = await r.json();
+    if (d.ok) {
+      $("#storeStatus").checked = (d.storeStatus === "OPEN");
+      updateStatusText();
+      
+      document.querySelectorAll(".soldOutDay").forEach(cb => cb.checked = false);
+      if (d.soldOutDays && d.soldOutDays.length > 0) {
+        d.soldOutDays.forEach(day => {
+          const cb = document.querySelector(`.soldOutDay[value="${day}"]`);
+          if (cb) cb.checked = true;
+        });
+      }
+    }
+  } catch (e) {
+    showDashMsg("Failed to load settings", "err");
+  }
+}
+
+$("#storeStatus").addEventListener("change", updateStatusText);
+function updateStatusText() {
+  const isOpen = $("#storeStatus").checked;
+  $("#statusText").textContent = isOpen ? "OPEN" : "CLOSED";
+  $("#statusText").style.color = isOpen ? "var(--ok)" : "var(--err)";
+}
+
+$("#saveBtn").addEventListener("click", async () => {
+  const btn = $("#saveBtn");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  showDashMsg("", "");
+
+  const storeStatus = $("#storeStatus").checked ? "OPEN" : "CLOSED";
+  const soldOutDays = Array.from(document.querySelectorAll(".soldOutDay:checked")).map(cb => cb.value);
+
+  try {
+    const r = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: {"Content-Type": "text/plain;charset=utf-8"},
+      body: JSON.stringify({ 
+        action: "admin", type: "update", pin: pin, 
+        storeStatus: storeStatus, soldOutDays: soldOutDays 
+      })
+    });
+    const d = await r.json();
+    if (d.ok) showDashMsg("Saved successfully!", "ok");
+    else showDashMsg("Error saving: " + d.error, "err");
+  } catch (e) {
+    showDashMsg("Connection error.", "err");
+  }
+  
+  btn.disabled = false;
+  btn.textContent = "Save Changes";
+});
+
+function showDashMsg(text, type) {
+  const m = $("#dashMsg");
+  m.textContent = text;
+  m.className = "msg " + type;
+}
+</script>
+</body>
+</html>
