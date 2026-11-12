@@ -57,6 +57,32 @@ input:disabled + .slider{opacity:.6;cursor:default}
 #refreshCounts{width:auto;flex:0 0 auto;padding:10px 16px;font-size:.9rem;background:transparent;color:var(--ink);border:1.5px solid var(--line)}
 .stock-hint{font-size:.78rem;color:var(--err);margin:12px 0 0;line-height:1.4}
 
+/* ---------- in-person sale ---------- */
+.sale-intro{font-size:.8rem;color:var(--mute);margin:-4px 0 14px;line-height:1.4}
+.sale-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.sale-row:first-child{padding-top:4px}
+.sale-row:last-child{border-bottom:0}
+.sale-row.is-out{opacity:.55}
+.sale-flavor-name{flex:1;min-width:0}
+.sale-flavor-name b{display:block;line-height:1.2;font-weight:800}
+.sale-flavor-name .fl-badge{display:inline-block;margin-top:4px;font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ok) 14%,var(--card));color:var(--ok)}
+.sale-flavor-name .fl-badge.out{background:color-mix(in srgb,var(--err) 14%,var(--card));color:var(--err)}
+.sale-flavor-name .fl-badge.empty{display:none}
+.step{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.step button:disabled{opacity:.4;cursor:default}
+.step .qty-input{width:3.5ch;padding:6px 2px;border:0;background:transparent;color:inherit;font:inherit;font-weight:800;font-size:1.15rem;font-variant-numeric:tabular-nums;text-align:center;border-radius:8px;outline:0;cursor:text;caret-color:var(--berry);-moz-appearance:textfield;appearance:none;transition:background .15s ease,box-shadow .15s ease}
+.step .qty-input::-webkit-outer-spin-button,
+.step .qty-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.step .qty-input:focus{background:color-mix(in srgb,var(--berry) 12%,transparent);box-shadow:inset 0 0 0 2px var(--berry)}
+.step .qty-input:disabled{opacity:.5;cursor:default}
+.sale-summary{display:flex;justify-content:space-between;align-items:center;padding:12px 0;margin:4px 0 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:800;font-variant-numeric:tabular-nums}
+.sale-summary span:first-child{color:var(--mute);font-size:.85rem}
+.sale-field{display:block;margin:0 0 12px;font-weight:700;font-size:.75rem;color:var(--mute)}
+.sale-field > span{display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.sale-field input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-weight:700}
+.sale-btn{background:var(--ok);color:var(--bg)}
+
 .hide{display:none!important}
 .msg{text-align:center;font-weight:700;margin-top:16px;min-height:24px}
 .msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
@@ -68,6 +94,8 @@ input:disabled + .slider{opacity:.6;cursor:default}
 button:focus-visible,
 input[type="password"]:focus-visible,
 input[type="number"]:focus-visible,
+input[type="text"]:focus-visible,
+input[type="date"]:focus-visible,
 .switch input:focus-visible + .slider{outline:2px solid var(--ink);outline-offset:3px}
 
 /* ---------- splash ---------- */
@@ -91,13 +119,11 @@ input[type="number"]:focus-visible,
 .dots i:nth-child(3){animation-delay:.3s}
 @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-12px);opacity:1}}
 
-/* ---------- content reveal ---------- */
 @keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 .reveal{opacity:0}
 .reveal.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s)}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1}.reveal.in{animation:none}}
 
-/* ---------- shared overlay ---------- */
 .overlay{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
 .overlay.gone{opacity:0;pointer-events:none}
 .overlay.hide{display:none}
@@ -123,7 +149,6 @@ input[type="number"]:focus-visible,
 .overlay.s-undo .okwrap{opacity:0;transition:opacity 1.2s ease .1s}
 .overlay.s-undo .oktext{opacity:0;transition:opacity 1.2s ease}
 
-/* ---------- logging out overlay ---------- */
 #loggingout .splash-logo span{display:inline-block;opacity:0}
 #loggingout .dots,#loggingout .note{opacity:0}
 #loggingout.play .splash-logo span{animation:spell .45s cubic-bezier(.2,.7,.3,1) forwards}
@@ -145,7 +170,6 @@ input[type="number"]:focus-visible,
 </head>
 <body>
 
-<!-- SPLASH -->
 <div id="splash">
   <div class="splash-inner">
     <div class="splash-logo" role="img" aria-label="Cayers"><span aria-hidden="true">C</span><span aria-hidden="true">a</span><span aria-hidden="true">y</span><span aria-hidden="true">e</span><span aria-hidden="true">r</span><span aria-hidden="true">s</span></div>
@@ -154,7 +178,6 @@ input[type="number"]:focus-visible,
   </div>
 </div>
 
-<!-- SAVING OVERLAY -->
 <div id="saving" class="overlay hide" role="status" aria-live="polite">
   <div class="splash-inner">
     <div class="splash-logo">Cayers</div>
@@ -165,7 +188,6 @@ input[type="number"]:focus-visible,
   <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
 </div>
 
-<!-- AUTHING OVERLAY -->
 <div id="authing" class="overlay hide" role="status" aria-live="polite">
   <div class="splash-inner">
     <div class="splash-logo">Cayers</div>
@@ -176,7 +198,6 @@ input[type="number"]:focus-visible,
   <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/><path class="cross" d="M35 35 L65 65 M65 35 L35 65" pathLength="1"/></svg></div>
 </div>
 
-<!-- LOGGING OUT OVERLAY -->
 <div id="loggingout" class="overlay hide" role="status" aria-live="polite">
   <div class="splash-inner">
     <div class="splash-logo" role="img" aria-label="Cayers"><span aria-hidden="true">C</span><span aria-hidden="true">a</span><span aria-hidden="true">y</span><span aria-hidden="true">e</span><span aria-hidden="true">r</span><span aria-hidden="true">s</span></div>
@@ -188,7 +209,6 @@ input[type="number"]:focus-visible,
 <div class="wrap">
   <h1><span id="target-logo">Cayers</span><span id="admin-word" style="opacity:0"> Admin</span></h1>
 
-  <!-- LOGIN SCREEN -->
   <div id="loginView" class="card">
     <label for="pin">Enter PIN</label>
     <input type="password" id="pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
@@ -197,7 +217,6 @@ input[type="number"]:focus-visible,
     <div id="loginMsg" class="msg err" role="status" aria-live="polite"></div>
   </div>
 
-  <!-- DASHBOARD -->
   <div id="dashView" class="hide">
     <div class="card">
       <div class="toggle-row">
@@ -219,15 +238,40 @@ input[type="number"]:focus-visible,
       <div class="toggle-row"><span id="day-fri">Friday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Friday" aria-labelledby="day-fri"><span class="slider" aria-hidden="true"></span></label></div>
     </div>
 
-    <!-- FLAVOURS & STOCK -->
     <div class="card">
       <label>Flavours &amp; Stock</label>
       <div id="flavorRows"></div>
       <p id="stockHint" class="stock-hint hide">Order counts aren’t coming back from the sheet yet — the Apps Script needs the new version for “Left” to update itself.</p>
       <div class="refresh-row">
-        <p>Left = baked − cups already in the sheet. Delete an order, then tap Refresh.</p>
+        <p>Left = baked − cups already in the sheet. Delete a row, then tap Refresh.</p>
         <button type="button" id="refreshCounts">Refresh</button>
       </div>
+    </div>
+
+    <!-- NEW: in-person sale recording -->
+    <div class="card" id="saleCard">
+      <label>Record In-Person Sale</label>
+      <p class="sale-intro">Log cups you sold directly (market, walk-in, DM). They count against stock everywhere — the customer site and this dashboard.</p>
+
+      <div id="saleRows"></div>
+
+      <div class="sale-summary">
+        <span id="saleCupsCount">0 cups</span>
+        <span id="saleTotalPrice">0 AED</span>
+      </div>
+
+      <label class="sale-field" for="saleNote">
+        <span>Note (optional)</span>
+        <input type="text" id="saleNote" placeholder="e.g. Market at Zayed, customer name" maxlength="60">
+      </label>
+
+      <label class="sale-field" for="saleDate">
+        <span>Sale date</span>
+        <input type="date" id="saleDate">
+      </label>
+
+      <button type="button" id="recordSaleBtn" class="sale-btn">Record Sale</button>
+      <div id="saleMsg" class="msg" role="status" aria-live="polite"></div>
     </div>
 
     <button id="saveBtn" style="background:var(--cocoa);color:var(--bg);margin-bottom:12px">Save Changes</button>
@@ -242,7 +286,11 @@ const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi
 
 /* ---- must match MENU_FLAVORS in the Apps Script ---- */
 const FLAVORS          = ["Cloud Cayer", "Dark Land Cayer"];
-const DEFAULT_PRODUCED = 20;   // matches DEFAULT_PRODUCED in the script
+const PRICES = {
+  "Cloud Cayer": 3,
+  "Dark Land Cayer": 3
+};
+const DEFAULT_PRODUCED = 20;
 const MAX_STOCK        = 999;
 
 const TIMING = {
@@ -280,9 +328,12 @@ let pin = "";
 let isSaving = false;
 let dashboardSettingsPromise = null;
 
-/* how many cups of each flavour are already in the sheet */
 const orderedCounts = {};
 FLAVORS.forEach(f => orderedCounts[f] = 0);
+
+/* in-person sale form state — separate from saved stock */
+const saleQty = {};
+FLAVORS.forEach(f => saleQty[f] = 0);
 
 /* ================================================================
    API helpers
@@ -312,15 +363,13 @@ function saveSession(value) {
   sessionStorage.setItem("cayers_exp", String(now + SESSION_MAX_MS));
   sessionStorage.setItem("cayers_last", String(now));
 }
-
 function touchSession() {
   if (sessionStorage.getItem("cayers_pin")) {
     sessionStorage.setItem("cayers_last", String(Date.now()));
   }
 }
-
 function sessionValid() {
-  const p   = sessionStorage.getItem("cayers_pin");
+  const p = sessionStorage.getItem("cayers_pin");
   const exp = Number(sessionStorage.getItem("cayers_exp"));
   const last = Number(sessionStorage.getItem("cayers_last"));
   if (!p || !exp || !last) return false;
@@ -330,14 +379,12 @@ function sessionValid() {
   if (now - last > SESSION_IDLE_MS) return false;
   return true;
 }
-
 function clearSession() {
   sessionStorage.removeItem("cayers_pin");
   sessionStorage.removeItem("cayers_exp");
   sessionStorage.removeItem("cayers_last");
   pin = "";
 }
-
 ["pointerdown", "keydown", "touchstart"].forEach(ev =>
   document.addEventListener(ev, touchSession, { passive: true })
 );
@@ -348,12 +395,7 @@ function clearSession() {
 function revealEls(els) {
   els = els.filter(el => el && !el.classList.contains("hide") && !el.classList.contains("reveal"));
   if (!els.length) return;
-
-  if (reduceMotion()) {
-    els.forEach(el => el.classList.add("reveal", "in"));
-    return;
-  }
-
+  if (reduceMotion()) { els.forEach(el => el.classList.add("reveal", "in")); return; }
   try {
     els.forEach((el, i) => {
       el.style.setProperty("--d", (i * TIMING.revealStep).toFixed(2) + "s");
@@ -365,7 +407,6 @@ function revealEls(els) {
     els.forEach(el => el.classList.add("reveal", "in"));
   }
 }
-
 function revealCurrentView() {
   if (!$("#dashView").classList.contains("hide")) {
     revealEls([...$$("#dashView > *")]);
@@ -378,7 +419,6 @@ function revealCurrentView() {
    Splash → header FLIP
    ================================================================ */
 const splashShownAt = Date.now();
-
 function fadeOutNow(el, ms) {
   if (!el) return;
   const cur = getComputedStyle(el).opacity;
@@ -388,7 +428,6 @@ function fadeOutNow(el, ms) {
   el.style.transition = `opacity ${ms}ms ease`;
   el.style.opacity = "0";
 }
-
 async function hideSplash() {
   const s = document.getElementById("splash");
   if (!s || s.dataset.done) return;
@@ -462,7 +501,6 @@ async function hideSplash() {
     s.remove();
   }, TIMING.splashFlipCleanup);
 }
-
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(hideSplash);
 window.addEventListener("load", hideSplash);
 setTimeout(hideSplash, TIMING.splashFallback);
@@ -474,14 +512,22 @@ function resetOverlayState(el) {
   if (!el) return;
   el.classList.remove("s-circle", "s-tick", "s-undo", "s-err", "s-cross");
 }
-
 function showOverlay(el, on, opts = {}) {
   if (!el) return Promise.resolve();
-  const { slow = false, note } = opts;
-
+  const { slow = false, note, text } = opts;
   if (on) {
     const noteEl = el.querySelector(".note");
     if (noteEl && note) noteEl.textContent = note;
+    const okText = el.querySelector(".oktext");
+    if (okText && text) {
+      okText.textContent = text;
+      okText.dataset.custom = "1";
+    } else if (okText && !text) {
+      if (okText.dataset.custom) {
+        okText.textContent = "Changes Saved";
+        delete okText.dataset.custom;
+      }
+    }
     resetOverlayState(el);
     el.style.transition = "none";
     el.classList.remove("hide");
@@ -491,7 +537,6 @@ function showOverlay(el, on, opts = {}) {
     el.classList.remove("gone");
     return Promise.resolve();
   }
-
   const ms = slow ? TIMING.overlayFadeSlowMs : TIMING.overlayFadeMs;
   return new Promise(resolve => {
     el.style.transition = `opacity ${ms}ms ease`;
@@ -521,14 +566,12 @@ async function playError(el, text) {
   if (!el) return;
   const oktext = el.querySelector(".oktext");
   const originalText = oktext ? oktext.textContent : "";
-
   if (reduceMotion()) {
     if (oktext) oktext.textContent = text;
     await sleep(300);
     if (oktext) oktext.textContent = originalText;
     return;
   }
-
   try {
     if (oktext) oktext.textContent = text;
     el.classList.add("s-circle", "s-err"); await sleep(TIMING.errorCircle);
@@ -548,7 +591,6 @@ async function handleLogin() {
   const btn = $("#loginBtn");
   const msg = $("#loginMsg");
   if (!enteredPin || btn.disabled) return;
-
   btn.disabled = true;
   msg.textContent = "";
   msg.classList.remove("err", "ok");
@@ -556,25 +598,16 @@ async function handleLogin() {
 
   const authing = $("#authing");
   const startedAt = Date.now();
-
   await showOverlay(authing, true, { note: "Logging in…" });
   await sleep(100);
 
   let success = false;
   let errorMsg = "";
-
   try {
     const d = await postJSON({ action: "admin", type: "check", pin: enteredPin });
-    if (d.ok) {
-      success = true;
-      pin = enteredPin;
-      saveSession(pin);
-    } else {
-      errorMsg = "Wrong PIN";
-    }
-  } catch {
-    errorMsg = "Connection error.";
-  }
+    if (d.ok) { success = true; pin = enteredPin; saveSession(pin); }
+    else { errorMsg = "Wrong PIN"; }
+  } catch { errorMsg = "Connection error."; }
 
   const remaining = Math.max(0, TIMING.overlayMinVisible - (Date.now() - startedAt));
   if (remaining) await sleep(remaining);
@@ -614,7 +647,6 @@ $("#logoutBtn").addEventListener("click", async () => {
   if (btn.disabled) return;
   btn.disabled = true;
   document.body.style.overflow = "hidden";
-
   clearSession();
 
   const lo = $("#loggingout");
@@ -662,6 +694,8 @@ async function showDashboard() {
   dashboardSettingsPromise = loadSettings();
   try { await dashboardSettingsPromise; } catch {}
 
+  renderSaleForm();
+
   const splash = document.getElementById("splash");
   if (!splash || splash.dataset.done) {
     dash.classList.remove("busy");
@@ -675,12 +709,10 @@ function showLogin(message = "") {
   lv.classList.remove("hide", "reveal", "in");
   $("#pin").value = "";
   $("#loginBtn").disabled = false;
-
   const msg = $("#loginMsg");
   msg.classList.remove("ok");
   msg.classList.add("err");
   msg.textContent = message;
-
   const splash = document.getElementById("splash");
   if (!splash || splash.dataset.done) {
     requestAnimationFrame(() => revealEls([lv]));
@@ -688,13 +720,12 @@ function showLogin(message = "") {
 }
 
 /* ================================================================
-   Flavour rows
+   Flavour stock card
    ================================================================ */
 function buildFlavorRows() {
   const box = $("#flavorRows");
   if (!box || box.dataset.built) return;
   box.dataset.built = "1";
-
   box.innerHTML = FLAVORS.map((name, i) => {
     const slug = "fl" + i;
     return `<div class="flavor-admin" data-flavor="${name}">
@@ -719,7 +750,6 @@ function buildFlavorRows() {
     </div>`;
   }).join("");
 }
-
 buildFlavorRows();
 
 function renderLeft(name) {
@@ -727,11 +757,9 @@ function renderLeft(name) {
   const out = document.querySelector(`.flavorLeft[data-flavor="${name}"]`);
   const sub = document.querySelector(`.flavorOrdered[data-flavor="${name}"]`);
   if (!inp || !out) return;
-
   const baked = parseInt(inp.value, 10);
   const ordered = orderedCounts[name] || 0;
   const left = Math.max(0, (Number.isFinite(baked) ? baked : 0) - ordered);
-
   out.textContent = String(left);
   const box = out.closest(".left-box");
   if (box) box.classList.toggle("is-zero", left === 0);
@@ -742,7 +770,6 @@ $("#flavorRows").addEventListener("input", e => {
   const inp = e.target.closest(".flavorProduced");
   if (inp) renderLeft(inp.dataset.flavor);
 });
-
 $("#flavorRows").addEventListener("change", e => {
   const inp = e.target.closest(".flavorProduced");
   if (inp) {
@@ -755,11 +782,287 @@ $("#flavorRows").addEventListener("change", e => {
   if (cb) {
     const row = cb.closest(".flavor-admin");
     if (row) row.classList.toggle("is-out", cb.checked);
+    updateSaleFormCap();
   }
 });
 
 /* ================================================================
-   Load settings
+   In-person sale form
+   ================================================================ */
+function getProducedFor(name) {
+  const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
+  const n = inp ? parseInt(inp.value, 10) : NaN;
+  return Number.isFinite(n) ? Math.max(0, n) : 0;
+}
+function getSoldOutFor(name) {
+  const cb = document.querySelector(`.flavorSoldOut[data-flavor="${name}"]`);
+  return cb ? cb.checked : false;
+}
+function getRemainingFor(name) {
+  return Math.max(0, getProducedFor(name) - (orderedCounts[name] || 0));
+}
+function saleCapFor(name) {
+  if (getSoldOutFor(name)) return 0;
+  return getRemainingFor(name);
+}
+
+function renderSaleForm() {
+  const box = $("#saleRows");
+  if (!box) return;
+
+  /* don't rebuild if someone is mid-typing into a sale quantity box */
+  const active = document.activeElement;
+  if (active && active.classList && active.classList.contains("qty-input") && box.contains(active)) {
+    updateSaleTotals();
+    return;
+  }
+
+  box.innerHTML = FLAVORS.map((name, i) => {
+    const out = getSoldOutFor(name);
+    const rem = getRemainingFor(name);
+    const disabled = out ? " disabled" : "";
+    let badge = "";
+    if (out) badge = `<span class="fl-badge out">Sold out</span>`;
+    else if (rem <= 0) badge = `<span class="fl-badge out">Sold out</span>`;
+    else badge = `<span class="fl-badge">${rem} left</span>`;
+
+    return `<div class="sale-row${out ? " is-out" : ""}">
+      <div class="sale-flavor-name">
+        <b>${name}</b>
+        ${badge}
+      </div>
+      <div class="step">
+        <button type="button" data-i="${i}" data-d="-1" aria-label="Remove one ${name}"${disabled}>−</button>
+        <input class="qty-input" type="text" inputmode="numeric" pattern="[0-9]*"
+               data-i="${i}" value="${saleQty[name]}" maxlength="4"
+               autocomplete="off" spellcheck="false" enterkeyhint="done"
+               aria-label="Quantity of ${name}"${disabled}>
+        <button type="button" data-i="${i}" data-d="1" aria-label="Add one ${name}"${disabled}>+</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  updateSaleTotals();
+}
+
+function updateSaleFormCap() {
+  /* only touch the buttons, don't rebuild — keeps any typed value */
+  document.querySelectorAll("#saleRows .step button").forEach(b => {
+    const name = FLAVORS[+b.dataset.i];
+    if (!name) return;
+    const d = +b.dataset.d;
+    const out = getSoldOutFor(name);
+    if (out) { b.disabled = true; return; }
+    const cap = saleCapFor(name);
+    b.disabled = d < 0 ? saleQty[name] <= 0 : saleQty[name] >= cap;
+  });
+}
+
+function updateSaleTotals() {
+  let cups = 0, price = 0;
+  FLAVORS.forEach(name => {
+    const q = saleQty[name] || 0;
+    cups += q;
+    price += q * (PRICES[name] || 0);
+  });
+  $("#saleCupsCount").textContent = `${cups} cup${cups === 1 ? "" : "s"}`;
+  $("#saleTotalPrice").textContent = `${price} AED`;
+
+  document.querySelectorAll("#saleRows .step button").forEach(b => {
+    const name = FLAVORS[+b.dataset.i];
+    if (!name) return;
+    const d = +b.dataset.d;
+    const out = getSoldOutFor(name);
+    if (out) { b.disabled = true; return; }
+    const cap = saleCapFor(name);
+    b.disabled = d < 0 ? saleQty[name] <= 0 : saleQty[name] >= cap;
+  });
+}
+
+/* +/- buttons in sale form */
+$("#saleRows").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b || b.disabled) return;
+  const i = +b.dataset.i;
+  const name = FLAVORS[i];
+  if (!name) return;
+
+  if (getSoldOutFor(name)) return;
+
+  const cap = saleCapFor(name);
+  const d = +b.dataset.d;
+  const next = Math.max(0, Math.min(cap, (saleQty[name] || 0) + d));
+  saleQty[name] = next;
+
+  /* update just this row's input + totals, not the whole form */
+  const inp = b.parentElement.querySelector(".qty-input");
+  if (inp) inp.value = String(next);
+  updateSaleTotals();
+});
+
+/* typing into a sale quantity box */
+$("#saleRows").addEventListener("input", e => {
+  const inp = e.target.closest(".qty-input");
+  if (!inp) return;
+  const name = FLAVORS[+inp.dataset.i];
+  if (!name) return;
+  if (getSoldOutFor(name)) { inp.value = String(saleQty[name] || 0); return; }
+
+  let raw = inp.value.replace(/\D+/g, "");
+  if (raw !== inp.value) inp.value = raw;
+  if (raw.length > 4) { raw = raw.slice(0, 4); inp.value = raw; }
+
+  const n = raw === "" ? 0 : Math.min(parseInt(raw, 10) || 0, 9999);
+  saleQty[name] = n;
+  updateSaleTotals();
+});
+
+function finalizeSaleInput(inp) {
+  if (!inp) return;
+  const name = FLAVORS[+inp.dataset.i];
+  if (!name) return;
+  const cap = saleCapFor(name);
+  let n = parseInt(inp.value, 10);
+  if (!Number.isFinite(n) || n < 0) n = 0;
+  if (n > cap) n = cap;
+  saleQty[name] = n;
+  inp.value = String(n);
+  updateSaleTotals();
+}
+
+$("#saleRows").addEventListener("focusout", e => {
+  const inp = e.target.closest && e.target.closest(".qty-input");
+  if (inp) finalizeSaleInput(inp);
+});
+$("#saleRows").addEventListener("focusin", e => {
+  const inp = e.target.closest(".qty-input");
+  if (!inp) return;
+  setTimeout(() => {
+    try { inp.setSelectionRange(0, inp.value.length); } catch(_) {}
+  }, 0);
+});
+$("#saleRows").addEventListener("keydown", e => {
+  const inp = e.target.closest(".qty-input");
+  if (!inp) return;
+  if (e.key === "Enter") { e.preventDefault(); inp.blur(); }
+});
+
+/* set today's date in the sale date field */
+(function setSaleDateDefault(){
+  const d = $("#saleDate");
+  if (!d || d.value) return;
+  const now = new Date();
+  const iso = now.getFullYear() + "-" +
+              String(now.getMonth() + 1).padStart(2, "0") + "-" +
+              String(now.getDate()).padStart(2, "0");
+  d.value = iso;
+})();
+
+/* record sale */
+$("#recordSaleBtn").addEventListener("click", async () => {
+  if (isSaving) return;
+
+  if (!sessionValid()) {
+    clearSession();
+    showLogin("Session expired. Please log in again.");
+    return;
+  }
+
+  /* finalize any focused sale box first */
+  const active = document.activeElement;
+  if (active && active.classList && active.classList.contains("qty-input") && $("#saleRows").contains(active)) {
+    finalizeSaleInput(active);
+  }
+
+  const items = {};
+  let totalCups = 0, totalPrice = 0;
+  FLAVORS.forEach(name => {
+    const q = saleQty[name] || 0;
+    if (q > 0) {
+      items[name] = q;
+      totalCups += q;
+      totalPrice += q * (PRICES[name] || 0);
+    }
+  });
+
+  if (totalCups <= 0) {
+    showSaleMsg("Add at least one cup.", "err");
+    return;
+  }
+
+  const dateVal = $("#saleDate").value;
+  const dayLabel = dateVal
+    ? new Date(dateVal + "T12:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" })
+    : new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" });
+
+  isSaving = true;
+  const btn = $("#recordSaleBtn");
+  btn.disabled = true;
+  showSaleMsg("", "");
+  document.body.style.overflow = "hidden";
+
+  const startedAt = Date.now();
+  const saving = $("#saving");
+  await showOverlay(saving, true, { note: "Recording sale…", text: "Sale Recorded" });
+  await sleep(100);
+
+  let succeeded = false;
+  let errMsg = "";
+
+  try {
+    const d = await postJSON({
+      action: "admin",
+      type: "sale",
+      pin,
+      items,
+      total: totalPrice,
+      cups: totalCups,
+      note: ($("#saleNote").value || "").trim(),
+      day: dayLabel
+    });
+    if (d.ok) {
+      succeeded = true;
+    } else {
+      errMsg = d.message || d.error || "Could not record sale";
+    }
+  } catch {
+    errMsg = "Connection error.";
+  }
+
+  const remaining = Math.max(0, TIMING.overlayMinVisible - (Date.now() - startedAt));
+  if (remaining) await sleep(remaining);
+
+  if (succeeded) {
+    await playSuccess(saving, "Sale recorded");
+    await showOverlay(saving, false, { slow: true });
+
+    /* reset form */
+    FLAVORS.forEach(f => saleQty[f] = 0);
+    $("#saleNote").value = "";
+    renderSaleForm();
+    showSaleMsg("Sale recorded ✓", "ok");
+
+    /* refresh counts so Left updates immediately */
+    await refreshCounts();
+  } else {
+    await showOverlay(saving, false);
+    showSaleMsg(errMsg, "err");
+  }
+
+  document.body.style.overflow = "";
+  btn.disabled = false;
+  isSaving = false;
+});
+
+function showSaleMsg(text, type) {
+  const m = $("#saleMsg");
+  if (!m) return;
+  m.textContent = text;
+  m.className = "msg " + (type || "");
+}
+
+/* ================================================================
+   Load settings / refresh counts
    ================================================================ */
 async function loadSettings() {
   try {
@@ -780,15 +1083,14 @@ async function loadSettings() {
       });
     }
 
-    /* ---- flavours: baked / ordered / left ---- */
-    const live   = (d.flavors && typeof d.flavors === "object") ? d.flavors : null;
+    const live = (d.flavors && typeof d.flavors === "object") ? d.flavors : null;
     const legacy = (d.flavorSettings && typeof d.flavorSettings === "object") ? d.flavorSettings : {};
 
     $("#stockHint").classList.toggle("hide", !!live);
 
     FLAVORS.forEach(name => {
       const info = (live && live[name]) || {};
-      const old  = legacy[name] || {};
+      const old = legacy[name] || {};
 
       const soldOut = info.soldOut !== undefined ? !!info.soldOut : !!old.soldOut;
       const cb = document.querySelector(`.flavorSoldOut[data-flavor="${name}"]`);
@@ -812,12 +1114,13 @@ async function loadSettings() {
       orderedCounts[name] = Number(info.ordered) || 0;
       renderLeft(name);
     });
+
+    renderSaleForm();
   } catch {
     showDashMsg("Failed to load settings", "err");
   }
 }
 
-/* re-read only the order counts — never touches the Baked inputs */
 async function refreshCounts() {
   try {
     const d = await getSettings();
@@ -831,6 +1134,7 @@ async function refreshCounts() {
       orderedCounts[name] = Number(info.ordered) || 0;
       renderLeft(name);
     });
+    renderSaleForm();
   } catch {
     /* offline — leave the last numbers alone */
   }
@@ -858,7 +1162,7 @@ function updateStatusText() {
 }
 
 /* ================================================================
-   Save
+   Save Changes
    ================================================================ */
 function setDashInputsDisabled(disabled) {
   $$("#dashView input, #dashView button:not(#logoutBtn)").forEach(el => el.disabled = disabled);
@@ -896,9 +1200,8 @@ $("#saveBtn").addEventListener("click", async () => {
     });
 
     const startedAt = Date.now();
-
     const saving = $("#saving");
-    await showOverlay(saving, true, { note: "Saving your changes…" });
+    await showOverlay(saving, true, { note: "Saving your changes…", text: "Changes Saved" });
     await sleep(100);
 
     let succeeded = false;
@@ -913,11 +1216,8 @@ $("#saveBtn").addEventListener("click", async () => {
         succeeded = true;
       } else {
         const errText = String(d.error || d.message || "").toLowerCase();
-        if (/pin|auth|session|expired/.test(errText)) {
-          sessionExpired = true;
-        } else {
-          showDashMsg("Error saving: " + (d.error || d.message || "unknown error"), "err");
-        }
+        if (/pin|auth|session|expired/.test(errText)) sessionExpired = true;
+        else showDashMsg("Error saving: " + (d.error || d.message || "unknown error"), "err");
       }
     } catch {
       showDashMsg("Connection error.", "err");
@@ -963,13 +1263,11 @@ function showDashMsg(text, type) {
 (function bootSession() {
   const raw = sessionStorage.getItem("cayers_pin");
   if (!raw) return;
-
   if (!sessionValid()) {
     clearSession();
     $("#loginMsg").textContent = "Session expired. Please log in again.";
     return;
   }
-
   pin = raw;
   showDashboard();
   validateSession();
@@ -988,9 +1286,7 @@ async function validateSession() {
       clearSession();
       showLogin("Session expired. Please log in again.");
     }
-  } catch {
-    // network failure — keep session so the user can retry
-  }
+  } catch {}
 }
 
 /* ================================================================
@@ -1003,7 +1299,6 @@ setInterval(() => {
   }
 }, 60 * 1000);
 
-/* keep the "ordered" numbers current while the dashboard is open */
 setInterval(() => {
   if (isSaving) return;
   if ($("#dashView").classList.contains("hide")) return;
