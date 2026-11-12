@@ -31,12 +31,81 @@ input:checked + .slider:before{transform:translateX(24px)}
 .hide{display:none!important}
 .msg{text-align:center;font-weight:700;margin-top:16px;min-height:24px}
 .msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+
+/* ---------- splash ---------- */
+#splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease}
+#splash.gone{opacity:0;pointer-events:none}
+.splash-inner{text-align:center;display:flex;flex-direction:column;align-items:center}
+.splash-logo{font:400 clamp(3rem,16vw,5rem)/.95 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em;text-align:center;will-change:transform,opacity}
+#splash .splash-logo span{display:inline-block;opacity:0;animation:spell .45s cubic-bezier(.2,.7,.3,1) forwards}
+#splash .splash-logo span:nth-child(1){animation-delay:.15s}
+#splash .splash-logo span:nth-child(2){animation-delay:.40s}
+#splash .splash-logo span:nth-child(3){animation-delay:.65s}
+#splash .splash-logo span:nth-child(4){animation-delay:.90s}
+#splash .splash-logo span:nth-child(5){animation-delay:1.15s}
+#splash .splash-logo span:nth-child(6){animation-delay:1.40s}
+@keyframes spell{from{opacity:0;transform:translateY(8px) scale(.85)}to{opacity:1;transform:none}}
+#splash .dots,#splash .note{opacity:0;animation:fadein .5s ease 1.6s forwards}
+@keyframes fadein{to{opacity:1}}
+.dots{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:40px;pointer-events:none;will-change:opacity}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--berry);animation:bounce 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}
+.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-12px);opacity:1}}
+
+/* ---------- content reveal ---------- */
+@keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.reveal{opacity:0}
+.reveal.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s)}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1}.reveal.in{animation:none}}
+
+/* ---------- saving overlay ---------- */
+#saving{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
+#saving.gone{opacity:0;pointer-events:none}
+#saving.hide{display:none}
+#saving .splash-logo{transition:opacity .45s ease,transform .45s ease}
+#saving .dots,#saving .note{transition:opacity .3s ease}
+.okwrap{position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;opacity:0;transform:scale(.45);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.8,.3,1.2);pointer-events:none}
+.okwrap svg{width:100%;height:100%;display:block;overflow:visible}
+.okwrap .ring{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round;stroke-dasharray:1 2;stroke-dashoffset:1.06;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .7s ease}
+.okwrap .tick{fill:none;stroke:var(--ink);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 2;stroke-dashoffset:1.06;transition:stroke-dashoffset .55s ease}
+#saving.s-circle .splash-logo{opacity:0;transform:scale(.35)}
+#saving.s-circle .dots,#saving.s-circle .note{opacity:0}
+#saving.s-circle .okwrap{opacity:1;transform:scale(1)}
+#saving.s-circle .ring{stroke-dashoffset:0}
+#saving.s-tick .tick{stroke-dashoffset:0}
+.oktext{position:absolute;left:0;right:0;top:50%;margin-top:88px;text-align:center;font:400 1.7rem/1.1 "Abril Fatface",Georgia,serif;color:var(--ink);opacity:0;transition:opacity .5s ease;pointer-events:none}
+#saving.s-tick .oktext{opacity:1}
+#saving.s-undo .ring{stroke-dashoffset:1.06;transition:stroke-dashoffset .7s ease .25s}
+#saving.s-undo .okwrap{opacity:0;transition:opacity 1.2s ease .1s}
+#saving.s-undo .oktext{opacity:0;transition:opacity 1.2s ease}
+@media(prefers-reduced-motion:reduce){#splash,#saving{transition:none}.dots i{animation:none;opacity:.8}#splash .splash-logo span,#splash .dots,#splash .note{animation:none;opacity:1;transform:none}}
 </style>
 </head>
 <body>
 
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo" role="img" aria-label="Cayers"><span aria-hidden="true">C</span><span aria-hidden="true">a</span><span aria-hidden="true">y</span><span aria-hidden="true">e</span><span aria-hidden="true">r</span><span aria-hidden="true">s</span></div>
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="note" style="margin-top:18px;text-align:center;color:var(--mute);font-size:.9rem">Whipping up the dashboard&hellip;</p>
+  </div>
+</div>
+
+<!-- SAVING OVERLAY -->
+<div id="saving" class="hide" role="status" aria-live="polite">
+  <div class="splash-inner">
+    <div class="splash-logo">Cayers</div>
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="note" style="margin-top:18px;text-align:center;color:var(--mute);font-size:.9rem">Saving your changes&hellip;</p>
+  </div>
+  <div class="oktext" aria-hidden="true">Changes Saved</div>
+  <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
+</div>
+
 <div class="wrap">
-  <h1>Cayers Admin</h1>
+  <h1><span id="target-logo">Cayers</span><span id="admin-word" style="opacity:0"> Admin</span></h1>
 
   <!-- LOGIN SCREEN -->
   <div id="loginView" class="card">
@@ -74,24 +143,188 @@ input:checked + .slider:before{transform:translateX(24px)}
 </div>
 
 <script>
-// YOUR GOOGLE APPS SCRIPT URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec"; 
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec";
 
 const $ = s => document.querySelector(s);
 let pin = "";
 
+/* ================================================================
+   Reveal helper — same "riseIn" cascade used in cayers.html
+   ================================================================ */
+function revealEls(els){
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  els = els.filter(el => el && !el.classList.contains("hide") && !el.classList.contains("reveal"));
+  if(!els.length) return;
+  if(reduce){ els.forEach(el => el.classList.add("reveal","in")); return; }
+  const STEP = 0.07;
+  els.forEach((el,i) => {
+    el.style.setProperty("--d",(i*STEP).toFixed(2)+"s");
+    el.classList.add("reveal");
+  });
+  void document.body.offsetWidth;
+  els.forEach(el => el.classList.add("in"));
+}
+
+function revealCurrentView(){
+  if(!$("#dashView").classList.contains("hide")){
+    revealEls([...document.querySelectorAll("#dashView > *")]);
+  } else {
+    revealEls([...document.querySelectorAll(".wrap > *")].filter(el => el.tagName !== "H1"));
+  }
+}
+
+/* ================================================================
+   Splash → header FLIP (same as cayers.html)
+   ================================================================ */
+const splashShownAt = Date.now();
+
+function fadeOutNow(el, ms){
+  if(!el) return;
+  const cur = getComputedStyle(el).opacity;
+  el.style.animation = "none";
+  el.style.opacity = cur;
+  void el.offsetWidth;
+  el.style.transition = `opacity ${ms}ms ease`;
+  el.style.opacity = "0";
+}
+
+function hideSplash(){
+  const s = document.getElementById("splash");
+  if(!s || s.dataset.done) return;
+  s.dataset.done = "1";
+
+  const wait = Math.max(0, 4500 - (Date.now() - splashShownAt));
+
+  setTimeout(() => {
+    const splashLogo = s.querySelector(".splash-logo");
+    const targetLogo = document.getElementById("target-logo");
+    const adminWord = document.getElementById("admin-word");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if(!splashLogo || !targetLogo || reduce){
+      s.remove();
+      if(adminWord) adminWord.style.opacity = "1";
+      revealCurrentView();
+      return;
+    }
+
+    /* ---- measure both logos ---- */
+    const sRect = splashLogo.getBoundingClientRect();
+    const tRect = targetLogo.getBoundingClientRect();
+
+    const scaleX = sRect.width  / tRect.width;
+    const scaleY = sRect.height / tRect.height;
+    const sCX = sRect.left + sRect.width  / 2;
+    const sCY = sRect.top  + sRect.height / 2;
+    const tCX = tRect.left + tRect.width  / 2;
+    const tCY = tRect.top  + tRect.height / 2;
+    const dx = sCX - tCX;
+    const dy = sCY - tCY;
+
+    /* ---- instant handoff ---- */
+    splashLogo.style.opacity = "0";
+    targetLogo.style.position = "relative";
+    targetLogo.style.zIndex = "50";
+    targetLogo.style.transformOrigin = "center center";
+    targetLogo.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+    targetLogo.style.willChange = "transform";
+
+    void targetLogo.offsetWidth;
+
+    /* ---- fade the splash bg, dots, caption ---- */
+    s.style.transition = "background-color .6s ease";
+    s.style.backgroundColor = "transparent";
+    s.style.pointerEvents = "none";
+    fadeOutNow(s.querySelector(".dots"), 250);
+    fadeOutNow(s.querySelector(".note"), 250);
+
+    /* ---- page content fades in top → bottom underneath ---- */
+    revealCurrentView();
+
+    /* ---- glide the real logo home ---- */
+    targetLogo.style.transition = "transform .85s cubic-bezier(.22,1,.36,1)";
+    targetLogo.style.transform = "translate(0px, 0px) scale(1, 1)";
+
+    /* ---- "Admin" fades in near the end of the glide ---- */
+    if(adminWord){
+      setTimeout(() => {
+        adminWord.style.transition = "opacity .5s ease";
+        adminWord.style.opacity = "1";
+      }, 600);
+    }
+
+    /* ---- cleanup ---- */
+    setTimeout(() => {
+      targetLogo.style.transition = "";
+      targetLogo.style.transform = "";
+      targetLogo.style.transformOrigin = "";
+      targetLogo.style.willChange = "";
+      targetLogo.style.position = "";
+      targetLogo.style.zIndex = "";
+      s.remove();
+    }, 900);
+  }, wait);
+}
+
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(hideSplash);
+window.addEventListener("load", hideSplash);
+setTimeout(hideSplash, 6500);
+
+/* ================================================================
+   Saving overlay helpers (circle + tick success animation)
+   ================================================================ */
+function showSaving(on, slow){
+  const s = $("#saving");
+  if(on){
+    s.classList.remove("s-circle","s-tick","s-undo");
+    s.style.transition = "none";
+    s.classList.remove("hide");
+    s.classList.add("gone");
+    void s.offsetWidth;
+    s.style.transition = "opacity .7s ease";
+    s.classList.remove("gone");
+    return;
+  }
+  const ms = slow ? 1400 : 600;
+  s.style.transition = `opacity ${ms}ms ease`;
+  s.classList.add("gone");
+  setTimeout(() => {
+    if(s.classList.contains("gone")){
+      s.classList.add("hide");
+      s.classList.remove("s-circle","s-tick","s-undo");
+    }
+  }, ms);
+}
+
+async function playSuccess(){
+  const s = $("#saving"), sleep = ms => new Promise(r => setTimeout(r, ms));
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){ await sleep(500); return; }
+  const note = s.querySelector(".note");
+  if(note) note.textContent = "Changes saved";
+  s.classList.add("s-circle"); await sleep(1000);
+  s.classList.add("s-tick");   await sleep(1700);
+  s.classList.remove("s-tick");
+  s.classList.add("s-undo");   await sleep(1400);
+}
+
+/* ================================================================
+   Boot — restore session
+   ================================================================ */
 if (sessionStorage.getItem("cayers_pin")) {
   pin = sessionStorage.getItem("cayers_pin");
   showDashboard();
 }
 
+/* ================================================================
+   Login
+   ================================================================ */
 $("#loginBtn").addEventListener("click", async () => {
   const enteredPin = $("#pin").value;
   if (!enteredPin) return;
-  
+
   $("#loginBtn").disabled = true;
   $("#loginMsg").textContent = "Checking...";
-  
+
   try {
     const r = await fetch(ENDPOINT, {
       method: "POST",
@@ -99,10 +332,11 @@ $("#loginBtn").addEventListener("click", async () => {
       body: JSON.stringify({ action: "admin", type: "check", pin: enteredPin })
     });
     const d = await r.json();
-    
+
     if (d.ok) {
       pin = enteredPin;
       sessionStorage.setItem("cayers_pin", pin);
+      $("#loginMsg").textContent = "";
       showDashboard();
     } else {
       $("#loginMsg").textContent = "Wrong PIN";
@@ -113,12 +347,27 @@ $("#loginBtn").addEventListener("click", async () => {
   $("#loginBtn").disabled = false;
 });
 
+/* ================================================================
+   Show dashboard (with reveal)
+   ================================================================ */
 async function showDashboard() {
   $("#loginView").classList.add("hide");
   $("#dashView").classList.remove("hide");
+
   await loadSettings();
+
+  /* Only animate if the splash is no longer covering the screen.
+     If the splash is still on-screen (session-restore case), the
+     splash's hideSplash() call to revealCurrentView() handles it. */
+  const splash = document.getElementById("splash");
+  if(!splash || splash.dataset.done){
+    revealEls([...document.querySelectorAll("#dashView > *")]);
+  }
 }
 
+/* ================================================================
+   Load settings
+   ================================================================ */
 async function loadSettings() {
   try {
     const r = await fetch(ENDPOINT + "?action=get_settings");
@@ -126,7 +375,7 @@ async function loadSettings() {
     if (d.ok) {
       $("#storeStatus").checked = (d.storeStatus === "OPEN");
       updateStatusText();
-      
+
       document.querySelectorAll(".soldOutDay").forEach(cb => cb.checked = false);
       if (d.soldOutDays && d.soldOutDays.length > 0) {
         d.soldOutDays.forEach(day => {
@@ -140,6 +389,9 @@ async function loadSettings() {
   }
 }
 
+/* ================================================================
+   Store status toggle
+   ================================================================ */
 $("#storeStatus").addEventListener("change", updateStatusText);
 function updateStatusText() {
   const isOpen = $("#storeStatus").checked;
@@ -147,39 +399,65 @@ function updateStatusText() {
   $("#statusText").style.color = isOpen ? "var(--ok)" : "var(--err)";
 }
 
+/* ================================================================
+   Save — with overlay + success tick animation
+   ================================================================ */
 $("#saveBtn").addEventListener("click", async () => {
   const btn = $("#saveBtn");
   btn.disabled = true;
-  btn.textContent = "Saving...";
   showDashMsg("", "");
+  document.body.style.overflow = "hidden";
 
   const storeStatus = $("#storeStatus").checked ? "OPEN" : "CLOSED";
   const soldOutDays = Array.from(document.querySelectorAll(".soldOutDay:checked")).map(cb => cb.value);
 
+  const savingStart = Date.now();
+  showSaving(true);
+  await new Promise(r => setTimeout(r, 100)); // let the overlay paint
+
+  let succeeded = false;
   try {
     const r = await fetch(ENDPOINT, {
       method: "POST",
       headers: {"Content-Type": "text/plain;charset=utf-8"},
-      body: JSON.stringify({ 
-        action: "admin", type: "update", pin: pin, 
-        storeStatus: storeStatus, soldOutDays: soldOutDays 
+      body: JSON.stringify({
+        action: "admin", type: "update", pin: pin,
+        storeStatus: storeStatus, soldOutDays: soldOutDays
       })
     });
     const d = await r.json();
-    if (d.ok) showDashMsg("Saved successfully!", "ok");
+    if (d.ok) succeeded = true;
     else showDashMsg("Error saving: " + d.error, "err");
   } catch (e) {
     showDashMsg("Connection error.", "err");
   }
-  
+
+  // keep the "Saving..." state visible long enough to feel intentional
+  const minSavingMs = 800;
+  const elapsed = Date.now() - savingStart;
+  const remaining = Math.max(0, minSavingMs - elapsed);
+  if(remaining) await new Promise(r => setTimeout(r, remaining));
+
+  if(succeeded){
+    await playSuccess();
+    showSaving(false, true);
+    showDashMsg("Saved successfully!", "ok");
+  } else {
+    showSaving(false);
+  }
+
+  document.body.style.overflow = "";
   btn.disabled = false;
-  btn.textContent = "Save Changes";
 });
 
+/* ================================================================
+   Message helper — preserves .reveal / .in classes
+   ================================================================ */
 function showDashMsg(text, type) {
   const m = $("#dashMsg");
   m.textContent = text;
-  m.className = "msg " + type;
+  m.classList.remove("err", "ok");
+  if(type) m.classList.add(type);
 }
 </script>
 </body>
