@@ -32,6 +32,18 @@ button:disabled{opacity:0.5;cursor:default}
 input:checked + .slider{background-color:var(--ok)}
 input:checked + .slider:before{transform:translateX(24px)}
 input:disabled + .slider{opacity:.6;cursor:default}
+
+/* ---------- per-flavour stock controls ---------- */
+.flavor-admin{padding:16px 0;border-bottom:1px solid var(--line)}
+.flavor-admin:first-child{padding-top:0}
+.flavor-admin:last-child{border-bottom:0;padding-bottom:0}
+.flavor-admin-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.flavor-admin-head > span{font-weight:800}
+.qty-label{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0;font-weight:700;font-size:.9rem;color:var(--mute)}
+.qty-label input{width:104px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-weight:800;font-size:1rem;text-align:center}
+.qty-label input:disabled{opacity:.5}
+.flavor-admin.is-out .qty-label{opacity:.55}
+
 .hide{display:none!important}
 .msg{text-align:center;font-weight:700;margin-top:16px;min-height:24px}
 .msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
@@ -42,6 +54,7 @@ input:disabled + .slider{opacity:.6;cursor:default}
 
 button:focus-visible,
 input[type="password"]:focus-visible,
+input[type="number"]:focus-visible,
 .switch input:focus-visible + .slider{outline:2px solid var(--ink);outline-offset:3px}
 
 /* ---------- splash ---------- */
@@ -193,6 +206,12 @@ input[type="password"]:focus-visible,
       <div class="toggle-row"><span id="day-fri">Friday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Friday" aria-labelledby="day-fri"><span class="slider" aria-hidden="true"></span></label></div>
     </div>
 
+    <!-- NEW: per-flavour stock + sold out -->
+    <div class="card">
+      <label>Flavours &amp; Stock</label>
+      <div id="flavorRows"></div>
+    </div>
+
     <button id="saveBtn" style="background:var(--cocoa);color:var(--bg);margin-bottom:12px">Save Changes</button>
     <button id="logoutBtn">Log Out</button>
     <p class="session-note">Session ends after 30 minutes of inactivity.</p>
@@ -202,6 +221,11 @@ input[type="password"]:focus-visible,
 
 <script>
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec";
+
+/* ---- flavour list — must match CONFIG.flavors ids in cayers.html ---- */
+const FLAVORS       = ["Cloud Cayer", "Dark Land Cayer"];
+const DEFAULT_STOCK = 20;   // used when the sheet has no value yet
+const MAX_STOCK     = 999;
 
 const TIMING = {
   splashMin: 2000,
@@ -648,6 +672,51 @@ function showLogin(message = "") {
 }
 
 /* ================================================================
+   Flavour stock rows  (NEW)
+   ================================================================ */
+function buildFlavorRows() {
+  const box = $("#flavorRows");
+  if (!box || box.dataset.built) return;
+  box.dataset.built = "1";
+
+  box.innerHTML = FLAVORS.map((name, i) => {
+    const slug = "fl" + i;
+    return `<div class="flavor-admin" data-flavor="${name}">
+      <div class="flavor-admin-head">
+        <span id="fname-${slug}">${name}</span>
+        <label class="switch">
+          <input type="checkbox" class="flavorSoldOut" data-flavor="${name}" aria-label="${name} sold out">
+          <span class="slider" aria-hidden="true"></span>
+        </label>
+      </div>
+      <label class="qty-label" for="qty-${slug}"><span>Available to order</span>
+        <input type="number" id="qty-${slug}" class="flavorQty" data-flavor="${name}"
+               min="0" max="${MAX_STOCK}" step="1" inputmode="numeric"
+               value="${DEFAULT_STOCK}" aria-label="${name} available quantity">
+      </label>
+    </div>`;
+  }).join("");
+}
+
+buildFlavorRows();
+
+/* keep the number box sane */
+$("#flavorRows").addEventListener("change", e => {
+  const inp = e.target.closest(".flavorQty");
+  if (!inp) return;
+  const n = parseInt(inp.value, 10);
+  inp.value = String(Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, n)) : 0);
+});
+
+/* dim the row when it's marked sold out (purely visual) */
+$("#flavorRows").addEventListener("change", e => {
+  const cb = e.target.closest(".flavorSoldOut");
+  if (!cb) return;
+  const row = cb.closest(".flavor-admin");
+  if (row) row.classList.toggle("is-out", cb.checked);
+});
+
+/* ================================================================
    Load settings
    ================================================================ */
 async function loadSettings() {
@@ -668,6 +737,22 @@ async function loadSettings() {
         if (cb) cb.checked = true;
       });
     }
+
+    /* ---- flavours ---- */
+    const fs = (d.flavorSettings && typeof d.flavorSettings === "object") ? d.flavorSettings : {};
+
+    $$(".flavorSoldOut").forEach(cb => {
+      const s = fs[cb.dataset.flavor] || {};
+      cb.checked = !!s.soldOut;
+      const row = cb.closest(".flavor-admin");
+      if (row) row.classList.toggle("is-out", cb.checked);
+    });
+
+    $$(".flavorQty").forEach(inp => {
+      const s = fs[inp.dataset.flavor] || {};
+      const n = Number(s.available);
+      inp.value = String(Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, Math.floor(n))) : DEFAULT_STOCK);
+    });
   } catch {
     showDashMsg("Failed to load settings", "err");
   }
@@ -710,6 +795,19 @@ $("#saveBtn").addEventListener("click", async () => {
   try {
     const storeStatus = $("#storeStatus").checked ? "OPEN" : "CLOSED";
     const soldOutDays = Array.from($$(".soldOutDay:checked")).map(cb => cb.value);
+
+    /* ---- collect flavours ---- */
+    const flavorSettings = {};
+    $$(".flavorSoldOut").forEach(cb => {
+      const name = cb.dataset.flavor;
+      const inp  = document.querySelector(`.flavorQty[data-flavor="${name}"]`);
+      const n    = inp ? parseInt(inp.value, 10) : NaN;
+      flavorSettings[name] = {
+        soldOut: cb.checked,
+        available: Number.isFinite(n) ? Math.max(0, Math.min(MAX_STOCK, n)) : 0
+      };
+    });
+
     const startedAt = Date.now();
 
     const saving = $("#saving");
@@ -722,7 +820,7 @@ $("#saveBtn").addEventListener("click", async () => {
     try {
       const d = await postJSON({
         action: "admin", type: "update", pin,
-        storeStatus, soldOutDays
+        storeStatus, soldOutDays, flavorSettings
       });
       if (d.ok) {
         succeeded = true;
