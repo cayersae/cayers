@@ -35,12 +35,41 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .flavor span{color:var(--mute);font-size:.9rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .flavor .fl-badge{display:inline-block;margin-top:6px;font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--ok) 14%,var(--card));color:var(--ok);-webkit-line-clamp:unset;-webkit-box-orient:initial;overflow:visible}
 .flavor .fl-badge.out{background:color-mix(in srgb,var(--err) 14%,var(--card));color:var(--err)}
+.flavor .fl-badge.empty{display:none}
 .flavor.is-out{opacity:.6}
 .flavor.is-out b{text-decoration:line-through}
-.step{display:flex;align-items:center;gap:12px;flex:0 0 auto}
+.step{display:flex;align-items:center;gap:10px;flex:0 0 auto}
 .step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
 .step button:disabled{opacity:.4;cursor:default}
-.step output{min-width:1.5ch;text-align:center;font-weight:800;font-size:1.2rem;font-variant-numeric:tabular-nums}
+
+/* tappable quantity — looks like plain text at rest, becomes a focused field on click */
+.step .qty-input{
+  width:3.5ch;
+  padding:6px 2px;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  font-weight:800;
+  font-size:1.2rem;
+  font-variant-numeric:tabular-nums;
+  text-align:center;
+  border-radius:8px;
+  outline:0;
+  cursor:text;
+  caret-color:var(--berry);
+  -moz-appearance:textfield;
+  appearance:none;
+  transition:background .15s ease,box-shadow .15s ease;
+}
+.step .qty-input::-webkit-outer-spin-button,
+.step .qty-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.step .qty-input:focus{
+  background:color-mix(in srgb,var(--berry) 12%,transparent);
+  box-shadow:inset 0 0 0 2px var(--berry);
+}
+.step .qty-input:disabled{opacity:.5;cursor:default}
+
 .total{position:sticky;bottom:0;background:var(--cocoa);color:var(--bg);border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin:8px 0 14px;font-weight:800;font-variant-numeric:tabular-nums}
 .total > div:first-child{text-align:left}
 .total > div:last-child{text-align:right;white-space:nowrap}
@@ -209,7 +238,7 @@ const CONFIG = {
   localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday"],
   minCampus: 1,
   minLocal: 3,
-  maxPerFlavor: 20,
+  maxPerFlavor: 20,   // fallback ceiling only when there's no live stock from the sheet
   minFillMs: 2500,
   localSameDayCutoffHour: 15,
   campusSameDayCutoffHour: 14,
@@ -237,8 +266,6 @@ CONFIG.flavors.forEach(f=>{
   flavorInfo[f.id]={soldOut:false, remaining:Infinity};
 });
 
-/* track the last stock signature so we only re-render the flavour cards
-   when something actually changed — avoids losing focus every 30 seconds */
 let lastFlavorSig = "";
 
 function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -249,11 +276,15 @@ function remainingFor(id){
   const info = flavorInfo[id];
   return info && isFinite(info.remaining) ? info.remaining : Infinity;
 }
+
+/* how many the user is allowed to have in the cart right now */
 function capFor(id){
   const info = flavorInfo[id] || {};
   if (info.soldOut) return 0;
-  return Math.min(CONFIG.maxPerFlavor, remainingFor(id));
+  const rem = remainingFor(id);
+  return isFinite(rem) ? rem : CONFIG.maxPerFlavor;
 }
+
 function clampCartToStock(){
   let changed = false;
   CONFIG.flavors.forEach(f => {
@@ -262,6 +293,7 @@ function clampCartToStock(){
   });
   return changed;
 }
+
 function flavorSignature(){
   return CONFIG.flavors.map(f => {
     const info = flavorInfo[f.id] || {};
@@ -289,7 +321,6 @@ async function fetchStoreStatus() {
         };
       });
     } else {
-      // backend didn't send flavors (old script) — ensure sane defaults
       CONFIG.flavors.forEach(f => {
         if (!flavorInfo[f.id]) flavorInfo[f.id] = { soldOut:false, remaining: Infinity };
       });
@@ -298,9 +329,12 @@ async function fetchStoreStatus() {
     const clamped = clampCartToStock();
     const sig = flavorSignature();
 
+    /* don't rebuild the cards while someone is typing into a quantity box */
+    const typing = document.activeElement && document.activeElement.classList.contains("qty-input");
+
     if (sig !== lastFlavorSig || clamped) {
       lastFlavorSig = sig;
-      renderFlavors();
+      if (typing) update(); else renderFlavors();
     } else {
       update();
     }
@@ -315,13 +349,12 @@ async function fetchStoreStatus() {
 function showSending(on,slow){
   const s=$("#sending");
   if(on){
-    /* fade the Cayers loading screen in over the form instead of snapping it on */
     s.classList.remove("s-circle","s-tick","s-undo");
     s.style.transition="none";
-    s.classList.remove("hide"); s.classList.add("gone");   // display on, but fully transparent
-    void s.offsetWidth;                                     // let the browser register that start state
+    s.classList.remove("hide"); s.classList.add("gone");
+    void s.offsetWidth;
     s.style.transition="opacity .7s ease";
-    s.classList.remove("gone");                             // now fade up to opaque
+    s.classList.remove("gone");
     return;
   }
   const ms=slow?1400:600;
@@ -330,7 +363,6 @@ function showSending(on,slow){
   setTimeout(()=>{ if(s.classList.contains("gone")){ s.classList.add("hide"); s.classList.remove("s-circle","s-tick","s-undo"); } },ms);
 }
 
-/* ---- order review popup (fades in and out) ---- */
 function openReview(d){
   const box=$("#rvItems"); box.textContent="";
   CONFIG.flavors.filter(f=>qty[f.id]).forEach(f=>{
@@ -361,36 +393,31 @@ $("#review").addEventListener("click",e=>{ if(e.target.id==="review"){ reviewOK=
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&reviewOpen){ reviewOK=false; closeReview(); } });
 $("#rvConfirm").addEventListener("click",()=>{
   if(!reviewOpen) return;
-  reviewOK=true; closeReview();                         // popup fades out...
-  setTimeout(()=>{                                      // ...then the order is sent and the tick animation plays
+  reviewOK=true; closeReview();
+  setTimeout(()=>{
     const f=$("#f");
     f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit",{cancelable:true,bubbles:true}));
   },400);
 });
 
-/* success animation: "Cayers" turns into a circle, a tick draws in, the tick reverses, then the screen fades slowly */
 async function playSuccess(){
   const s=$("#sending"), sleep=ms=>new Promise(r=>setTimeout(r,ms));
   if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){ await sleep(500); return; }
   const note=s.querySelector(".note"); if(note) note.textContent="Order submitted";
-  s.classList.add("s-circle"); await sleep(1000);   // "Cayers" turns into a circle
-  s.classList.add("s-tick");   await sleep(1700);   // tick draws in + "Order Submitted" appears
+  s.classList.add("s-circle"); await sleep(1000);
+  s.classList.add("s-tick");   await sleep(1700);
   s.classList.remove("s-tick");
-  s.classList.add("s-undo");   await sleep(1400);   // tick and ring reverse, everything fades away slowly
+  s.classList.add("s-undo");   await sleep(1400);
 }
 
-/* ---- staggered fade-in, top to bottom, for everything below the logo ---- */
 function revealContent(){
   if(revealed) return;
   revealed=true;
-
   const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const els=[...document.querySelectorAll(".wrap > *, #f > *")]
     .filter(el=>!el.classList.contains("hide") && !el.classList.contains("hp") && el.tagName !== "H1");
-
   if(reduce){ els.forEach(el=>el.classList.add("reveal","in")); return; }
-
-  const STEP=0.07; // seconds between each block
+  const STEP=0.07;
   els.forEach((el,i)=>{
     el.style.setProperty("--d",(i*STEP).toFixed(2)+"s");
     el.classList.add("reveal");
@@ -437,13 +464,10 @@ function getAvailability(nowD, isCampus){
     if (dow === 0) continue;
     const name = DAY_NAMES[dow];
     if (!allowedNames.includes(name)) continue;
-
-    // ADMIN ADDITION: Skip days marked as sold out
     if (soldOutDays.includes(name)) continue;
 
     if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
     if (i === 0 && nowD.hours >= sameDayCutoff) continue;
-
     if (!isCampus && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour && name === "Wednesday") continue;
 
     const base = d.toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"short", timeZone:"UTC" });
@@ -501,10 +525,10 @@ $("#igLink").textContent="@"+CONFIG.instagram;
 $("#igLink").href="https://instagram.com/"+CONFIG.instagram;
 $("#igBtn").href="https://ig.me/m/"+CONFIG.instagram;
 
-/* ---- initial flavour render + wire up the click handler ---- */
 renderFlavors();
 lastFlavorSig = flavorSignature();
 
+/* --------- +/− buttons --------- */
 $("#flavors").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b||b.disabled)return;
   const f=CONFIG.flavors[b.dataset.i]; if(!f) return;
@@ -514,17 +538,85 @@ $("#flavors").addEventListener("click",e=>{
 
   const cap = capFor(f.id);
   if (+b.dataset.d > 0 && qty[f.id] >= cap) {
-    if (remainingFor(f.id) <= CONFIG.maxPerFlavor) {
-      say(`Only ${remainingFor(f.id)} ${f.id} left — that’s all we’ve got.`,"err");
-    } else {
-      say(`Maximum ${CONFIG.maxPerFlavor} cups per flavour. For bigger orders, DM us on Instagram.`,"err");
-    }
+    const rem = remainingFor(f.id);
+    if (isFinite(rem)) say(`Only ${rem} ${f.id} available — that's all we've got.`,"err");
+    else               say(`Maximum ${CONFIG.maxPerFlavor} cups per flavour. For bigger orders, DM us on Instagram.`,"err");
     $("#msg").scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
 
   qty[f.id]=Math.max(0,Math.min(cap,qty[f.id]+ +b.dataset.d));
   update();
+});
+
+/* --------- typing directly into the quantity box --------- */
+$("#flavors").addEventListener("input", e => {
+  const inp = e.target.closest(".qty-input");
+  if (!inp) return;
+  const i = +inp.dataset.i;
+  const f = CONFIG.flavors[i];
+  if (!f) return;
+
+  const info = flavorInfo[f.id] || {};
+  if (info.soldOut) { inp.value = String(qty[f.id]); return; }
+
+  /* digits only on the web too — strip anything else on the fly */
+  let raw = inp.value.replace(/\D+/g, "");
+  if (raw !== inp.value) inp.value = raw;
+
+  /* cap the length so a stray paste can't blow up the layout */
+  if (raw.length > 4) { raw = raw.slice(0, 4); inp.value = raw; }
+
+  const n = raw === "" ? 0 : Math.min(parseInt(raw, 10) || 0, 9999);
+  qty[f.id] = n;
+  update();
+});
+
+/* --------- finalize (clamp) when they finish typing --------- */
+function finalizeQtyInput(inp){
+  const i = +inp.dataset.i;
+  const f = CONFIG.flavors[i];
+  if (!f) return;
+
+  const info = flavorInfo[f.id] || {};
+  const cap = capFor(f.id);
+
+  let n = parseInt(inp.value, 10);
+  if (!Number.isFinite(n) || n < 0) n = 0;
+
+  /* silently clamp to whatever's in stock — no "adjusted to" message */
+  if (n > cap) n = cap;
+
+  qty[f.id] = n;
+  inp.value = String(n);
+
+  /* still surface the one case where the user's choice is impossible
+     because the flavour just went sold out while they were typing */
+  if (info.soldOut) say(`${f.id} is sold out.`, "err");
+
+  update();
+}
+
+$("#flavors").addEventListener("focusout", e => {
+  const inp = e.target.closest && e.target.closest(".qty-input");
+  if (!inp) return;
+  finalizeQtyInput(inp);
+});
+
+/* select the current number on focus, so typing replaces it */
+$("#flavors").addEventListener("focusin", e => {
+  const inp = e.target.closest(".qty-input");
+  if (!inp) return;
+  setTimeout(() => {
+    try { inp.setSelectionRange(0, inp.value.length); } catch(_) {}
+  }, 0);
+});
+
+/* Enter in the quantity box blurs the field — doesn't submit the form */
+$("#flavors").addEventListener("keydown", e => {
+  const inp = e.target.closest(".qty-input");
+  if (!inp) return;
+  if (e.key === "Enter") { e.preventDefault(); inp.blur(); }
 });
 
 function loc(){const r=document.querySelector("input[name=loc]:checked");return r&&r.value}
@@ -540,51 +632,88 @@ function updateQtyButtons(){
     b.disabled = d<0 ? qty[f.id]<=0 : qty[f.id]>=capFor(f.id);
   });
 }
+
+/* Live "N left" pill — shows stock MINUS what's already in the cart.
+   Sold-out toggle ALWAYS wins: when on, no count is shown. */
+function updateFlavorBadges(){
+  CONFIG.flavors.forEach((f, i) => {
+    const el = document.getElementById("fb" + i);
+    if (!el) return;
+
+    const info = flavorInfo[f.id] || {};
+    const out  = !!info.soldOut;
+    const rem  = info.remaining;
+
+    if (out) {
+      el.className = "fl-badge out";
+      el.textContent = "Sold out";
+      return;
+    }
+    if (!isFinite(rem)) {
+      el.className = "fl-badge empty";
+      el.textContent = "";
+      return;
+    }
+    if (rem <= 0) {
+      el.className = "fl-badge out";
+      el.textContent = "Sold out";
+      return;
+    }
+    const available = Math.max(0, rem - qty[f.id]);
+    el.className = "fl-badge";
+    el.textContent = `${available} left`;
+  });
+}
+
 function update(){
   const t=totals();
   $("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;
   $("#price").textContent=t.p+" AED";
+
   CONFIG.flavors.forEach((f,i)=>{
-    const o=$("#q"+i);
-    if (o) o.textContent=qty[f.id];
+    const inp=$("#q"+i);
+    if (!inp) return;
+    const info = flavorInfo[f.id] || {};
+    const out = !!info.soldOut;
+
+    if (out) {
+      if (document.activeElement === inp) inp.blur();
+      inp.disabled = true;
+      qty[f.id] = 0;
+      if (inp.value !== "0") inp.value = "0";
+    } else {
+      inp.disabled = false;
+      /* never fight the user's typing — only refresh the box when it's not focused */
+      if (document.activeElement !== inp) inp.value = String(qty[f.id]);
+    }
   });
+
   updateQtyButtons();
+  updateFlavorBadges();
 }
 
-/* re-render the flavour cards with badges + disabled states.
-   Sold-out toggle ALWAYS wins: when it's on, no count is shown at all. */
+/* Rebuild the flavour cards. Each row gets an editable quantity input
+   that looks like plain text until focused. */
 function renderFlavors(){
   const container = $("#flavors");
   if (!container) return;
 
   container.innerHTML = CONFIG.flavors.map((f,i)=>{
-    const info = flavorInfo[f.id] || {};
-    const out  = !!info.soldOut;
-    const rem  = info.remaining;
-
-    /* badge priority:
-       1. sold-out toggle ON          → "Sold out", never a count
-       2. toggle OFF + stock hit 0    → "Sold out", never a count
-       3. toggle OFF + stock > 0      → "N left"
-       4. toggle OFF + no live data   → nothing (falls back to flat 20-cap) */
-    let badge = "";
-    if (out) {
-      badge = `<span class="fl-badge out">Sold out</span>`;
-    } else if (isFinite(rem)) {
-      if (rem <= 0) {
-        badge = `<span class="fl-badge out">Sold out</span>`;
-      } else {
-        badge = `<span class="fl-badge">${rem} left</span>`;
-      }
-    }
-
+    const out = !!(flavorInfo[f.id] && flavorInfo[f.id].soldOut);
     const disabled = out ? " disabled" : "";
 
     return `<div class="flavor${out ? " is-out" : ""}">
-      <div><b>${f.id}</b><span>${f.desc} · ${f.price} AED</span>${badge}</div>
+      <div>
+        <b>${f.id}</b>
+        <span>${f.desc} · ${f.price} AED</span>
+        <span id="fb${i}" class="fl-badge empty"></span>
+      </div>
       <div class="step">
         <button type="button" data-i="${i}" data-d="-1" aria-label="Remove one ${f.id}"${disabled}>−</button>
-        <output id="q${i}">${qty[f.id]}</output>
+        <input id="q${i}" class="qty-input" type="text" inputmode="numeric" pattern="[0-9]*"
+               data-i="${i}" value="${qty[f.id]}" maxlength="4"
+               autocomplete="off" spellcheck="false" enterkeyhint="done"
+               aria-label="Quantity of ${f.id}"${disabled}>
         <button type="button" data-i="${i}" data-d="1" aria-label="Add one ${f.id}"${disabled}>+</button>
       </div>
     </div>`;
@@ -638,7 +767,6 @@ function updateClosedBanner(){
   const banner = $("#closedBanner");
   const form   = $("#f");
 
-  // ADMIN: store manually closed
   if (storeStatus === "CLOSED") {
     const dm = `<a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a>`;
     banner.innerHTML =
@@ -651,7 +779,6 @@ function updateClosedBanner(){
     return;
   }
 
-  // Store is open again — bring the form back
   form.classList.remove("hide");
 
   const nowD = dubaiNowParts();
@@ -685,6 +812,11 @@ $("#f").addEventListener("submit",async e=>{
   e.preventDefault();
   if (sending) return;
 
+  /* if a quantity box is still focused, finalize it before validating */
+  const activeQty = document.activeElement && document.activeElement.classList.contains("qty-input")
+    ? document.activeElement : null;
+  if (activeQty) finalizeQtyInput(activeQty);
+
   const name=$("#name").value.trim().replace(/\s+/g," ").slice(0,80);
   const ig=cleanIG($("#ig").value);
   const ph=cleanPhone($("#ph").value);
@@ -710,7 +842,6 @@ $("#f").addEventListener("submit",async e=>{
   const min=isCampus()?CONFIG.minCampus:CONFIG.minLocal;
   if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
 
-  /* per-flavour stock check — fail before the tick animation plays */
   for (const f of CONFIG.flavors) {
     if (qty[f.id] <= 0) continue;
     const info = flavorInfo[f.id] || {};
@@ -726,7 +857,7 @@ $("#f").addEventListener("submit",async e=>{
                sentAt:new Date().toISOString()};
   CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
 
-  if(!reviewOK){ openReview({name,ig,ph,day,t}); return; }   // first press: show the review popup
+  if(!reviewOK){ openReview({name,ig,ph,day,t}); return; }
   reviewOK=false;
 
   sending=true;
@@ -759,8 +890,6 @@ $("#f").addEventListener("submit",async e=>{
     };
     orderId=makeId();
     succeeded=true;
-
-    /* refresh stock immediately so the customer sees updated "left" counts */
     fetchStoreStatus();
   }catch(err){
     if(err.name==="AbortError"){
@@ -778,7 +907,7 @@ $("#f").addEventListener("submit",async e=>{
   }
   finally{
     clearTimeout(timer);
-    const wait=Math.max(0,(succeeded?2000:1000)-(Date.now()-startedAt));   // success: loading screen stays visible long enough to read
+    const wait=Math.max(0,(succeeded?2000:1000)-(Date.now()-startedAt));
     if(wait) await new Promise(r=>setTimeout(r,wait));
     if(succeeded){ await playSuccess(); showSending(false,true); } else { showSending(false); }
     document.body.style.overflow="";
@@ -787,10 +916,6 @@ $("#f").addEventListener("submit",async e=>{
   }
 });
 
-/* ----------------------------------------------------------------
-   Fades an element out even if a CSS animation with `forwards`
-   fill-mode is currently controlling its opacity.
----------------------------------------------------------------- */
 function fadeOutNow(el, ms){
   if(!el) return;
   const cur = getComputedStyle(el).opacity;
@@ -801,7 +926,6 @@ function fadeOutNow(el, ms){
   el.style.opacity = "0";
 }
 
-// --- splash → header handoff (FLIP on the real logo) ---
 const splashShownAt=Date.now();
 function hideSplash(){
   const s=document.getElementById("splash");
@@ -821,11 +945,9 @@ function hideSplash(){
       return;
     }
 
-    /* --- measure the two logos --- */
     const sRect = splashLogo.getBoundingClientRect();
     const tRect = targetLogo.getBoundingClientRect();
 
-    /* --- FLIP: put the real logo exactly over the splash logo --- */
     const scaleX = sRect.width  / tRect.width;
     const scaleY = sRect.height / tRect.height;
     const sCX = sRect.left + sRect.width  / 2;
@@ -835,7 +957,6 @@ function hideSplash(){
     const dx = sCX - tCX;
     const dy = sCY - tCY;
 
-    /* --- instant handoff: splash logo disappears, real logo appears in its place --- */
     splashLogo.style.opacity = "0";
     targetLogo.style.position = "relative";
     targetLogo.style.zIndex = "50";
@@ -843,23 +964,19 @@ function hideSplash(){
     targetLogo.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
     targetLogo.style.willChange = "transform";
 
-    void targetLogo.offsetWidth; // commit the start state
+    void targetLogo.offsetWidth;
 
-    /* --- fade the splash background + dots + caption --- */
     s.style.transition = "background-color .6s ease";
     s.style.backgroundColor = "transparent";
     s.style.pointerEvents = "none";
     fadeOutNow(s.querySelector(".dots"), 250);
     fadeOutNow(s.querySelector(".note"), 250);
 
-    /* --- page content fades in top → bottom underneath --- */
     revealContent();
 
-    /* --- glide the real logo home (single element, never re-rendered) --- */
     targetLogo.style.transition = "transform .85s cubic-bezier(.22,1,.36,1)";
     targetLogo.style.transform = "translate(0px, 0px) scale(1, 1)";
 
-    /* --- cleanup --- */
     setTimeout(()=>{
       targetLogo.style.transition = "";
       targetLogo.style.transform = "";
@@ -875,26 +992,24 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
 window.addEventListener("load",hideSplash);
 setTimeout(hideSplash,6500);
 
-// --- boot, 30s auto-refresh & background tab wake-up ---
-fetchStoreStatus(); // ADMIN ADDITION: Check status immediately on load
+fetchStoreStatus();
 updateClosedBanner();
 
 setInterval(()=>{
   if(sending) return;
   if(!$("#done").classList.contains("hide")) return;
-  fetchStoreStatus(); // ADMIN ADDITION: Keep checking every 30s
+  fetchStoreStatus();
   updateClosedBanner();
   if(loc()) renderDays();
 }, 30000);
 
-// ADMIN ADDITION: Wake up logic when user returns to the tab
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     if (sending || !$("#done").classList.contains("hide")) return;
 
     const hadSelectedDay = !!(document.querySelector("input[name=day]:checked"));
 
-    fetchStoreStatus(); // Force immediate recalculation
+    fetchStoreStatus();
     updateClosedBanner();
     if (loc()) renderDays();
 
