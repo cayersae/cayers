@@ -154,6 +154,29 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center}
 .done a{color:var(--berry);font-weight:800}
 .done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:14px 0 8px}
+
+/* ---------- bug report footer ---------- */
+.site-foot{margin:34px 0 0;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:center}
+.bug-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 16px 9px 14px;
+  border-radius:999px;
+  border:1.5px solid var(--line);
+  background:var(--card);
+  color:var(--mute);
+  font:inherit;font-size:.85rem;font-weight:700;line-height:1;
+  text-decoration:none;
+  transition:color .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease;
+}
+.bug-pill svg{width:15px;height:15px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bug-pill:hover{
+  color:var(--berry);
+  border-color:color-mix(in srgb,var(--berry) 45%,var(--line));
+  background:color-mix(in srgb,var(--berry) 6%,var(--card));
+}
+.bug-pill:active{transform:scale(.97)}
+.bug-pill:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.bug-pill{transition:none}.bug-pill:active{transform:none}}
 </style>
 </head>
 <body>
@@ -223,6 +246,14 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 <p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
 <p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
 </div>
+
+<!-- discreet bug report button, below all order UI -->
+<footer class="site-foot">
+  <a id="bugLink" class="bug-pill" href="mailto:cayerscakes@gmail.com?subject=Bug%20report%20%E2%80%94%20cayers.ae">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 6.5l9 6 9-6"/></svg>
+    <span>Report a bug</span>
+  </a>
+</footer>
 </div>
 
 <script>
@@ -256,6 +287,7 @@ let renderedDaysKey=null;
 let revealed=false;
 let storeStatus = "OPEN";
 let soldOutDays = [];
+let lastSubmittedRef = "";   // last order ref actually confirmed by the sheet — used in bug emails
 const qty={};
 
 /* per-flavour live stock, straight from the sheet.
@@ -864,6 +896,7 @@ $("#f").addEventListener("submit",async e=>{
 
     $("#f").classList.add("hide"); $("#done").classList.remove("hide");
     const ref=orderId.slice(-5).toUpperCase();
+    lastSubmittedRef = ref;   // only refs that actually exist in the sheet go into bug emails
     const parts=CONFIG.flavors.filter(f=>qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
     $("#sum").textContent=`${parts} · ${t.c} cup${t.c==1?"":"s"} · ${t.p} AED · ${day} · Ref ${ref}`;
     const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${t.p} AED), ${loc()}, ${day}. Please confirm.`;
@@ -1006,6 +1039,28 @@ document.addEventListener("visibilitychange", () => {
     }
   }
 });
+
+/* ---------- enrich bug report mailto with page context ---------- */
+(function () {
+  const link = document.getElementById("bugLink");
+  if (!link) return;
+
+  function updateHref() {
+    const subject = encodeURIComponent("Bug report — cayers.ae");
+    const body = encodeURIComponent(
+      `Hi Cayers,\n\n` +
+      `I spotted a bug on the order page.\n\n` +
+      `Page: ${location.href}\n` +
+      (lastSubmittedRef ? `Order ref: ${lastSubmittedRef}\n` : "") +
+      `\nWhat happened:\n\n`
+    );
+    link.href = `mailto:cayerscakes@gmail.com?subject=${subject}&body=${body}`;
+  }
+
+  updateHref();
+  /* refresh on click so the ref is current if they ordered then hit the footer */
+  link.addEventListener("click", updateHref);
+})();
 </script>
 </body>
 </html>
