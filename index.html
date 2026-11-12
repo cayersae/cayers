@@ -221,11 +221,29 @@ let sending=false;
 let reviewOK=false, reviewOpen=false;
 let renderedDaysKey=null;
 let revealed=false;
+let storeStatus = "OPEN"; // ADMIN ADDITION
+let soldOutDays = [];     // ADMIN ADDITION
 const qty={};
 CONFIG.flavors.forEach(f=>qty[f.id]=0);
 
 function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${ampm}`;}
+
+// ADMIN ADDITION: Fetch settings from Google Sheets
+async function fetchStoreStatus() {
+  try {
+    const r = await fetch(CONFIG.endpoint + "?action=get_settings");
+    const d = await r.json();
+    if (d.ok) {
+      storeStatus = d.storeStatus || "OPEN";
+      soldOutDays = d.soldOutDays || [];
+      updateClosedBanner();
+      if (loc()) renderDays();
+    }
+  } catch (e) {
+    console.warn("Could not fetch store status.");
+  }
+}
 
 function showSending(on,slow){
   const s=$("#sending");
@@ -352,6 +370,10 @@ function getAvailability(nowD, isCampus){
     if (dow === 0) continue;
     const name = DAY_NAMES[dow];
     if (!allowedNames.includes(name)) continue;
+    
+    // ADMIN ADDITION: Skip days marked as sold out
+    if (soldOutDays.includes(name)) continue; 
+
     if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
     if (i === 0 && nowD.hours >= sameDayCutoff) continue;
 
@@ -489,11 +511,21 @@ function renderDays(){
 }
 
 function updateClosedBanner(){
+  const banner = $("#closedBanner");
+  
+  // ADMIN ADDITION: Check if manually closed
+  if (storeStatus === "CLOSED") {
+    const dm = `<a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a>`;
+    banner.innerHTML = `<p style="margin:0 0 6px">We are currently sold out and not taking new orders.</p><p style="margin:0">${dm}</p>`;
+    banner.classList.remove("hide");
+    $("#go").disabled = true;
+    return;
+  }
+
   const nowD = dubaiNowParts();
   const campus = getAvailability(nowD, true);
   const local  = getAvailability(nowD, false);
   const bothClosed = campus.closed && local.closed;
-  const banner = $("#closedBanner");
 
   if (bothClosed) {
     const dm = `<a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a>`;
@@ -503,7 +535,7 @@ function updateClosedBanner(){
     banner.classList.add("hide");
     banner.innerHTML = "";
   }
-  if (!loc()) $("#go").disabled = bothClosed;
+  if (!loc()) $("#go").disabled = bothClosed || storeStatus === "CLOSED";
 }
 
 document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("change",()=>{
@@ -691,14 +723,34 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
 window.addEventListener("load",hideSplash);
 setTimeout(hideSplash,6500);
 
-// --- boot & 30s auto-refresh ---
+// --- boot, 30s auto-refresh & background tab wake-up ---
+fetchStoreStatus(); // ADMIN ADDITION: Check status immediately on load
 updateClosedBanner();
+
 setInterval(()=>{
   if(sending) return;
   if($("#f").classList.contains("hide")) return;
+  fetchStoreStatus(); // ADMIN ADDITION: Keep checking every 30s
   updateClosedBanner();
   if(loc()) renderDays();
 }, 30000);
+
+// ADMIN ADDITION: Wake up logic when user returns to the tab
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    if (sending || $("#f").classList.contains("hide")) return;
+    
+    const hadSelectedDay = !!(document.querySelector("input[name=day]:checked"));
+    
+    fetchStoreStatus(); // Force immediate recalculation
+    updateClosedBanner();
+    if (loc()) renderDays();
+    
+    if (hadSelectedDay && !document.querySelector("input[name=day]:checked")) {
+      say("The day you selected is no longer available because the cutoff time passed or it sold out. Please pick a new day.", "err");
+    }
+  }
+});
 </script>
 </body>
 </html>
