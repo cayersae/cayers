@@ -33,10 +33,30 @@ input:checked + .slider{background-color:var(--ok)}
 input:checked + .slider:before{transform:translateX(24px)}
 input:disabled + .slider{opacity:.6;cursor:default}
 
-.flavor-admin{padding:16px 0;border-bottom:1px solid var(--line)}
+/* ---------- shared chip pattern (used by the day chips only) ---------- */
+.chip-group{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.chip{position:relative;display:inline-flex;padding:0;border:0;background:transparent;margin:0;cursor:pointer;flex:0 0 auto;-webkit-tap-highlight-color:transparent}
+.chip input{position:absolute;opacity:0;pointer-events:none;width:0;height:0;margin:0}
+.chip > span{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:10px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);font-weight:800;font-size:.9rem;color:var(--ink);transition:background .15s ease,border-color .15s ease,color .15s ease,transform .08s ease;user-select:none}
+.chip:hover > span{border-color:var(--mute)}
+.chip:active > span{transform:scale(.96)}
+.chip input:focus-visible + span{outline:2px solid var(--ink);outline-offset:3px}
+.chip input:disabled + span{opacity:.5;cursor:default}
+
+/* day chips — checked = that day is sold out */
+.chip-day input:checked + span{background:var(--err);border-color:var(--err);color:var(--bg)}
+
+.chip-hint{margin:12px 0 0;font-size:.75rem;color:var(--mute);line-height:1.4;text-align:center}
+
+@media(prefers-reduced-motion:reduce){
+  .chip > span,.chip:active > span{transition:none;transform:none}
+}
+
+/* ---------- flavour stock rows ---------- */
+.flavor-admin{padding:14px 0;border-bottom:1px solid var(--line)}
 .flavor-admin:first-child{padding-top:0}
 .flavor-admin:last-child{border-bottom:0;padding-bottom:0}
-.flavor-admin-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.flavor-admin-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
 .flavor-admin-head > span{font-weight:800}
 .flavor-admin.is-out .flavor-admin-head > span{color:var(--mute);text-decoration:line-through}
 .flavor-grid{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
@@ -244,26 +264,7 @@ input[type="date"]:focus-visible,
       <p id="statusText" style="text-align:center;font-weight:800;color:var(--ok);margin:10px 0 0">OPEN</p>
     </div>
 
-    <div class="card">
-      <label>Mark Days as SOLD OUT</label>
-      <div class="toggle-row"><span id="day-mon">Monday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Monday" aria-labelledby="day-mon"><span class="slider" aria-hidden="true"></span></label></div>
-      <div class="toggle-row"><span id="day-tue">Tuesday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Tuesday" aria-labelledby="day-tue"><span class="slider" aria-hidden="true"></span></label></div>
-      <div class="toggle-row"><span id="day-wed">Wednesday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Wednesday" aria-labelledby="day-wed"><span class="slider" aria-hidden="true"></span></label></div>
-      <div class="toggle-row"><span id="day-thu">Thursday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Thursday" aria-labelledby="day-thu"><span class="slider" aria-hidden="true"></span></label></div>
-      <div class="toggle-row"><span id="day-fri">Friday</span><label class="switch"><input type="checkbox" class="soldOutDay" value="Friday" aria-labelledby="day-fri"><span class="slider" aria-hidden="true"></span></label></div>
-    </div>
-
-    <div class="card">
-      <label>Flavours &amp; Stock</label>
-      <div id="flavorRows"></div>
-      <p id="stockHint" class="stock-hint hide">Order counts aren’t coming back from the sheet yet — the Apps Script needs the new version for “Left” to update itself.</p>
-      <div class="refresh-row">
-        <p>Left = baked − cups already in the sheet. Delete a row, then tap Refresh.</p>
-        <button type="button" id="refreshCounts">Refresh</button>
-      </div>
-    </div>
-
-    <!-- in-person sale -->
+    <!-- in-person sale (right under the store status toggle) -->
     <div class="card" id="saleCard">
       <label>Record In-Person Sale</label>
       <p class="sale-intro">Log cups you sold directly (market, walk-in, DM). They count against stock everywhere — the customer site and this dashboard.</p>
@@ -287,6 +288,28 @@ input[type="date"]:focus-visible,
 
       <button type="button" id="recordSaleBtn" class="sale-btn">Record Sale</button>
       <div id="saleMsg" class="msg" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <label>Sold-out days</label>
+      <div class="chip-group" role="group" aria-label="Days marked sold out">
+        <label class="chip chip-day"><input type="checkbox" class="soldOutDay" value="Monday" aria-label="Mark Monday as sold out"><span aria-hidden="true">Mon</span></label>
+        <label class="chip chip-day"><input type="checkbox" class="soldOutDay" value="Tuesday" aria-label="Mark Tuesday as sold out"><span aria-hidden="true">Tue</span></label>
+        <label class="chip chip-day"><input type="checkbox" class="soldOutDay" value="Wednesday" aria-label="Mark Wednesday as sold out"><span aria-hidden="true">Wed</span></label>
+        <label class="chip chip-day"><input type="checkbox" class="soldOutDay" value="Thursday" aria-label="Mark Thursday as sold out"><span aria-hidden="true">Thu</span></label>
+        <label class="chip chip-day"><input type="checkbox" class="soldOutDay" value="Friday" aria-label="Mark Friday as sold out"><span aria-hidden="true">Fri</span></label>
+      </div>
+      <p class="chip-hint">Tap a day to toggle. Red = sold out.</p>
+    </div>
+
+    <div class="card">
+      <label>Flavours &amp; Stock</label>
+      <div id="flavorRows"></div>
+      <p id="stockHint" class="stock-hint hide">Order counts aren’t coming back from the sheet yet — the Apps Script needs the new version for “Left” to update itself.</p>
+      <div class="refresh-row">
+        <p>Left = baked − cups already in the sheet. Delete a row, then tap Refresh.</p>
+        <button type="button" id="refreshCounts">Refresh</button>
+      </div>
     </div>
 
     <button id="saveBtn" style="background:var(--cocoa);color:var(--bg);margin-bottom:12px">Save Changes</button>
@@ -315,7 +338,7 @@ const TIMING = {
   splashFlipMs: 850,
   splashFlipCleanup: 950,
   splashAdminDelay: 550,
-  overlayMinVisible: 800,
+  overlayMinVisible: 500,
   overlayFadeMs: 600,
   overlayFadeSlowMs: 1000,
   successCircle: 400,
@@ -324,15 +347,18 @@ const TIMING = {
   errorCircle: 400,
   errorCross: 700,
   errorUndo: 500,
-  revealStep: 0.07,
+  revealStep: 0.03,
   failedLoginDelay: 800,
   logoutMinVisible: 1800,
-  logoutFadeMs: 600,
-  settingsWaitMaxMs: 5000
+  logoutFadeMs: 600
 };
 
 const SESSION_MAX_MS  = 8 * 60 * 60 * 1000;
 const SESSION_IDLE_MS = 30 * 60 * 1000;
+
+/* settings cache — painted into the dashboard the moment it opens,
+   then overwritten by the live fetch. Bump the version if the shape changes. */
+const CACHE_KEY = "cayers_settings_v1";
 
 const $  = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
@@ -341,7 +367,6 @@ const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)")
 
 let pin = "";
 let isSaving = false;
-let dashboardSettingsPromise = null;
 
 const orderedCounts = {};
 FLAVORS.forEach(f => orderedCounts[f] = 0);
@@ -366,6 +391,20 @@ async function getSettings() {
   const r = await fetch(ENDPOINT + "?action=get_settings");
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
+}
+
+/* ================================================================
+   Settings cache
+   ================================================================ */
+function readCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+function writeCache(d) {
+  try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch {}
 }
 
 /* ================================================================
@@ -452,12 +491,6 @@ async function hideSplash() {
   const wait = Math.max(0, minMs - (Date.now() - splashShownAt));
   if (wait) await sleep(wait);
 
-  if (dashboardSettingsPromise) {
-    try {
-      await Promise.race([dashboardSettingsPromise, sleep(TIMING.settingsWaitMaxMs)]);
-    } catch {}
-  }
-
   const adminWord = document.getElementById("admin-word");
   const splashLogo = s.querySelector(".splash-logo");
   const targetLogo = document.getElementById("target-logo");
@@ -466,7 +499,6 @@ async function hideSplash() {
   if (reduce || !splashLogo || !targetLogo) {
     s.remove();
     if (adminWord) adminWord.style.opacity = "1";
-    if (dash) dash.classList.remove("busy");
     revealCurrentView();
     return;
   }
@@ -492,7 +524,6 @@ async function hideSplash() {
   fadeOutNow(s.querySelector(".dots"), 250);
   fadeOutNow(s.querySelector(".note"), 250);
 
-  if (dash) dash.classList.remove("busy");
   revealCurrentView();
 
   targetLogo.style.transition = `transform ${TIMING.splashFlipMs}ms cubic-bezier(.22,1,.36,1)`;
@@ -702,17 +733,15 @@ async function showDashboard() {
   $("#loginView").classList.add("hide");
   const dash = $("#dashView");
   dash.classList.remove("hide");
-  dash.classList.add("busy");
   $$("#dashView > *").forEach(el => el.classList.remove("reveal", "in"));
 
-  dashboardSettingsPromise = loadSettings();
-  try { await dashboardSettingsPromise; } catch {}
-
+  /* paint defaults (in case there's no cache), then loadSettings() will
+     synchronously apply the cache — if any — before its network await */
   renderSaleForm();
+  loadSettings();
 
   const splash = document.getElementById("splash");
   if (!splash || splash.dataset.done) {
-    dash.classList.remove("busy");
     revealEls([...$$("#dashView > *")]);
   }
 }
@@ -824,18 +853,14 @@ function saleCapFor(name) {
   return getRemainingFor(name);
 }
 
-/* Rebuild the sale form rows. Badges show how many are still addable
-   (remaining − in-cart) and get updated live by updateSaleBadges(). */
 function renderSaleForm() {
   const box = $("#saleRows");
   if (!box) return;
 
-  /* if any flavour just went sold out, empty its cart slot */
   FLAVORS.forEach(name => {
     if (getSoldOutFor(name)) saleQty[name] = 0;
   });
 
-  /* don't rebuild while someone is typing into a sale qty box */
   const active = document.activeElement;
   if (active && active.classList && active.classList.contains("qty-input") && box.contains(active)) {
     updateSaleTotals();
@@ -882,9 +907,6 @@ function renderSaleForm() {
   updateSaleTotals();
 }
 
-/* Live "N left" badge in the sale form.
-   Shows remaining − what's already in the sale cart, so it counts
-   down as the admin adds cups and back up as they remove them. */
 function updateSaleBadges() {
   FLAVORS.forEach((name, i) => {
     const el = document.getElementById("saleBadge" + i);
@@ -910,9 +932,6 @@ function updateSaleBadges() {
   });
 }
 
-/* clamp saleQty against the current cap, refresh totals + badges
-   + button enabled state. Called on every +/- click, keystroke,
-   and whenever the stock card's baked number changes. */
 function updateSaleTotals() {
   let cups = 0, price = 0;
 
@@ -920,7 +939,6 @@ function updateSaleTotals() {
     const cap = saleCapFor(name);
     if (saleQty[name] > cap) {
       saleQty[name] = Math.max(0, cap);
-      /* reflect the clamp back into the input unless it's focused */
       const inp = document.querySelector(`#saleRows .qty-input[data-i="${i}"]`);
       if (inp && document.activeElement !== inp) inp.value = String(saleQty[name]);
     }
@@ -945,7 +963,6 @@ function updateSaleTotals() {
   updateSaleBadges();
 }
 
-/* +/- buttons */
 $("#saleRows").addEventListener("click", e => {
   const b = e.target.closest("button");
   if (!b || b.disabled) return;
@@ -964,7 +981,6 @@ $("#saleRows").addEventListener("click", e => {
   updateSaleTotals();
 });
 
-/* typing directly — numeric keypad on phones, digits-only on web */
 $("#saleRows").addEventListener("input", e => {
   const inp = e.target.closest(".qty-input");
   if (!inp) return;
@@ -1011,12 +1027,10 @@ $("#saleRows").addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); inp.blur(); }
 });
 
-/* date: click anywhere on the field → open the native calendar */
 (function setupDatePicker(){
   const d = $("#saleDate");
   if (!d) return;
 
-  /* default to today */
   if (!d.value) {
     const now = new Date();
     const iso = now.getFullYear() + "-" +
@@ -1025,8 +1039,6 @@ $("#saleRows").addEventListener("keydown", e => {
     d.value = iso;
   }
 
-  /* force the calendar to open on click (Safari / older browsers
-     don't auto-open it just from focusing the field) */
   d.addEventListener("click", () => {
     try { if (typeof d.showPicker === "function") d.showPicker(); } catch(_) {}
   });
@@ -1035,7 +1047,6 @@ $("#saleRows").addEventListener("keydown", e => {
   });
 })();
 
-/* record sale */
 $("#recordSaleBtn").addEventListener("click", async () => {
   if (isSaving) return;
 
@@ -1138,58 +1149,69 @@ function showSaleMsg(text, type) {
 /* ================================================================
    Load settings / refresh counts
    ================================================================ */
+function applySettings(d) {
+  if (!d || !d.ok) return;
+
+  $("#storeStatus").checked = (d.storeStatus === "OPEN");
+  updateStatusText();
+
+  $$(".soldOutDay").forEach(cb => cb.checked = false);
+  if (Array.isArray(d.soldOutDays)) {
+    d.soldOutDays.forEach(day => {
+      const cb = document.querySelector(`.soldOutDay[value="${day}"]`);
+      if (cb) cb.checked = true;
+    });
+  }
+
+  const live = (d.flavors && typeof d.flavors === "object") ? d.flavors : null;
+  const legacy = (d.flavorSettings && typeof d.flavorSettings === "object") ? d.flavorSettings : {};
+
+  $("#stockHint").classList.toggle("hide", !!live);
+
+  FLAVORS.forEach(name => {
+    const info = (live && live[name]) || {};
+    const old = legacy[name] || {};
+
+    const soldOut = info.soldOut !== undefined ? !!info.soldOut : !!old.soldOut;
+    const cb = document.querySelector(`.flavorSoldOut[data-flavor="${name}"]`);
+    if (cb) {
+      cb.checked = soldOut;
+      const row = cb.closest(".flavor-admin");
+      if (row) row.classList.toggle("is-out", soldOut);
+    }
+
+    let baked;
+    if (info.produced !== undefined)      baked = Number(info.produced);
+    else if (old.produced !== undefined)  baked = Number(old.produced);
+    else if (old.available !== undefined) baked = Number(old.available);
+    else                                  baked = DEFAULT_PRODUCED;
+
+    const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
+    if (inp) {
+      inp.value = String(Number.isFinite(baked) ? Math.max(0, Math.min(MAX_STOCK, Math.floor(baked))) : DEFAULT_PRODUCED);
+    }
+
+    orderedCounts[name] = Number(info.ordered) || 0;
+    renderLeft(name);
+  });
+
+  renderSaleForm();
+}
+
 async function loadSettings() {
+  const cached = readCache();
+  if (cached) {
+    try { applySettings(cached); } catch {}
+  }
+
   try {
     const d = await getSettings();
     if (!d.ok) {
       showDashMsg("Failed to load settings: " + (d.error || d.message || "unknown error"), "err");
       return;
     }
-
-    $("#storeStatus").checked = (d.storeStatus === "OPEN");
-    updateStatusText();
-
-    $$(".soldOutDay").forEach(cb => cb.checked = false);
-    if (Array.isArray(d.soldOutDays)) {
-      d.soldOutDays.forEach(day => {
-        const cb = document.querySelector(`.soldOutDay[value="${day}"]`);
-        if (cb) cb.checked = true;
-      });
-    }
-
-    const live = (d.flavors && typeof d.flavors === "object") ? d.flavors : null;
-    const legacy = (d.flavorSettings && typeof d.flavorSettings === "object") ? d.flavorSettings : {};
-
-    $("#stockHint").classList.toggle("hide", !!live);
-
-    FLAVORS.forEach(name => {
-      const info = (live && live[name]) || {};
-      const old = legacy[name] || {};
-
-      const soldOut = info.soldOut !== undefined ? !!info.soldOut : !!old.soldOut;
-      const cb = document.querySelector(`.flavorSoldOut[data-flavor="${name}"]`);
-      if (cb) {
-        cb.checked = soldOut;
-        const row = cb.closest(".flavor-admin");
-        if (row) row.classList.toggle("is-out", soldOut);
-      }
-
-      let baked;
-      if (info.produced !== undefined)      baked = Number(info.produced);
-      else if (old.produced !== undefined)  baked = Number(old.produced);
-      else if (old.available !== undefined) baked = Number(old.available);
-      else                                  baked = DEFAULT_PRODUCED;
-
-      const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
-      if (inp) {
-        inp.value = String(Number.isFinite(baked) ? Math.max(0, Math.min(MAX_STOCK, Math.floor(baked))) : DEFAULT_PRODUCED);
-      }
-
-      orderedCounts[name] = Number(info.ordered) || 0;
-      renderLeft(name);
-    });
-
-    renderSaleForm();
+    writeCache(d);
+    applySettings(d);
   } catch {
     showDashMsg("Failed to load settings", "err");
   }
@@ -1203,6 +1225,7 @@ async function refreshCounts() {
       return;
     }
     $("#stockHint").classList.add("hide");
+    writeCache(d);
     FLAVORS.forEach(name => {
       const info = d.flavors[name] || {};
       orderedCounts[name] = Number(info.ordered) || 0;
