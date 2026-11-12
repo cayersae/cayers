@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
+html{scrollbar-gutter:stable}
 :root{--bg:#ffe4b5;--card:#fff;--ink:#7a0505;--mute:#8a6a70;--berry:#c2304f;--cocoa:#4a2a22;--line:#f0d9d6;--ok:#2f7d4f;--err:#b3261e}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#241517;--card:#33201f;--ink:#fbeae6;--mute:#c4a29f;--berry:#ff7d96;--cocoa:#e8c4b0;--line:#4b3030;--ok:#6fd59a;--err:#ff8a80}}
 *{box-sizing:border-box}
@@ -78,10 +79,10 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 #sending{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
 #sending.gone{opacity:0;pointer-events:none}
 #sending.hide{display:none}
-#review{position:fixed;inset:0;z-index:80;background:rgba(58,15,15,.45);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:18px;opacity:1;transition:opacity .35s ease}
+#review{position:fixed;inset:0;z-index:80;background:rgba(58,15,15,.58);will-change:opacity;display:flex;align-items:center;justify-content:center;padding:18px;opacity:1;transition:opacity .35s ease}
 #review.gone{opacity:0;pointer-events:none}
 #review.hide{display:none}
-.rv-card{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:18px;padding:22px;width:100%;max-width:420px;max-height:90vh;overflow:auto;transform:none;transition:transform .35s ease}
+.rv-card{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:18px;padding:22px;width:100%;max-width:420px;max-height:90vh;overflow:auto;transform:none;will-change:transform;transition:transform .35s ease}
 #review.gone .rv-card{transform:translateY(14px) scale(.97)}
 .rv-card h2{font:400 1.6rem/1.1 "Abril Fatface",Georgia,serif;margin:0 0 4px}
 .rv-sub{color:var(--mute);font-size:.9rem;margin:0 0 14px}
