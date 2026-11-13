@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:dark;--bg:#241517;--card:#33201f;--ink:#fbeae6;--mute:#c4a29f;--berry:#ff7d96;--cocoa:#e8c4b0;--line:#4b3030;--ok:#6fd59a;--err:#ff8a80}
+:root{color-scheme:dark;--bg:#241517;--card:#33201f;--ink:#fbeae6;--mute:#c4a29f;--berry:#ff7d96;--cocoa:#e8c4b0;--line:#4b3030;--ok:#6fd59a;--err:#ff8a80;--card-blue:#5bb5ff}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{
@@ -102,7 +102,7 @@ input:checked + .slider{background-color:var(--ok)}
 input:checked + .slider:before{transform:translateX(24px)}
 input:disabled + .slider{opacity:.6;cursor:default}
 
-/* ---------- shared chip pattern (used by the day chips only) ---------- */
+/* ---------- shared chip pattern ---------- */
 .chip-group{display:flex;flex-wrap:wrap;gap:8px;margin:0}
 .chip{position:relative;display:inline-flex;padding:0;border:0;background:transparent;margin:0;cursor:pointer;flex:0 0 auto;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .chip input{position:absolute;opacity:0;pointer-events:none;width:0;height:0;margin:0}
@@ -114,6 +114,10 @@ input:disabled + .slider{opacity:.6;cursor:default}
 
 /* day chips — checked = that day is sold out */
 .chip-day input:checked + span{background:var(--err);border-color:var(--err);color:var(--bg)}
+
+/* payment chips — cash = green, card = blue */
+.chip-pay input:checked + span{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+.chip-pay input[value="card"]:checked + span{background:var(--card-blue);border-color:var(--card-blue);color:var(--bg)}
 
 .chip-hint{margin:12px 0 0;font-size:.75rem;color:var(--mute);line-height:1.4;text-align:center}
 
@@ -460,6 +464,20 @@ input:focus-visible,
         <span>Sale date</span>
         <input type="date" id="saleDate">
       </label>
+
+      <div class="sale-field" role="radiogroup" aria-label="Payment method">
+        <span>Payment method</span>
+        <div class="chip-group">
+          <label class="chip chip-pay">
+            <input type="radio" name="payMethod" value="cash" checked>
+            <span aria-hidden="true">Cash</span>
+          </label>
+          <label class="chip chip-pay">
+            <input type="radio" name="payMethod" value="card">
+            <span aria-hidden="true">Card</span>
+          </label>
+        </div>
+      </div>
 
       <button type="button" id="recordSaleBtn" class="sale-btn">Record Sale</button>
       <div id="saleMsg" class="msg" role="status" aria-live="polite"></div>
@@ -1046,6 +1064,10 @@ function saleCapFor(name) {
   if (getSoldOutFor(name)) return 0;
   return getRemainingFor(name);
 }
+function getPayMethod() {
+  const r = document.querySelector('input[name="payMethod"]:checked');
+  return r ? r.value : "cash";
+}
 
 function renderSaleForm() {
   const box = $("#saleRows");
@@ -1298,6 +1320,7 @@ $("#recordSaleBtn").addEventListener("click", async () => {
       items,
       total: totalPrice,
       cups: totalCups,
+      paymentMethod: getPayMethod(),   /* "cash" | "card" */
       note: ($("#saleNote").value || "").trim(),
       day: dayLabel
     });
@@ -1319,6 +1342,8 @@ $("#recordSaleBtn").addEventListener("click", async () => {
 
     FLAVORS.forEach(f => saleQty[f] = 0);
     $("#saleNote").value = "";
+    const cashRadio = document.querySelector('input[name="payMethod"][value="cash"]');
+    if (cashRadio) cashRadio.checked = true;   /* reset to default */
     renderSaleForm();
     showSaleMsg("Sale recorded ✓", "ok");
 
@@ -1389,9 +1414,6 @@ function applySettings(d) {
       inp.value = String(safeBaked);
     }
 
-    // Prefer the sheet's explicit "ordered" count. If it's missing, fall back
-    // to the backend's own "remaining" (so the in-person sale cap stays accurate
-    // even when store status bookkeeping gets out of sync).
     let ordered;
     if (info.ordered !== undefined) {
       ordered = Number(info.ordered) || 0;
@@ -1441,8 +1463,6 @@ async function refreshCounts() {
     FLAVORS.forEach(name => {
       const info = d.flavors[name] || {};
 
-      // Match applySettings(): prefer the explicit "ordered" count; only
-      // derive from "remaining" when "ordered" isn't provided.
       const inp = document.querySelector(`.flavorProduced[data-flavor="${name}"]`);
       const bakedNum = inp ? parseInt(inp.value, 10) : NaN;
 
@@ -1486,8 +1506,6 @@ function updateStatusText() {
   const card = $("#statusCard");
   if (card) card.classList.toggle("is-closed", !open);
 
-  // Closing the store only pauses the customer site — in-person sales
-  // in this dashboard keep working. Show a clear note while it's paused.
   const note = $("#saleStoreNote");
   if (note) note.hidden = open;
 }
