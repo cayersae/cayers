@@ -340,7 +340,7 @@ let lastSubmittedRef = "";
 const qty={};
 
 /* Loyalty & Member Access State */
-const loyaltyState = { verified: false, phone: "", orders: 0, totalCups: 0, hasFreeCup: false, isSpecial: false };
+const loyaltyState = { verified: false, phone: "", orders: 0, hasFreeCup: false, isSpecial: false };
 
 const flavorInfo={};
 CONFIG.flavors.forEach(f=>{
@@ -701,8 +701,7 @@ $("#loginBtn").addEventListener("click", async () => {
       loyaltyState.phone = phone;
       loyaltyState.isSpecial = isSpecial;
       loyaltyState.orders = isSpecial ? 0 : (d.orders || 0);
-      loyaltyState.totalCups = isSpecial ? 0 : (Number(d.totalCups) || 0);
-      // The Apps Script decides the free cup (every 3rd order, and only after 4+ cups bought in total)
+      // The Apps Script decides the free cup (every 4 cups they've paid for earns 1 free cup on their next order)
       loyaltyState.hasFreeCup = isSpecial ? false : Boolean(d.hasFreeCup);
       
       // Restrict delivery options for member access (Local delivery only)
@@ -743,12 +742,7 @@ $("#loginBtn").addEventListener("click", async () => {
 
         if (!isSpecial) {
           if (loyaltyState.hasFreeCup) say("Welcome back! 🎁 1 Free cup unlocked!", "ok");
-          else if (loyaltyState.orders > 0) {
-            // Keep the free-cup teaser secret until they've bought at least 4 cups in total
-            const left = 2 - (loyaltyState.orders % 3);
-            const showHint = left > 0 && loyaltyState.totalCups >= 4;
-            say(showHint ? `Back for more? 🍰 ${left} more order${left === 1 ? "" : "s"} for a free cup!` : "Back for more? 🍰", "ok");
-          }
+          else if (loyaltyState.orders > 0) say("Back for more? 🍰", "ok");
         }
       }, 460);
     } else {
