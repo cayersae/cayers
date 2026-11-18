@@ -274,17 +274,14 @@ const CONFIG = {
   campusSameDayCutoffHour: 14,
   timeZone: "Asia/Dubai",
 
-  // ---- One-off date overrides (keyed by YYYY-MM-DD, Dubai time) ----
-  //   sameDayCutoffHour  → replaces the normal same-day cutoff for that date
-  //   bypassWednesdayBlock → lets this specific Wednesday still be ordered
-  //                          through Tuesday (overrides the "Wednesday closes
-  //                          Tuesday 2 PM" rule for this date only)
-  //
-  // Example for Wednesday 18 Nov 2026:
-  //   - local same-day orders open until 18:00 (6 PM)
-  //   - can still be ordered through Tuesday 17 Nov
+  // ---- One-off date overrides ----
+  //   sameDayCutoffHour  → replaces the normal same-day cutoff for that date (23 = 11 PM)
+  //   bypassWednesdayBlock → lets this specific Wednesday still be ordered through Tuesday
+  //   allowCampus → makes this date available for Campus Pickup even if it's not a normal campus day
   dateOverrides: {
-    "2026-11-18": { sameDayCutoffHour: 24, bypassWednesdayBlock: true }
+    "2026-11-18": { sameDayCutoffHour: 23, bypassWednesdayBlock: true }, // Wed: Local only
+    "2026-11-19": { sameDayCutoffHour: 23, allowCampus: true },          // Thu: Local + Campus
+    "2026-11-20": { sameDayCutoffHour: 23 }                              // Fri: Local + Campus (normal Friday)
   }
 };
 // ========================
@@ -500,7 +497,7 @@ function getAvailability(nowD, isCampus){
   const allowedNames = isCampus ? CONFIG.campusDays : CONFIG.localDays;
   const baseSameDayCutoff = isCampus ? CONFIG.campusSameDayCutoffHour : CONFIG.localSameDayCutoffHour;
   const thisWeekStart = weekStart(nowD.y, nowD.m, nowD.d).getTime();
-  const lookahead = isCampus ? 7 : 3;
+  const lookahead = 7; // Changed to 7 so Friday always shows up for local delivery
 
   const days = [];
   for (let i = 0; i < lookahead; i++) {
@@ -508,15 +505,19 @@ function getAvailability(nowD, isCampus){
     const dow = d.getUTCDay();
     if (dow === 0) continue;
     const name = DAY_NAMES[dow];
-    if (!allowedNames.includes(name)) continue;
-    if (soldOutDays.includes(name)) continue;
-
-    if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
 
     const targetKey = dateKey(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
     const targetOverride = CONFIG.dateOverrides[targetKey] || {};
 
-    // Same-day cutoff (only when the target day is today), with per-date override.
+    // Check if it's a normal day, OR if it's an overridden campus day (like Thursday)
+    const normalDay = allowedNames.includes(name);
+    const overrideCampusDay = isCampus && targetOverride.allowCampus === true;
+
+    if (!normalDay && !overrideCampusDay) continue;
+    if (soldOutDays.includes(name)) continue;
+
+    if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
+
     if (i === 0) {
       const cutoff = targetOverride.sameDayCutoffHour !== undefined
         ? targetOverride.sameDayCutoffHour
@@ -524,7 +525,6 @@ function getAvailability(nowD, isCampus){
       if (nowD.hours >= cutoff) continue;
     }
 
-    // Wednesday closes Tuesday 2 PM (campus sellout) — unless bypassed for this date.
     if (!isCampus && todayName === "Tuesday" &&
         nowD.hours >= CONFIG.campusSameDayCutoffHour && name === "Wednesday") {
       if (!targetOverride.bypassWednesdayBlock) continue;
@@ -565,15 +565,19 @@ function closedMessage(nowD, isCampus){
 function explainUnavailable(dayValue, nowD, isCampus){
   const dayName = (dayValue || "").split(",")[0].trim();
   const todayName = DAY_NAMES[new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d)).getUTCDay()];
+  const todayKey = dateKey(nowD.y, nowD.m, nowD.d);
+  const todayOverride = CONFIG.dateOverrides[todayKey] || {};
 
   if (isCampus) {
-    if (dayName === todayName && nowD.hours >= CONFIG.campusSameDayCutoffHour)
-      return `Campus ordering for today closed at ${fmtHour(CONFIG.campusSameDayCutoffHour)}. Please pick another day or DM us on Instagram.`;
+    if (dayName === todayName) {
+      const cutoff = todayOverride.sameDayCutoffHour !== undefined ? todayOverride.sameDayCutoffHour : CONFIG.campusSameDayCutoffHour;
+      if (nowD.hours >= cutoff)
+        return `Campus ordering for today closed at ${fmtHour(cutoff)}. Please pick another day or DM us on Instagram.`;
+    }
     return "That campus day is no longer available — please pick another or DM us on Instagram.";
   }
 
   if (dayName === "Wednesday" && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour) {
-    // Only mention the sellout rule when the date isn't overridden.
     const isOverridden = Object.values(CONFIG.dateOverrides).some(o => o && o.bypassWednesdayBlock);
     if (!isOverridden) {
       return `Wednesday just sold out from our campus sales — DM us on Instagram @${CONFIG.instagram} and we’ll see what we can do.`;
@@ -581,8 +585,6 @@ function explainUnavailable(dayValue, nowD, isCampus){
   }
 
   if (dayName === todayName) {
-    const todayKey = dateKey(nowD.y, nowD.m, nowD.d);
-    const todayOverride = CONFIG.dateOverrides[todayKey] || {};
     const effectiveCutoff = todayOverride.sameDayCutoffHour !== undefined
       ? todayOverride.sameDayCutoffHour
       : CONFIG.localSameDayCutoffHour;
@@ -821,7 +823,7 @@ function renderDays(){
     ? `<small class="note" style="color:var(--err)">Your previously selected day is no longer available.</small>`
     : "";
 
-  /* Per-date override notes, e.g. "Wednesday same-day orders open until 6pm." */
+  /* Per-date override notes, e.g. "Wednesday same-day orders open until 11pm." */
   const overrideNotes = avail.days
     .filter(d => CONFIG.dateOverrides[d.dateKey])
     .map(d => {
