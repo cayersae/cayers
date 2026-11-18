@@ -44,7 +44,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 
 /* tappable quantity */
 .step .qty-input{
-  width:3.5ch; padding:6px 2px; border:0; background:transparent; color:inherit; font:inherit; font-weight:800; font-size:1.2rem;
+  width:4.5ch; padding:6px 2px; border:0; background:transparent; color:inherit; font:inherit; font-weight:800; font-size:1.2rem;
   font-variant-numeric:tabular-nums; text-align:center; border-radius:8px; outline:0; cursor:text; caret-color:var(--berry);
   -moz-appearance:textfield; appearance:none; transition:background .15s ease,box-shadow .15s ease;
 }
@@ -108,9 +108,14 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .login-card p { font-size: 0.95rem; color: var(--mute); margin-bottom: 20px; }
 
 /* LOGIN LOADING OVERLAY */
-#loginLoading { position:fixed; inset:0; z-index:96; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:20px; opacity:1; transition:opacity .6s ease; }
-#loginLoading.gone { opacity:0; pointer-events:none; }
-#loginLoading.hide { display:none; }
+#loginLoading {
+  position: fixed; inset: 0; z-index: 96; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 1; transition: opacity .45s ease;
+}
+#loginLoading.gone { opacity: 0; pointer-events: none; }
+#loginLoading.hide { display: none; }
+#loginLoading .note { transition: opacity .25s ease, transform .25s ease; }
 
 /* ---------- Sending Overlay ---------- */
 #sending{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
@@ -155,7 +160,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .reveal.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s)}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1}.reveal.in{animation:none}}
 
-.done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center}
+.done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center;position:relative;z-index:10;opacity:1;}
 .done a{color:var(--berry);font-weight:800}
 .done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:14px 0 8px}
 
@@ -184,7 +189,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
   <div class="splash-inner">
     <div class="splash-logo">Cayers</div>
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <p class="note" style="margin-top:18px;text-align:center">Checking the guest list&hellip;</p>
+    <p id="loginLoadingNote" class="note" style="margin-top:18px;text-align:center">Checking the guest list&hellip;</p>
   </div>
 </div>
 
@@ -194,7 +199,6 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
     <h2>Cayers Log in</h2>
     <p>Log in with your phone number to unlock VIP rewards, or skip to order as a guest.</p>
     
-    <!-- Changed placeholder to 5X and added inputmode -->
     <input type="tel" id="loginPhone" placeholder="5X XXX XXXX" inputmode="numeric" autocomplete="off" style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); text-align:center; margin-bottom:12px; font-size:1.1rem; font-weight:700;">
     
     <button type="button" id="loginBtn" style="width:100%; padding:16px; border-radius:14px; background:var(--berry); color:#fff; font-weight:800; font-size:1.1rem; border:none; margin-bottom:10px;">Log In</button>
@@ -221,9 +225,9 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
       <div class="hp" aria-hidden="true"><label>Company<input id="company" type="text" tabindex="-1" autocomplete="off"></label></div>
 
       <fieldset><legend>How do you want to get your order?</legend>
-      <div class="row">
-      <label class="opt"><input type="radio" name="loc" value="University of Greater Manchester Campus"><span>Campus pickup<small id="minCampusTxt"></small></span></label>
-      <label class="opt"><input type="radio" name="loc" value="Local Delivery/ Pickup Spot (DM)"><span>Local delivery or pickup spot<small id="minLocalTxt"></small></span></label>
+      <div class="row" id="locationOptions">
+        <label class="opt" id="campusOptLabel"><input type="radio" name="loc" value="University of Greater Manchester Campus"><span>Campus pickup<small id="minCampusTxt"></small></span></label>
+        <label class="opt"><input type="radio" name="loc" value="Local Delivery/ Pickup Spot (DM)"><span>Local delivery or pickup spot<small id="minLocalTxt"></small></span></label>
       </div></fieldset>
 
       <fieldset id="dayBox" class="hide"><legend id="dayLegend">Day</legend><div class="row" id="days"></div></fieldset>
@@ -329,7 +333,7 @@ function remainingFor(id){
 
 function capFor(id){
   const info = flavorInfo[id] || {};
-  if (loyaltyState.isSpecial) return 9999;
+  if (loyaltyState.isSpecial) return Infinity;
   if (info.soldOut) return 0;
   const rem = remainingFor(id);
   return isFinite(rem) ? rem : CONFIG.maxPerFlavor;
@@ -393,8 +397,10 @@ async function fetchStoreStatus() {
   }
 }
 
+let sendingTimeout;
 function showSending(on,slow){
   const s=$("#sending");
+  clearTimeout(sendingTimeout);
   if(on){
     s.classList.remove("s-circle","s-tick","s-undo");
     s.style.transition="none";
@@ -407,7 +413,12 @@ function showSending(on,slow){
   const ms=slow?1400:600;
   s.style.transition=`opacity ${ms}ms ease`;
   s.classList.add("gone");
-  setTimeout(()=>{ if(s.classList.contains("gone")){ s.classList.add("hide"); s.classList.remove("s-circle","s-tick","s-undo"); } },ms);
+  sendingTimeout = setTimeout(()=>{ 
+    if(s.classList.contains("gone")){ 
+      s.classList.add("hide"); 
+      s.classList.remove("s-circle","s-tick","s-undo"); 
+    } 
+  },ms);
 }
 
 function openReview(d){
@@ -612,7 +623,6 @@ lastFlavorSig = flavorSignature();
 /* --------- LOGIN SCREEN LOGIC ---------- */
 const loginPhone = $("#loginPhone");
 
-// Auto-clean input: remove leading 0, allow only numbers, limit to 9 digits
 loginPhone.addEventListener("input", function(e) {
   let val = this.value.replace(/\D/g, "");
   if (val.startsWith("0")) val = val.substring(1);
@@ -620,16 +630,26 @@ loginPhone.addEventListener("input", function(e) {
   this.value = val;
 });
 
+let loginLoadTimer;
 function showLoginLoading(on) {
   const l = $("#loginLoading");
+  const note = $("#loginLoadingNote");
+  clearTimeout(loginLoadTimer);
+
   if (on) {
+    if (note) {
+      note.style.opacity = "1";
+      note.textContent = "Checking the guest list\u2026";
+    }
     l.classList.remove("hide");
     l.classList.add("gone");
     void l.offsetWidth;
     l.classList.remove("gone");
   } else {
     l.classList.add("gone");
-    setTimeout(() => l.classList.add("hide"), 600);
+    loginLoadTimer = setTimeout(() => {
+      if (l.classList.contains("gone")) l.classList.add("hide");
+    }, 460);
   }
 }
 
@@ -640,6 +660,7 @@ $("#loginBtn").addEventListener("click", async () => {
     return;
   }
 
+  $("#loginMsg").textContent = "";
   showLoginLoading(true);
 
   try {
@@ -647,31 +668,53 @@ $("#loginBtn").addEventListener("click", async () => {
     const d = await r.json();
     
     if (d.ok) {
+      const isVip = Boolean(d.isSpecial);
       loyaltyState.verified = true;
       loyaltyState.phone = phone;
-      loyaltyState.orders = d.orders;
-      loyaltyState.hasFreeCup = d.hasFreeCup;
-      loyaltyState.isSpecial = d.isSpecial || false;
+      loyaltyState.isSpecial = isVip;
+      loyaltyState.orders = isVip ? 0 : (d.orders || 0);
+      loyaltyState.hasFreeCup = isVip ? false : Boolean(d.hasFreeCup);
       
-      // Show success state before swapping screens
-      const note = $("#loginLoading .note");
-      if (note) note.textContent = d.isSpecial ? "VIP Access Granted" : (d.hasFreeCup ? "Reward Unlocked" : "Welcome Back");
+      // Handle campus pickup option visibility for VIPs
+      const campusLabel = $("#campusOptLabel");
+      if (campusLabel) {
+        if (isVip) {
+          campusLabel.style.display = "none";
+          // If campus was checked, uncheck and clear location
+          const campusInput = campusLabel.querySelector("input[name=loc]");
+          if (campusInput && campusInput.checked) {
+            campusInput.checked = false;
+          }
+        } else {
+          campusLabel.style.display = "flex";
+        }
+      }
 
-      await new Promise(r => setTimeout(r, 1200)); // Let the text show
+      const note = $("#loginLoadingNote");
+      if (note) {
+        note.style.opacity = "0";
+        await new Promise(res => setTimeout(res, 200));
+        note.textContent = isVip
+          ? "👑 VIP Access Granted"
+          : (loyaltyState.hasFreeCup ? "🎁 Reward Unlocked" : "Welcome Back");
+        note.style.opacity = "1";
+      }
 
-      showLoginLoading(false);
+      await new Promise(res => setTimeout(res, 1100));
+
       $("#loginScreen").classList.add("gone");
+      showLoginLoading(false);
+
       setTimeout(() => {
         $("#loginScreen").classList.add("hide");
         $("#mainApp").classList.remove("hide");
         revealContent();
         renderFlavors(); 
 
-        if (d.isSpecial) say(`👑 VIP Access Unlocked!`, "ok");
-        else if (d.hasFreeCup) say(`Welcome back! 🎁 1 Free cup unlocked!`, "ok");
-        else if (d.orders > 0) say(`Welcome back! ${3 - d.orders} more orders for a free cup!`, "ok");
-        
-      }, 500);
+        if (isVip) say("👑 VIP Access Unlocked! Local delivery only, unlimited quantities & Buy 2 Get 1 Free active.", "ok");
+        else if (loyaltyState.hasFreeCup) say("Welcome back! 🎁 1 Free cup unlocked!", "ok");
+        else if (loyaltyState.orders > 0) say(`Welcome back! ${3 - loyaltyState.orders} more order${3 - loyaltyState.orders === 1 ? "" : "s"} for a free cup!`, "ok");
+      }, 460);
     } else {
       showLoginLoading(false);
       $("#loginMsg").textContent = "Could not connect. Try again.";
@@ -686,7 +729,11 @@ $("#skipLoginBtn").addEventListener("click", () => {
   loyaltyState.verified = true;
   loyaltyState.orders = 0;
   loyaltyState.phone = ""; 
+  loyaltyState.isSpecial = false;
   
+  const campusLabel = $("#campusOptLabel");
+  if (campusLabel) campusLabel.style.display = "flex";
+
   $("#loginScreen").classList.add("gone");
   setTimeout(() => {
     $("#loginScreen").classList.add("hide");
@@ -730,9 +777,10 @@ $("#flavors").addEventListener("input", e => {
 
   let raw = inp.value.replace(/\D+/g, "");
   if (raw !== inp.value) inp.value = raw;
-  if (raw.length > 4) { raw = raw.slice(0, 4); inp.value = raw; }
+  const maxAllowed = loyaltyState.isSpecial ? 999999 : 9999;
+  if (raw.length > String(maxAllowed).length) { raw = raw.slice(0, String(maxAllowed).length); inp.value = raw; }
 
-  const n = raw === "" ? 0 : Math.min(parseInt(raw, 10) || 0, 9999);
+  const n = raw === "" ? 0 : Math.min(parseInt(raw, 10) || 0, maxAllowed);
   qty[f.id] = n;
   update();
 });
@@ -875,7 +923,7 @@ function renderFlavors(){
       <div class="step">
         <button type="button" data-i="${i}" data-d="-1" aria-label="Remove one ${f.id}"${disabled}>−</button>
         <input id="q${i}" class="qty-input" type="text" inputmode="numeric" pattern="[0-9]*"
-               data-i="${i}" value="${qty[f.id]}" maxlength="4"
+               data-i="${i}" value="${qty[f.id]}" maxlength="6"
                autocomplete="off" spellcheck="false" enterkeyhint="done"
                aria-label="Quantity of ${f.id}"${disabled}>
         <button type="button" data-i="${i}" data-d="1" aria-label="Add one ${f.id}"${disabled}>+</button>
@@ -885,7 +933,7 @@ function renderFlavors(){
 
   if (loyaltyState.isSpecial) {
     html += `<div style="padding:12px; border-radius:12px; background:color-mix(in srgb,var(--berry) 15%,var(--card)); border:1.5px solid var(--berry); margin-top:10px; text-align:center;">
-      <b style="color:var(--berry);">👑 VIP Mode Active: Buy 2, Get 1 Free</b>
+      <b style="color:var(--berry);">👑 VIP Mode Active: No Minimums & Buy 2, Get 1 Free</b>
     </div>`;
   } else if (loyaltyState.hasFreeCup) {
     html += `<div style="padding:12px; border-radius:12px; background:color-mix(in srgb,var(--ok) 15%,var(--card)); border:1.5px solid var(--ok); margin-top:10px; text-align:center;">
@@ -970,11 +1018,13 @@ function updateClosedBanner(){
   const nowD = dubaiNowParts();
   const campus = getAvailability(nowD, true);
   const local  = getAvailability(nowD, false);
-  const bothClosed = campus.closed && local.closed;
+  const bothClosed = loyaltyState.isSpecial ? local.closed : (campus.closed && local.closed);
 
   if (bothClosed) {
     const dm = `<a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a>`;
-    banner.innerHTML = `<p style="margin:0 0 6px">${campus.message}</p><p style="margin:0 0 6px">${local.message}</p><p style="margin:0">${dm}</p>`;
+    banner.innerHTML = loyaltyState.isSpecial
+      ? `<p style="margin:0 0 6px">${local.message}</p><p style="margin:0">${dm}</p>`
+      : `<p style="margin:0 0 6px">${campus.message}</p><p style="margin:0 0 6px">${local.message}</p><p style="margin:0">${dm}</p>`;
     banner.classList.remove("hide");
   } else {
     banner.classList.add("hide");
@@ -1010,7 +1060,7 @@ $("#f").addEventListener("submit",async e=>{
   if(!name) return say("Enter your name.","err");
   if(!ig && !loyaltyState.phone) return say("Enter an Instagram username, or log in with your phone number so we can reach you.","err");
   if(ig&&!validIG(ig)) return say("That Instagram username doesn’t look right (letters, numbers, dots and underscores only).","err");
-  if(!loc()) return say("Choose campus pickup or local delivery.","err");
+  if(!loc()) return say("Choose pickup or delivery option.","err");
   if(!day) return say("Choose a day.","err");
 
   const nowD = dubaiNowParts();
@@ -1018,19 +1068,31 @@ $("#f").addEventListener("submit",async e=>{
   const dayStillValid = !avail.closed && avail.days.some(d => d.value === day);
   if(!dayStillValid) return say(avail.closed ? avail.message : explainUnavailable(day, nowD, isCampus()), "err");
 
-  const min=isCampus()?CONFIG.minCampus:CONFIG.minLocal;
-  if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
+  // VIPs bypass minimum order requirements
+  if (!loyaltyState.isSpecial) {
+    const min = isCampus()?CONFIG.minCampus:CONFIG.minLocal;
+    if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
+  }
 
   for (const f of CONFIG.flavors) {
     if (qty[f.id] <= 0) continue;
     const info = flavorInfo[f.id] || {};
     if (info.soldOut && !loyaltyState.isSpecial) return say(`${f.id} just sold out — please remove it from your order.`,"err");
-    if (isFinite(info.remaining) && qty[f.id] > info.remaining) return say(`Only ${info.remaining} ${f.id} left in stock — please lower the quantity.`,"err");
+    if (isFinite(info.remaining) && qty[f.id] > info.remaining && !loyaltyState.isSpecial) return say(`Only ${info.remaining} ${f.id} left in stock — please lower the quantity.`,"err");
   }
 
   if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
 
-  const order={id:orderId,name,instagram:ig,phone:loyaltyState.phone || "NA",location:loc(),day,campus:isCampus(),total:t.p,cups:t.c,sentAt:new Date().toISOString()};
+  let finalTotal = t.p;
+  if (loyaltyState.isSpecial && t.c > 0) {
+    const freeCups = Math.floor(t.c / 3);
+    if (freeCups > 0) finalTotal -= freeCups * 3;
+  } else if (loyaltyState.hasFreeCup && t.c > 0) {
+    finalTotal -= 3;
+  }
+  if (finalTotal < 0) finalTotal = 0;
+
+  const order={id:orderId,name,instagram:ig,phone:loyaltyState.phone || "NA",location:loc(),day,campus:isCampus(),total:finalTotal,cups:t.c,sentAt:new Date().toISOString()};
   
   if (loyaltyState.verified) {
     order.loyaltyPhone = loyaltyState.phone;
@@ -1061,8 +1123,8 @@ $("#f").addEventListener("submit",async e=>{
     const ref=orderId.slice(-5).toUpperCase();
     lastSubmittedRef = ref;   
     const parts=CONFIG.flavors.filter(f=>qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
-    $("#sum").textContent=`${parts} · ${t.c} cup${t.c==1?"":"s"} · ${t.p} AED · ${day} · Ref ${ref}`;
-    const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${t.p} AED), ${loc()}, ${day}. Please confirm.`;
+    $("#sum").textContent=`${parts} · ${t.c} cup${t.c==1?"":"s"} · ${finalTotal} AED · ${day} · Ref ${ref}`;
+    const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${finalTotal} AED), ${loc()}, ${day}. Please confirm.`;
     $("#igBtn").onclick=()=>{
       const ok = () => { $("#igHint").textContent="Your order message is copied. Paste it into the chat and send."; };
       const fail = () => { $("#igHint").textContent="Copy failed — please copy the message manually from above."; };
@@ -1132,14 +1194,10 @@ function hideSplash(){
     const sRect = splashLogo.getBoundingClientRect();
     const tRect = targetLogo.getBoundingClientRect();
 
-    const scaleX = sRect.width  / tRect.width;
-    const scaleY = sRect.height / tRect.height;
     const sCX = sRect.left + sRect.width  / 2;
     const sCY = sRect.top  + sRect.height / 2;
     const tCX = tRect.left + tRect.width  / 2;
     const tCY = tRect.top  + tRect.height / 2;
-    const dx = sCX - tCX;
-    const dy = sCY - tCY;
 
     splashLogo.style.opacity = "0";
     
