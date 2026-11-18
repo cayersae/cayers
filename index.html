@@ -117,14 +117,40 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 #loginLoading.hide { display: none; }
 #loginLoading .note { transition: opacity .25s ease, transform .25s ease; }
 
-/* ---------- Sending Overlay ---------- */
+/* ---------- Sending & Review Overlays ---------- */
 #sending{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
 #sending.gone{opacity:0;pointer-events:none}
 #sending.hide{display:none}
-#review{position:fixed;inset:0;z-index:80;background:rgba(58,15,15,.58);will-change:opacity;display:flex;align-items:center;justify-content:center;padding:18px;opacity:1;transition:opacity .35s ease}
+
+#review{
+  position: fixed; 
+  inset: 0; 
+  z-index: 80; 
+  background: rgba(58,15,15,.58); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 18px; 
+  opacity: 1; 
+  transition: opacity .35s ease;
+  overflow-y: auto;
+}
 #review.gone{opacity:0;pointer-events:none}
 #review.hide{display:none}
-.rv-card{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:18px;padding:22px;width:100%;max-width:420px;max-height:90vh;overflow:auto;transform:none;will-change:transform;transition:transform .35s ease}
+
+.rv-card{
+  background: var(--card); 
+  color: var(--ink); 
+  border: 1.5px solid var(--line); 
+  border-radius: 18px; 
+  padding: 22px; 
+  width: 100%; 
+  max-width: 420px; 
+  max-height: 85vh; 
+  overflow-y: auto; 
+  margin: auto;
+  transition: transform .35s ease;
+}
 #review.gone .rv-card{transform:translateY(14px) scale(.97)}
 .rv-card h2{font:400 1.6rem/1.1 "Abril Fatface",Georgia,serif;margin:0 0 4px}
 .rv-sub{color:var(--mute);font-size:.9rem;margin:0 0 14px}
@@ -675,12 +701,11 @@ $("#loginBtn").addEventListener("click", async () => {
       loyaltyState.orders = isVip ? 0 : (d.orders || 0);
       loyaltyState.hasFreeCup = isVip ? false : Boolean(d.hasFreeCup);
       
-      // Handle campus pickup option visibility for VIPs
+      // Restrict delivery options for VIPs (Local delivery only)
       const campusLabel = $("#campusOptLabel");
       if (campusLabel) {
         if (isVip) {
           campusLabel.style.display = "none";
-          // If campus was checked, uncheck and clear location
           const campusInput = campusLabel.querySelector("input[name=loc]");
           if (campusInput && campusInput.checked) {
             campusInput.checked = false;
