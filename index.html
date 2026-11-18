@@ -223,7 +223,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 <div id="loginScreen" class="hide">
   <div class="login-card">
     <h2>Cayers Log in</h2>
-    <p>Log in with your phone number to unlock VIP rewards, or skip to order as a guest.</p>
+    <p>Log in with your phone number to unlock rewards, or skip to order as a guest.</p>
     
     <input type="tel" id="loginPhone" placeholder="5X XXX XXXX" inputmode="numeric" autocomplete="off" style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); text-align:center; margin-bottom:12px; font-size:1.1rem; font-weight:700;">
     
@@ -337,7 +337,7 @@ let soldOutDays = [];
 let lastSubmittedRef = ""; 
 const qty={};
 
-/* Loyalty & VIP State */
+/* Loyalty & Member Access State */
 const loyaltyState = { verified: false, phone: "", orders: 0, hasFreeCup: false, isSpecial: false };
 
 const flavorInfo={};
@@ -464,7 +464,7 @@ function openReview(d){
       displayTotal -= discAmount;
       const discRow = document.createElement("div");
       discRow.className = "rv-row"; discRow.style.color = "var(--berry)"; discRow.style.fontWeight = "800";
-      discRow.innerHTML = `<span>👑 VIP Special (Buy 2 Get 1)</span><span>-${discAmount} AED</span>`;
+      discRow.innerHTML = `<span>👑 Cayers Member (Buy 2 Get 1)</span><span>-${discAmount} AED</span>`;
       box.append(discRow);
     }
   } else if (loyaltyState.hasFreeCup && d.t.c > 0) {
@@ -665,7 +665,7 @@ function showLoginLoading(on) {
   if (on) {
     if (note) {
       note.style.opacity = "1";
-      note.textContent = "Checking the guest list\u2026";
+      note.textContent = "Checking member access\u2026";
     }
     l.classList.remove("hide");
     l.classList.add("gone");
@@ -694,17 +694,17 @@ $("#loginBtn").addEventListener("click", async () => {
     const d = await r.json();
     
     if (d.ok) {
-      const isVip = Boolean(d.isSpecial);
+      const isSpecial = Boolean(d.isSpecial);
       loyaltyState.verified = true;
       loyaltyState.phone = phone;
-      loyaltyState.isSpecial = isVip;
-      loyaltyState.orders = isVip ? 0 : (d.orders || 0);
-      loyaltyState.hasFreeCup = isVip ? false : Boolean(d.hasFreeCup);
+      loyaltyState.isSpecial = isSpecial;
+      loyaltyState.orders = isSpecial ? 0 : (d.orders || 0);
+      loyaltyState.hasFreeCup = isSpecial ? false : Boolean(d.hasFreeCup);
       
-      // Restrict delivery options for VIPs (Local delivery only)
+      // Restrict delivery options for member access (Local delivery only)
       const campusLabel = $("#campusOptLabel");
       if (campusLabel) {
-        if (isVip) {
+        if (isSpecial) {
           campusLabel.style.display = "none";
           const campusInput = campusLabel.querySelector("input[name=loc]");
           if (campusInput && campusInput.checked) {
@@ -719,8 +719,8 @@ $("#loginBtn").addEventListener("click", async () => {
       if (note) {
         note.style.opacity = "0";
         await new Promise(res => setTimeout(res, 200));
-        note.textContent = isVip
-          ? "👑 VIP Access Granted"
+        note.textContent = isSpecial
+          ? "Member Access Unlocked!"
           : (loyaltyState.hasFreeCup ? "🎁 Reward Unlocked" : "Welcome Back");
         note.style.opacity = "1";
       }
@@ -736,9 +736,10 @@ $("#loginBtn").addEventListener("click", async () => {
         revealContent();
         renderFlavors(); 
 
-        if (isVip) say("👑 VIP Access Unlocked! Local delivery only, unlimited quantities & Buy 2 Get 1 Free active.", "ok");
-        else if (loyaltyState.hasFreeCup) say("Welcome back! 🎁 1 Free cup unlocked!", "ok");
-        else if (loyaltyState.orders > 0) say(`Welcome back! ${3 - loyaltyState.orders} more order${3 - loyaltyState.orders === 1 ? "" : "s"} for a free cup!`, "ok");
+        if (!isSpecial) {
+          if (loyaltyState.hasFreeCup) say("Welcome back! 🎁 1 Free cup unlocked!", "ok");
+          else if (loyaltyState.orders > 0) say(`Welcome back! ${3 - loyaltyState.orders} more order${3 - loyaltyState.orders === 1 ? "" : "s"} for a free cup!`, "ok");
+        }
       }, 460);
     } else {
       showLoginLoading(false);
@@ -879,13 +880,13 @@ function updateFlavorBadges(){
       if (rem <= 0 && !loyaltyState.isSpecial) { el.className = "fl-badge out"; el.textContent = "Sold out"; return; }
       const available = Math.max(0, rem - qty[f.id]);
       el.className = "fl-badge";
-      el.textContent = loyaltyState.isSpecial ? "VIP Access" : `${available} left`;
+      el.textContent = loyaltyState.isSpecial ? "Member Access" : `${available} left`;
       return;
     }
 
     const fallback = Math.max(0, CONFIG.maxPerFlavor - qty[f.id]);
     el.className = "fl-badge";
-    el.textContent = loyaltyState.isSpecial ? "VIP Access" : `${fallback} left`;
+    el.textContent = loyaltyState.isSpecial ? "Member Access" : `${fallback} left`;
   });
 }
 
@@ -893,6 +894,11 @@ function update(){
   const t=totals();
   $("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;
   
+  const minLocalEl = document.getElementById("minLocalTxt");
+  if (minLocalEl) {
+    minLocalEl.textContent = loyaltyState.isSpecial ? "No minimum" : `Minimum ${CONFIG.minLocal} cups`;
+  }
+
   let finalTotal = t.p;
   let extraText = "";
   
@@ -958,7 +964,7 @@ function renderFlavors(){
 
   if (loyaltyState.isSpecial) {
     html += `<div style="padding:12px; border-radius:12px; background:color-mix(in srgb,var(--berry) 15%,var(--card)); border:1.5px solid var(--berry); margin-top:10px; text-align:center;">
-      <b style="color:var(--berry);">👑 VIP Mode Active: No Minimums & Buy 2, Get 1 Free</b>
+      <b style="color:var(--berry);">✨ Cayers Member Access: No Minimums & Buy 2, Get 1 Free</b>
     </div>`;
   } else if (loyaltyState.hasFreeCup) {
     html += `<div style="padding:12px; border-radius:12px; background:color-mix(in srgb,var(--ok) 15%,var(--card)); border:1.5px solid var(--ok); margin-top:10px; text-align:center;">
@@ -1093,7 +1099,7 @@ $("#f").addEventListener("submit",async e=>{
   const dayStillValid = !avail.closed && avail.days.some(d => d.value === day);
   if(!dayStillValid) return say(avail.closed ? avail.message : explainUnavailable(day, nowD, isCampus()), "err");
 
-  // VIPs bypass minimum order requirements
+  // Member access bypasses minimum order requirements
   if (!loyaltyState.isSpecial) {
     const min = isCampus()?CONFIG.minCampus:CONFIG.minLocal;
     if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
@@ -1215,14 +1221,6 @@ function hideSplash(){
       $("#loginScreen").classList.remove("hide");
       return;
     }
-
-    const sRect = splashLogo.getBoundingClientRect();
-    const tRect = targetLogo.getBoundingClientRect();
-
-    const sCX = sRect.left + sRect.width  / 2;
-    const sCY = sRect.top  + sRect.height / 2;
-    const tCX = tRect.left + tRect.width  / 2;
-    const tCY = tRect.top  + tRect.height / 2;
 
     splashLogo.style.opacity = "0";
     
