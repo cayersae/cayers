@@ -701,7 +701,8 @@ $("#loginBtn").addEventListener("click", async () => {
       loyaltyState.phone = phone;
       loyaltyState.isSpecial = isSpecial;
       loyaltyState.orders = isSpecial ? 0 : (d.orders || 0);
-      loyaltyState.hasFreeCup = isSpecial ? false : Boolean(d.hasFreeCup);
+      // Free cup on every 3rd order (2 previous orders), worked out here from the order count
+      loyaltyState.hasFreeCup = isSpecial ? false : (loyaltyState.orders > 0 && loyaltyState.orders % 3 === 2);
       
       // Restrict delivery options for member access (Local delivery only)
       const campusLabel = $("#campusOptLabel");
