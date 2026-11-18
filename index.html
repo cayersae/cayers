@@ -262,8 +262,7 @@ const CONFIG = {
   endpoint: "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec",
   instagram: "cayers.ae",
   flavors: [
-    {id:"Silk Cayer",      desc:"Biscoff Biscuits, cream cheese & biscoff spread", price:3},
-    {id:"Dark Land Cayer", desc:"Chocolate cake, whipped cream & oreo", price:3}
+    {id:"Silk Cayer", desc:"Biscoff Biscuits, cream cheese & biscoff spread", price:3}
   ],
   campusDays: ["Tuesday","Friday"],
   localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday"],
@@ -273,7 +272,20 @@ const CONFIG = {
   minFillMs: 2500,
   localSameDayCutoffHour: 17,
   campusSameDayCutoffHour: 14,
-  timeZone: "Asia/Dubai"
+  timeZone: "Asia/Dubai",
+
+  // ---- One-off date overrides (keyed by YYYY-MM-DD, Dubai time) ----
+  //   sameDayCutoffHour  → replaces the normal same-day cutoff for that date
+  //   bypassWednesdayBlock → lets this specific Wednesday still be ordered
+  //                          through Tuesday (overrides the "Wednesday closes
+  //                          Tuesday 2 PM" rule for this date only)
+  //
+  // Example for Wednesday 18 Nov 2026:
+  //   - local same-day orders open until 18:00 (6 PM)
+  //   - can still be ordered through Tuesday 17 Nov
+  dateOverrides: {
+    "2026-11-18": { sameDayCutoffHour: 18, bypassWednesdayBlock: true }
+  }
 };
 // ========================
 
@@ -302,6 +314,7 @@ let lastFlavorSig = "";
 
 function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${ampm}`;}
+function dateKey(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
 
 /* ---- per-flavour stock helpers ---- */
 function remainingFor(id){
@@ -337,7 +350,7 @@ async function fetchStoreStatus() {
   try {
     const r = await fetch(CONFIG.endpoint + "?action=get_settings");
     const d = await r.json();
-    if (!d.ok) return;
+    if (!d.ok) { console.warn("get_settings returned not-ok:", d); return; }
 
     storeStatus = d.storeStatus || "OPEN";
     soldOutDays = d.soldOutDays || [];
@@ -352,6 +365,7 @@ async function fetchStoreStatus() {
         };
       });
     } else {
+      console.warn("get_settings did not include flavors object");
       CONFIG.flavors.forEach(f => {
         if (!flavorInfo[f.id]) flavorInfo[f.id] = { soldOut:false, remaining: Infinity };
       });
@@ -373,7 +387,7 @@ async function fetchStoreStatus() {
     updateClosedBanner();
     if (loc()) renderDays();
   } catch (e) {
-    console.warn("Could not fetch store status.");
+    console.warn("Could not fetch store status.", e);
   }
 }
 
@@ -484,7 +498,7 @@ function getAvailability(nowD, isCampus){
   }
 
   const allowedNames = isCampus ? CONFIG.campusDays : CONFIG.localDays;
-  const sameDayCutoff = isCampus ? CONFIG.campusSameDayCutoffHour : CONFIG.localSameDayCutoffHour;
+  const baseSameDayCutoff = isCampus ? CONFIG.campusSameDayCutoffHour : CONFIG.localSameDayCutoffHour;
   const thisWeekStart = weekStart(nowD.y, nowD.m, nowD.d).getTime();
   const lookahead = isCampus ? 7 : 3;
 
@@ -498,12 +512,27 @@ function getAvailability(nowD, isCampus){
     if (soldOutDays.includes(name)) continue;
 
     if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
-    if (i === 0 && nowD.hours >= sameDayCutoff) continue;
-    if (!isCampus && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour && name === "Wednesday") continue;
+
+    const targetKey = dateKey(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
+    const targetOverride = CONFIG.dateOverrides[targetKey] || {};
+
+    // Same-day cutoff (only when the target day is today), with per-date override.
+    if (i === 0) {
+      const cutoff = targetOverride.sameDayCutoffHour !== undefined
+        ? targetOverride.sameDayCutoffHour
+        : baseSameDayCutoff;
+      if (nowD.hours >= cutoff) continue;
+    }
+
+    // Wednesday closes Tuesday 2 PM (campus sellout) — unless bypassed for this date.
+    if (!isCampus && todayName === "Tuesday" &&
+        nowD.hours >= CONFIG.campusSameDayCutoffHour && name === "Wednesday") {
+      if (!targetOverride.bypassWednesdayBlock) continue;
+    }
 
     const base = d.toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"short", timeZone:"UTC" });
     const label = i === 0 ? `${base} (today)` : base;
-    days.push({ value: base, label, name });
+    days.push({ value: base, label, name, dateKey: targetKey });
   }
 
   if (days.length === 0) {
@@ -543,10 +572,25 @@ function explainUnavailable(dayValue, nowD, isCampus){
     return "That campus day is no longer available — please pick another or DM us on Instagram.";
   }
 
-  if (dayName === "Wednesday" && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour)
-    return `Wednesday just sold out from our campus sales — DM us on Instagram @${CONFIG.instagram} and we’ll see what we can do.`;
-  if (dayName === todayName && nowD.hours >= CONFIG.localSameDayCutoffHour)
-    return "Same-day ordering just closed for today. Please pick another day or DM us.";
+  if (dayName === "Wednesday" && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour) {
+    // Only mention the sellout rule when the date isn't overridden.
+    const isOverridden = Object.values(CONFIG.dateOverrides).some(o => o && o.bypassWednesdayBlock);
+    if (!isOverridden) {
+      return `Wednesday just sold out from our campus sales — DM us on Instagram @${CONFIG.instagram} and we’ll see what we can do.`;
+    }
+  }
+
+  if (dayName === todayName) {
+    const todayKey = dateKey(nowD.y, nowD.m, nowD.d);
+    const todayOverride = CONFIG.dateOverrides[todayKey] || {};
+    const effectiveCutoff = todayOverride.sameDayCutoffHour !== undefined
+      ? todayOverride.sameDayCutoffHour
+      : CONFIG.localSameDayCutoffHour;
+    if (nowD.hours >= effectiveCutoff) {
+      return "Same-day ordering just closed for today. Please pick another day or DM us.";
+    }
+  }
+
   return "That day is no longer available — please pick another.";
 }
 
@@ -654,6 +698,9 @@ function updateQtyButtons(){
   });
 }
 
+/* Always shows a badge. Uses live `remaining` when the sheet has replied;
+   falls back to maxPerFlavor until the first fetch lands so the pill is
+   never invisible. */
 function updateFlavorBadges(){
   CONFIG.flavors.forEach((f, i) => {
     const el = document.getElementById("fb" + i);
@@ -668,19 +715,23 @@ function updateFlavorBadges(){
       el.textContent = "Sold out";
       return;
     }
-    if (!isFinite(rem)) {
-      el.className = "fl-badge empty";
-      el.textContent = "";
+
+    if (isFinite(rem)) {
+      if (rem <= 0) {
+        el.className = "fl-badge out";
+        el.textContent = "Sold out";
+        return;
+      }
+      const available = Math.max(0, rem - qty[f.id]);
+      el.className = "fl-badge";
+      el.textContent = `${available} left`;
       return;
     }
-    if (rem <= 0) {
-      el.className = "fl-badge out";
-      el.textContent = "Sold out";
-      return;
-    }
-    const available = Math.max(0, rem - qty[f.id]);
+
+    /* no live data yet — show a conservative fallback based on the cap */
+    const fallback = Math.max(0, CONFIG.maxPerFlavor - qty[f.id]);
     el.className = "fl-badge";
-    el.textContent = `${available} left`;
+    el.textContent = `${fallback} left`;
   });
 }
 
@@ -722,7 +773,7 @@ function renderFlavors(){
       <div>
         <b>${f.id}</b>
         <span>${f.desc} · ${f.price} AED</span>
-        <span id="fb${i}" class="fl-badge empty"></span>
+        <span id="fb${i}" class="fl-badge"></span>
       </div>
       <div class="step">
         <button type="button" data-i="${i}" data-d="-1" aria-label="Remove one ${f.id}"${disabled}>−</button>
@@ -770,9 +821,32 @@ function renderDays(){
     ? `<small class="note" style="color:var(--err)">Your previously selected day is no longer available.</small>`
     : "";
 
+  /* Per-date override notes, e.g. "Wednesday same-day orders open until 6pm." */
+  const overrideNotes = avail.days
+    .filter(d => CONFIG.dateOverrides[d.dateKey])
+    .map(d => {
+      const o = CONFIG.dateOverrides[d.dateKey];
+      if (o && o.sameDayCutoffHour !== undefined) {
+        const dayShort = d.label.split(",")[0];
+        return `${dayShort} same-day orders are open until ${fmtHour(o.sameDayCutoffHour)}.`;
+      }
+      return "";
+    })
+    .filter(Boolean);
+  const specialNote = overrideNotes.length ? ` Special: ${overrideNotes.join(" ")}` : "";
+
+  /* Hide the "Wednesday closes Tuesday 2 PM" line for the week that has an override. */
+  const hasWedOverride = avail.days.some(d => {
+    const o = CONFIG.dateOverrides[d.dateKey];
+    return o && o.bypassWednesdayBlock;
+  });
+  const wedBlockNote = hasWedOverride
+    ? ""
+    : ` Wednesday closes Tuesday ${fmtHour(CONFIG.campusSameDayCutoffHour)} (campus sellout).`;
+
   const cutoffNote = isCampus()
-    ? `Order any campus day this week. Same-day campus pickup closes at ${fmtHour(CONFIG.campusSameDayCutoffHour)} Dubai time.`
-    : `Same-day orders close at ${fmtHour(CONFIG.localSameDayCutoffHour)} Dubai time. Wednesday closes Tuesday ${fmtHour(CONFIG.campusSameDayCutoffHour)} (campus sellout).`;
+    ? `Order any campus day this week. Same-day campus pickup closes at ${fmtHour(CONFIG.campusSameDayCutoffHour)} Dubai time.${specialNote}`
+    : `Same-day orders close at ${fmtHour(CONFIG.localSameDayCutoffHour)} Dubai time.${wedBlockNote}${specialNote}`;
 
   $("#days").innerHTML = avail.days.map(d =>
     `<label class="opt"><input type="radio" name="day" value="${d.value}"${d.value === checkedValue ? " checked" : ""}><span>${d.label}</span></label>`
