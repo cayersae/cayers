@@ -264,6 +264,25 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
       <div id="msg" class="msg" role="status"></div>
     </form>
 
+    <div id="done" class="done hide">
+      <h2 tabindex="-1" style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
+      <p id="sum"></p>
+      <p>Your order is saved. Tap below to send it to us on Instagram and we&rsquo;ll confirm it there as soon as we&rsquo;re free.</p>
+      <a id="igBtn" class="igbtn" href="#" target="_blank" rel="noopener">Send my order on Instagram</a>
+      <p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
+      <p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
+    </div>
+
+    <footer class="site-foot">
+      <a id="bugLink" class="bug-pill" href="mailto:cayerscakes@gmail.com?subject=Bug%20report%20%E2%80%94%20cayers.ae">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 6.5l9 6 9-6"/></svg>
+        <span>Report a bug</span>
+      </a>
+    </footer>
+  </div>
+</div>
+
+<!-- Fixed overlays live outside .wrap: an animated ancestor would trap position:fixed -->
     <div id="review" class="hide" role="dialog" aria-modal="true" aria-labelledby="rvTitle">
       <div class="rv-card">
         <h2 id="rvTitle">Check your order</h2>
@@ -283,23 +302,6 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
       <div class="oktext" aria-hidden="true">Order Submitted</div>
       <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
     </div>
-    <div id="done" class="done hide">
-      <h2 tabindex="-1" style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
-      <p id="sum"></p>
-      <p>Your order is saved. Tap below to send it to us on Instagram and we&rsquo;ll confirm it there as soon as we&rsquo;re free.</p>
-      <a id="igBtn" class="igbtn" href="#" target="_blank" rel="noopener">Send my order on Instagram</a>
-      <p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
-      <p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
-    </div>
-
-    <footer class="site-foot">
-      <a id="bugLink" class="bug-pill" href="mailto:cayerscakes@gmail.com?subject=Bug%20report%20%E2%80%94%20cayers.ae">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 6.5l9 6 9-6"/></svg>
-        <span>Report a bug</span>
-      </a>
-    </footer>
-  </div>
-</div>
 
 <script>
 const CONFIG = {
@@ -739,7 +741,10 @@ $("#loginBtn").addEventListener("click", async () => {
 
         if (!isSpecial) {
           if (loyaltyState.hasFreeCup) say("Welcome back! 🎁 1 Free cup unlocked!", "ok");
-          else if (loyaltyState.orders > 0) say(`Back for more? 🍰 ${3 - loyaltyState.orders} more order${3 - loyaltyState.orders === 1 ? "" : "s"} for a free cup!`, "ok");
+          else if (loyaltyState.orders > 0) {
+            const left = 2 - (loyaltyState.orders % 3);
+            say(left > 0 ? `Back for more? 🍰 ${left} more order${left === 1 ? "" : "s"} for a free cup!` : "Back for more? 🍰", "ok");
+          }
         }
       }, 460);
     } else {
