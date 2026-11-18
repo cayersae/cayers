@@ -42,32 +42,15 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
 .step button:disabled{opacity:.4;cursor:default}
 
-/* tappable quantity — looks like plain text at rest, becomes a focused field on click */
+/* tappable quantity */
 .step .qty-input{
-  width:3.5ch;
-  padding:6px 2px;
-  border:0;
-  background:transparent;
-  color:inherit;
-  font:inherit;
-  font-weight:800;
-  font-size:1.2rem;
-  font-variant-numeric:tabular-nums;
-  text-align:center;
-  border-radius:8px;
-  outline:0;
-  cursor:text;
-  caret-color:var(--berry);
-  -moz-appearance:textfield;
-  appearance:none;
-  transition:background .15s ease,box-shadow .15s ease;
+  width:3.5ch; padding:6px 2px; border:0; background:transparent; color:inherit; font:inherit; font-weight:800; font-size:1.2rem;
+  font-variant-numeric:tabular-nums; text-align:center; border-radius:8px; outline:0; cursor:text; caret-color:var(--berry);
+  -moz-appearance:textfield; appearance:none; transition:background .15s ease,box-shadow .15s ease;
 }
 .step .qty-input::-webkit-outer-spin-button,
 .step .qty-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.step .qty-input:focus{
-  background:color-mix(in srgb,var(--berry) 12%,transparent);
-  box-shadow:inset 0 0 0 2px var(--berry);
-}
+.step .qty-input:focus{background:color-mix(in srgb,var(--berry) 12%,transparent);box-shadow:inset 0 0 0 2px var(--berry);}
 .step .qty-input:disabled{opacity:.5;cursor:default}
 
 .total{position:sticky;bottom:0;background:var(--cocoa);color:var(--bg);border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin:8px 0 14px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -88,12 +71,11 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .closed-banner{background:color-mix(in srgb,var(--berry) 12%,var(--card));border:1.5px solid var(--berry);border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;font-weight:700}
 .closed-banner a{color:var(--berry)}
 
-/* ---------- splash ---------- */
+/* ---------- splash & login screen ---------- */
 #splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease}
 #splash.gone{opacity:0;pointer-events:none}
 .splash-inner{text-align:center;display:flex;flex-direction:column;align-items:center}
 .splash-logo{font:400 clamp(3rem,16vw,5rem)/.95 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em;text-align:center;will-change:transform,opacity}
-#sending .splash-logo{letter-spacing:0}
 #splash .splash-logo span{display:inline-block;opacity:0;animation:spell .45s cubic-bezier(.2,.7,.3,1) forwards}
 #splash .splash-logo span:nth-child(1){animation-delay:.15s}
 #splash .splash-logo span:nth-child(2){animation-delay:.40s}
@@ -109,6 +91,28 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .dots i:nth-child(2){animation-delay:.15s}
 .dots i:nth-child(3){animation-delay:.3s}
 @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-12px);opacity:1}}
+
+/* THE LOGIN SCREEN */
+#loginScreen {
+  position: fixed; inset: 0; z-index: 95; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  transition: opacity .5s ease;
+}
+#loginScreen.gone { opacity: 0; pointer-events: none; }
+.login-card {
+  background: var(--card); border: 1.5px solid var(--line); border-radius: 24px;
+  padding: 30px 24px; width: 100%; max-width: 380px; text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+.login-card h2 { font-family: 'Abril Fatface', Georgia, serif; font-size: 2rem; margin: 0 0 8px; }
+.login-card p { font-size: 0.95rem; color: var(--mute); margin-bottom: 20px; }
+
+/* LOGIN LOADING OVERLAY */
+#loginLoading { position:fixed; inset:0; z-index:96; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:20px; opacity:1; transition:opacity .6s ease; }
+#loginLoading.gone { opacity:0; pointer-events:none; }
+#loginLoading.hide { display:none; }
+
+/* ---------- Sending Overlay ---------- */
 #sending{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
 #sending.gone{opacity:0;pointer-events:none}
 #sending.hide{display:none}
@@ -143,7 +147,7 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 #sending.s-undo .ring{stroke-dashoffset:1.06;transition:stroke-dashoffset .7s ease .25s}
 #sending.s-undo .okwrap{opacity:0;transition:opacity 1.2s ease .1s}
 #sending.s-undo .oktext{opacity:0;transition:opacity 1.2s ease}
-@media(prefers-reduced-motion:reduce){#splash,#sending{transition:none}.dots i{animation:none;opacity:.8}#splash .splash-logo span,#splash .dots,#splash .note{animation:none;opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#splash,#sending,#loginLoading{transition:none}.dots i{animation:none;opacity:.8}#splash .splash-logo span,#splash .dots,#splash .note{animation:none;opacity:1;transform:none}}
 
 /* ---------- content reveal (top → bottom) ---------- */
 @keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -157,30 +161,16 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 
 /* ---------- bug report footer ---------- */
 .site-foot{margin:34px 0 0;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:center}
-.bug-pill{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:9px 16px 9px 14px;
-  border-radius:999px;
-  border:1.5px solid var(--line);
-  background:var(--card);
-  color:var(--mute);
-  font:inherit;font-size:.85rem;font-weight:700;line-height:1;
-  text-decoration:none;
-  transition:color .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease;
-}
+.bug-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 16px 9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--mute);font:inherit;font-size:.85rem;font-weight:700;line-height:1;text-decoration:none;transition:color .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease;}
 .bug-pill svg{width:15px;height:15px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.bug-pill:hover{
-  color:var(--berry);
-  border-color:color-mix(in srgb,var(--berry) 45%,var(--line));
-  background:color-mix(in srgb,var(--berry) 6%,var(--card));
-}
+.bug-pill:hover{color:var(--berry);border-color:color-mix(in srgb,var(--berry) 45%,var(--line));background:color-mix(in srgb,var(--berry) 6%,var(--card));}
 .bug-pill:active{transform:scale(.97)}
 .bug-pill:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){.bug-pill{transition:none}.bug-pill:active{transform:none}}
 </style>
 </head>
 <body>
-<!-- splash logo split into one span per letter (screen readers still get "Cayers") -->
+<!-- splash logo -->
 <div id="splash">
   <div class="splash-inner">
     <div class="splash-logo" role="img" aria-label="Cayers"><span aria-hidden="true">C</span><span aria-hidden="true">a</span><span aria-hidden="true">y</span><span aria-hidden="true">e</span><span aria-hidden="true">r</span><span aria-hidden="true">s</span></div>
@@ -188,76 +178,100 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
     <p class="note" style="margin-top:18px;text-align:center">Whipping up something sweet&hellip;</p>
   </div>
 </div>
-<div class="wrap">
-<!-- the real header logo — this is what the splash logo turns into -->
-<h1><span id="target-logo">Cayers</span></h1>
-<p class="sub">Dessert cups, made fresh. Pick your flavors and a day, and your order goes straight to us.</p>
 
-<div id="closedBanner" class="closed-banner hide" role="status"></div>
-
-<form id="f" novalidate>
-<fieldset><label class="l" for="name">Your name</label><input id="name" type="text" autocomplete="name" maxlength="80"></fieldset>
-<fieldset><label class="l" for="ig">Instagram username</label><input id="ig" type="text" placeholder="Optional if you give a phone number" maxlength="30"></fieldset>
-<fieldset><label class="l" for="ph">Phone number</label><input id="ph" type="tel" autocomplete="tel" placeholder="05x xxx xxxx" maxlength="20"></fieldset>
-
-<!-- honeypot: real customers never see or fill this -->
-<div class="hp" aria-hidden="true"><label>Company<input id="company" type="text" tabindex="-1" autocomplete="off"></label></div>
-
-<fieldset><legend>How do you want to get your order?</legend>
-<div class="row">
-<label class="opt"><input type="radio" name="loc" value="University of Greater Manchester Campus"><span>Campus pickup<small id="minCampusTxt"></small></span></label>
-<label class="opt"><input type="radio" name="loc" value="Local Delivery/ Pickup Spot (DM)"><span>Local delivery or pickup spot<small id="minLocalTxt"></small></span></label>
-</div></fieldset>
-
-<fieldset id="dayBox" class="hide"><legend id="dayLegend">Day</legend><div class="row" id="days"></div></fieldset>
-
-<fieldset><legend>Choose your cups</legend><div id="flavors"></div></fieldset>
-
-<div class="total"><div>Total<small id="cups">0 cups</small></div><div id="price">0 AED</div></div>
-<button id="go" type="submit">Place order</button>
-<div id="msg" class="msg" role="status"></div>
-</form>
-
-<!-- reuses the splash markup (logo + dots) — plain text here, no spelling -->
-<div id="review" class="hide" role="dialog" aria-modal="true" aria-labelledby="rvTitle">
-  <div class="rv-card">
-    <h2 id="rvTitle">Check your order</h2>
-    <p class="rv-sub">Please make sure everything is right before you confirm.</p>
-    <div id="rvItems"></div>
-    <div class="rv-total"><span id="rvCups"></span><span id="rvTotal"></span></div>
-    <div class="rv-meta"><small>For</small><div id="rvWho"></div><small>Pickup or delivery</small><div id="rvWhen"></div></div>
-    <div class="rv-actions"><button type="button" id="rvBack">Edit order</button><button type="button" id="rvConfirm" class="primary">Confirm order</button></div>
-  </div>
-</div>
-<div id="sending" class="hide" role="status" aria-live="polite">
+<!-- LOGIN LOADING OVERLAY -->
+<div id="loginLoading" class="hide">
   <div class="splash-inner">
     <div class="splash-logo">Cayers</div>
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <p class="note" style="margin-top:18px;text-align:center">Sending your order&hellip;</p>
+    <p class="note" style="margin-top:18px;text-align:center">Checking the guest list&hellip;</p>
   </div>
-  <div class="oktext" aria-hidden="true">Order Submitted</div>
-  <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
-</div>
-<div id="done" class="done hide">
-<h2 tabindex="-1" style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
-<p id="sum"></p>
-<p>Your order is saved. Tap below to send it to us on Instagram and we&rsquo;ll confirm it there as soon as we&rsquo;re free.</p>
-<a id="igBtn" class="igbtn" href="#" target="_blank" rel="noopener">Send my order on Instagram</a>
-<p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
-<p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
 </div>
 
-<!-- discreet bug report button, below all order UI -->
-<footer class="site-foot">
-  <a id="bugLink" class="bug-pill" href="mailto:cayerscakes@gmail.com?subject=Bug%20report%20%E2%80%94%20cayers.ae">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 6.5l9 6 9-6"/></svg>
-    <span>Report a bug</span>
-  </a>
-</footer>
+<!-- FULL SCREEN LOGIN SCREEN -->
+<div id="loginScreen" class="hide">
+  <div class="login-card">
+    <h2>Cayers Log in</h2>
+    <p>Log in with your phone number to unlock VIP rewards, or skip to order as a guest.</p>
+    
+    <!-- Changed placeholder to 5X and added inputmode -->
+    <input type="tel" id="loginPhone" placeholder="5X XXX XXXX" inputmode="numeric" autocomplete="off" style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); text-align:center; margin-bottom:12px; font-size:1.1rem; font-weight:700;">
+    
+    <button type="button" id="loginBtn" style="width:100%; padding:16px; border-radius:14px; background:var(--berry); color:#fff; font-weight:800; font-size:1.1rem; border:none; margin-bottom:10px;">Log In</button>
+    
+    <button type="button" id="skipLoginBtn" style="width:100%; padding:10px; background:transparent; color:var(--mute); font-weight:700; border:none; text-decoration:underline; cursor:pointer;">Skip (Order as Guest)</button>
+    
+    <p id="loginMsg" class="err" style="margin-top:10px; font-size:0.85rem;"></p>
+  </div>
+</div>
+
+<!-- MAIN WRAPPER (Hidden until login/skip) -->
+<div id="mainApp" class="hide">
+  <div class="wrap">
+    <h1><span id="target-logo">Cayers</span></h1>
+    <p class="sub">Dessert cups, made fresh. Pick your flavors and a day, and your order goes straight to us.</p>
+
+    <div id="closedBanner" class="closed-banner hide" role="status"></div>
+
+    <form id="f" novalidate>
+      <fieldset><label class="l" for="name">Your name</label><input id="name" type="text" autocomplete="name" maxlength="80"></fieldset>
+      <fieldset><label class="l" for="ig">Instagram username</label><input id="ig" type="text" placeholder="Required if ordering as guest" maxlength="30"></fieldset>
+
+      <!-- honeypot -->
+      <div class="hp" aria-hidden="true"><label>Company<input id="company" type="text" tabindex="-1" autocomplete="off"></label></div>
+
+      <fieldset><legend>How do you want to get your order?</legend>
+      <div class="row">
+      <label class="opt"><input type="radio" name="loc" value="University of Greater Manchester Campus"><span>Campus pickup<small id="minCampusTxt"></small></span></label>
+      <label class="opt"><input type="radio" name="loc" value="Local Delivery/ Pickup Spot (DM)"><span>Local delivery or pickup spot<small id="minLocalTxt"></small></span></label>
+      </div></fieldset>
+
+      <fieldset id="dayBox" class="hide"><legend id="dayLegend">Day</legend><div class="row" id="days"></div></fieldset>
+      <fieldset><legend>Choose your cups</legend><div id="flavors"></div></fieldset>
+
+      <div class="total"><div>Total<small id="cups">0 cups</small></div><div id="price">0 AED</div></div>
+      <button id="go" type="submit">Place order</button>
+      <div id="msg" class="msg" role="status"></div>
+    </form>
+
+    <div id="review" class="hide" role="dialog" aria-modal="true" aria-labelledby="rvTitle">
+      <div class="rv-card">
+        <h2 id="rvTitle">Check your order</h2>
+        <p class="rv-sub">Please make sure everything is right before you confirm.</p>
+        <div id="rvItems"></div>
+        <div class="rv-total"><span id="rvCups"></span><span id="rvTotal"></span></div>
+        <div class="rv-meta"><small>For</small><div id="rvWho"></div><small>Pickup or delivery</small><div id="rvWhen"></div></div>
+        <div class="rv-actions"><button type="button" id="rvBack">Edit order</button><button type="button" id="rvConfirm" class="primary">Confirm order</button></div>
+      </div>
+    </div>
+    <div id="sending" class="hide" role="status" aria-live="polite">
+      <div class="splash-inner">
+        <div class="splash-logo">Cayers</div>
+        <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+        <p class="note" style="margin-top:18px;text-align:center">Sending your order&hellip;</p>
+      </div>
+      <div class="oktext" aria-hidden="true">Order Submitted</div>
+      <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
+    </div>
+    <div id="done" class="done hide">
+      <h2 tabindex="-1" style="font-family:'Abril Fatface',Georgia,serif;margin:0 0 8px">Order received</h2>
+      <p id="sum"></p>
+      <p>Your order is saved. Tap below to send it to us on Instagram and we&rsquo;ll confirm it there as soon as we&rsquo;re free.</p>
+      <a id="igBtn" class="igbtn" href="#" target="_blank" rel="noopener">Send my order on Instagram</a>
+      <p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
+      <p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
+    </div>
+
+    <footer class="site-foot">
+      <a id="bugLink" class="bug-pill" href="mailto:cayerscakes@gmail.com?subject=Bug%20report%20%E2%80%94%20cayers.ae">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 6.5l9 6 9-6"/></svg>
+        <span>Report a bug</span>
+      </a>
+    </footer>
+  </div>
 </div>
 
 <script>
-// ====== EDIT THESE ======
 const CONFIG = {
   endpoint: "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec",
   instagram: "cayers.ae",
@@ -268,23 +282,17 @@ const CONFIG = {
   localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday"],
   minCampus: 1,
   minLocal: 3,
-  maxPerFlavor: 20,   // fallback ceiling only when there's no live stock from the sheet
+  maxPerFlavor: 20,
   minFillMs: 2500,
   localSameDayCutoffHour: 17,
   campusSameDayCutoffHour: 14,
   timeZone: "Asia/Dubai",
-
-  // ---- One-off date overrides ----
-  //   sameDayCutoffHour  → replaces the normal same-day cutoff for that date (23 = 11 PM)
-  //   bypassWednesdayBlock → lets this specific Wednesday still be ordered through Tuesday
-  //   allowCampus → makes this date available for Campus Pickup even if it's not a normal campus day
   dateOverrides: {
-    "2026-11-18": { sameDayCutoffHour: 23, bypassWednesdayBlock: true }, // Wed: Local only
-    "2026-11-19": { sameDayCutoffHour: 23, allowCampus: true },          // Thu: Local + Campus
-    "2026-11-20": { sameDayCutoffHour: 23 }                              // Fri: Local + Campus (normal Friday)
+    "2026-11-18": { sameDayCutoffHour: 23, bypassWednesdayBlock: true },
+    "2026-11-19": { sameDayCutoffHour: 23, allowCampus: true },
+    "2026-11-20": { sameDayCutoffHour: 23 }
   }
 };
-// ========================
 
 const $=s=>document.querySelector(s);
 const DAY_NAMES=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -296,11 +304,12 @@ let renderedDaysKey=null;
 let revealed=false;
 let storeStatus = "OPEN";
 let soldOutDays = [];
-let lastSubmittedRef = "";   // last order ref actually confirmed by the sheet — used in bug emails
+let lastSubmittedRef = ""; 
 const qty={};
 
-/* per-flavour live stock, straight from the sheet.
-   remaining = Infinity means "no live data yet", so fall back to maxPerFlavor. */
+/* Loyalty & VIP State */
+const loyaltyState = { verified: false, phone: "", orders: 0, hasFreeCup: false, isSpecial: false };
+
 const flavorInfo={};
 CONFIG.flavors.forEach(f=>{
   qty[f.id]=0;
@@ -313,15 +322,14 @@ function makeId(){return Date.now().toString(36)+Math.random().toString(36).slic
 function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${ampm}`;}
 function dateKey(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
 
-/* ---- per-flavour stock helpers ---- */
 function remainingFor(id){
   const info = flavorInfo[id];
   return info && isFinite(info.remaining) ? info.remaining : Infinity;
 }
 
-/* how many the user is allowed to have in the cart right now */
 function capFor(id){
   const info = flavorInfo[id] || {};
+  if (loyaltyState.isSpecial) return 9999;
   if (info.soldOut) return 0;
   const rem = remainingFor(id);
   return isFinite(rem) ? rem : CONFIG.maxPerFlavor;
@@ -362,7 +370,6 @@ async function fetchStoreStatus() {
         };
       });
     } else {
-      console.warn("get_settings did not include flavors object");
       CONFIG.flavors.forEach(f => {
         if (!flavorInfo[f.id]) flavorInfo[f.id] = { soldOut:false, remaining: Infinity };
       });
@@ -370,8 +377,6 @@ async function fetchStoreStatus() {
 
     const clamped = clampCartToStock();
     const sig = flavorSignature();
-
-    /* don't rebuild the cards while someone is typing into a quantity box */
     const typing = document.activeElement && document.activeElement.classList.contains("qty-input");
 
     if (sig !== lastFlavorSig || clamped) {
@@ -413,9 +418,34 @@ function openReview(d){
     a.textContent=`${qty[f.id]} × ${f.id}`; b.textContent=`${qty[f.id]*f.price} AED`;
     r.append(a,b); box.append(r);
   });
+  
+  let displayTotal = d.t.p;
+  if (loyaltyState.isSpecial) {
+    const freeCups = Math.floor(d.t.c / 3);
+    if (freeCups > 0) {
+      const discAmount = freeCups * 3;
+      displayTotal -= discAmount;
+      const discRow = document.createElement("div");
+      discRow.className = "rv-row"; discRow.style.color = "var(--berry)"; discRow.style.fontWeight = "800";
+      discRow.innerHTML = `<span>👑 VIP Special (Buy 2 Get 1)</span><span>-${discAmount} AED</span>`;
+      box.append(discRow);
+    }
+  } else if (loyaltyState.hasFreeCup && d.t.c > 0) {
+    displayTotal -= 3;
+    const discRow = document.createElement("div");
+    discRow.className = "rv-row"; discRow.style.color = "var(--ok)"; discRow.style.fontWeight = "800";
+    discRow.innerHTML = `<span>🎁 Loyalty Discount</span><span>-3 AED</span>`;
+    box.append(discRow);
+  }
+
   $("#rvCups").textContent=`Total · ${d.t.c} cup${d.t.c==1?"":"s"}`;
-  $("#rvTotal").textContent=`${d.t.p} AED`;
-  $("#rvWho").textContent=[d.name,d.ig?"@"+d.ig:"",d.ph].filter(Boolean).join(" · ");
+  $("#rvTotal").textContent=`${displayTotal} AED`;
+  
+  const whoParts = [d.name];
+  if (loyaltyState.phone) whoParts.push(loyaltyState.phone);
+  if (d.ig) whoParts.push("@" + d.ig);
+  $("#rvWho").textContent = whoParts.filter(Boolean).join(" · ");
+
   $("#rvWhen").textContent=`${loc()} · ${d.day}`;
   const r=$("#review");
   r.style.transition="none"; r.classList.remove("hide"); r.classList.add("gone");
@@ -456,7 +486,7 @@ function revealContent(){
   if(revealed) return;
   revealed=true;
   const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const els=[...document.querySelectorAll(".wrap > *, #f > *")]
+  const els=[...document.querySelectorAll("#mainApp > *, #f > *")]
     .filter(el=>!el.classList.contains("hide") && !el.classList.contains("hp") && el.tagName !== "H1");
   if(reduce){ els.forEach(el=>el.classList.add("reveal","in")); return; }
   const STEP=0.07;
@@ -469,11 +499,7 @@ function revealContent(){
 }
 
 function dubaiNowParts(){
-  const fmt = new Intl.DateTimeFormat("en-GB", {
-    timeZone: CONFIG.timeZone,
-    year:"numeric", month:"2-digit", day:"2-digit",
-    hour:"2-digit", hour12:false
-  });
+  const fmt = new Intl.DateTimeFormat("en-GB", { timeZone: CONFIG.timeZone, year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", hour12:false });
   const map = {};
   fmt.formatToParts(new Date()).forEach(p => { if (p.type !== "literal") map[p.type] = p.value; });
   return { y:+map.year, m:+map.month, d:+map.day, hours:(+map.hour)%24 };
@@ -490,14 +516,12 @@ function getAvailability(nowD, isCampus){
   const todayDow = new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d)).getUTCDay();
   const todayName = DAY_NAMES[todayDow];
 
-  if (todayDow === 0) {
-    return { closed:true, days:[], message:"We’re closed on Sundays. Orders reopen Monday morning." };
-  }
+  if (todayDow === 0) return { closed:true, days:[], message:"We’re closed on Sundays. Orders reopen Monday morning." };
 
   const allowedNames = isCampus ? CONFIG.campusDays : CONFIG.localDays;
   const baseSameDayCutoff = isCampus ? CONFIG.campusSameDayCutoffHour : CONFIG.localSameDayCutoffHour;
   const thisWeekStart = weekStart(nowD.y, nowD.m, nowD.d).getTime();
-  const lookahead = 7; // Changed to 7 so Friday always shows up for local delivery
+  const lookahead = 7;
 
   const days = [];
   for (let i = 0; i < lookahead; i++) {
@@ -509,24 +533,19 @@ function getAvailability(nowD, isCampus){
     const targetKey = dateKey(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
     const targetOverride = CONFIG.dateOverrides[targetKey] || {};
 
-    // Check if it's a normal day, OR if it's an overridden campus day (like Thursday)
     const normalDay = allowedNames.includes(name);
     const overrideCampusDay = isCampus && targetOverride.allowCampus === true;
 
     if (!normalDay && !overrideCampusDay) continue;
     if (soldOutDays.includes(name)) continue;
-
     if (weekStart(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()).getTime() !== thisWeekStart) continue;
 
     if (i === 0) {
-      const cutoff = targetOverride.sameDayCutoffHour !== undefined
-        ? targetOverride.sameDayCutoffHour
-        : baseSameDayCutoff;
+      const cutoff = targetOverride.sameDayCutoffHour !== undefined ? targetOverride.sameDayCutoffHour : baseSameDayCutoff;
       if (nowD.hours >= cutoff) continue;
     }
 
-    if (!isCampus && todayName === "Tuesday" &&
-        nowD.hours >= CONFIG.campusSameDayCutoffHour && name === "Wednesday") {
+    if (!isCampus && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour && name === "Wednesday") {
       if (!targetOverride.bypassWednesdayBlock) continue;
     }
 
@@ -535,9 +554,7 @@ function getAvailability(nowD, isCampus){
     days.push({ value: base, label, name, dateKey: targetKey });
   }
 
-  if (days.length === 0) {
-    return { closed:true, days:[], message: closedMessage(nowD, isCampus) };
-  }
+  if (days.length === 0) return { closed:true, days:[], message: closedMessage(nowD, isCampus) };
   return { closed:false, days };
 }
 
@@ -548,17 +565,12 @@ function closedMessage(nowD, isCampus){
   if (todayDow === 0) return "We’re closed on Sundays. Orders reopen Monday morning.";
 
   if (isCampus) {
-    if (todayName === "Friday" && nowD.hours >= CONFIG.campusSameDayCutoffHour)
-      return "Today’s campus pickup has ended. Next campus day is Tuesday — ordering reopens Monday.";
-    if (todayName === "Saturday")
-      return "This week’s campus days are done. Next campus pickup is Tuesday — ordering reopens Monday.";
+    if (todayName === "Friday" && nowD.hours >= CONFIG.campusSameDayCutoffHour) return "Today’s campus pickup has ended. Next campus day is Tuesday — ordering reopens Monday.";
+    if (todayName === "Saturday") return "This week’s campus days are done. Next campus pickup is Tuesday — ordering reopens Monday.";
   } else {
-    if (todayName === "Friday" && nowD.hours >= CONFIG.localSameDayCutoffHour)
-      return "This week’s deliveries are done. We reopen Monday morning.";
-    if (todayName === "Saturday")
-      return "This week’s deliveries are done. We reopen Monday morning.";
+    if (todayName === "Friday" && nowD.hours >= CONFIG.localSameDayCutoffHour) return "This week’s deliveries are done. We reopen Monday morning.";
+    if (todayName === "Saturday") return "This week’s deliveries are done. We reopen Monday morning.";
   }
-
   return `No ${isCampus ? "campus pickup" : "delivery"} slots available right now.`;
 }
 
@@ -571,28 +583,20 @@ function explainUnavailable(dayValue, nowD, isCampus){
   if (isCampus) {
     if (dayName === todayName) {
       const cutoff = todayOverride.sameDayCutoffHour !== undefined ? todayOverride.sameDayCutoffHour : CONFIG.campusSameDayCutoffHour;
-      if (nowD.hours >= cutoff)
-        return `Campus ordering for today closed at ${fmtHour(cutoff)}. Please pick another day or DM us on Instagram.`;
+      if (nowD.hours >= cutoff) return `Campus ordering for today closed at ${fmtHour(cutoff)}. Please pick another day or DM us on Instagram.`;
     }
     return "That campus day is no longer available — please pick another or DM us on Instagram.";
   }
 
   if (dayName === "Wednesday" && todayName === "Tuesday" && nowD.hours >= CONFIG.campusSameDayCutoffHour) {
     const isOverridden = Object.values(CONFIG.dateOverrides).some(o => o && o.bypassWednesdayBlock);
-    if (!isOverridden) {
-      return `Wednesday just sold out from our campus sales — DM us on Instagram @${CONFIG.instagram} and we’ll see what we can do.`;
-    }
+    if (!isOverridden) return `Wednesday just sold out from our campus sales — DM us on Instagram @${CONFIG.instagram} and we’ll see what we can do.`;
   }
 
   if (dayName === todayName) {
-    const effectiveCutoff = todayOverride.sameDayCutoffHour !== undefined
-      ? todayOverride.sameDayCutoffHour
-      : CONFIG.localSameDayCutoffHour;
-    if (nowD.hours >= effectiveCutoff) {
-      return "Same-day ordering just closed for today. Please pick another day or DM us.";
-    }
+    const effectiveCutoff = todayOverride.sameDayCutoffHour !== undefined ? todayOverride.sameDayCutoffHour : CONFIG.localSameDayCutoffHour;
+    if (nowD.hours >= effectiveCutoff) return "Same-day ordering just closed for today. Please pick another day or DM us.";
   }
-
   return "That day is no longer available — please pick another.";
 }
 
@@ -605,13 +609,100 @@ $("#igBtn").href="https://ig.me/m/"+CONFIG.instagram;
 renderFlavors();
 lastFlavorSig = flavorSignature();
 
+/* --------- LOGIN SCREEN LOGIC ---------- */
+const loginPhone = $("#loginPhone");
+
+// Auto-clean input: remove leading 0, allow only numbers, limit to 9 digits
+loginPhone.addEventListener("input", function(e) {
+  let val = this.value.replace(/\D/g, "");
+  if (val.startsWith("0")) val = val.substring(1);
+  if (val.length > 9) val = val.substring(0, 9);
+  this.value = val;
+});
+
+function showLoginLoading(on) {
+  const l = $("#loginLoading");
+  if (on) {
+    l.classList.remove("hide");
+    l.classList.add("gone");
+    void l.offsetWidth;
+    l.classList.remove("gone");
+  } else {
+    l.classList.add("gone");
+    setTimeout(() => l.classList.add("hide"), 600);
+  }
+}
+
+$("#loginBtn").addEventListener("click", async () => {
+  const phone = loginPhone.value.replace(/\D/g, "");
+  if (phone.length < 8) {
+    $("#loginMsg").textContent = "Please enter a valid phone number.";
+    return;
+  }
+
+  showLoginLoading(true);
+
+  try {
+    const r = await fetch(CONFIG.endpoint + "?action=check_loyalty&phone=" + phone);
+    const d = await r.json();
+    
+    if (d.ok) {
+      loyaltyState.verified = true;
+      loyaltyState.phone = phone;
+      loyaltyState.orders = d.orders;
+      loyaltyState.hasFreeCup = d.hasFreeCup;
+      loyaltyState.isSpecial = d.isSpecial || false;
+      
+      // Show success state before swapping screens
+      const note = $("#loginLoading .note");
+      if (note) note.textContent = d.isSpecial ? "VIP Access Granted" : (d.hasFreeCup ? "Reward Unlocked" : "Welcome Back");
+
+      await new Promise(r => setTimeout(r, 1200)); // Let the text show
+
+      showLoginLoading(false);
+      $("#loginScreen").classList.add("gone");
+      setTimeout(() => {
+        $("#loginScreen").classList.add("hide");
+        $("#mainApp").classList.remove("hide");
+        revealContent();
+        renderFlavors(); 
+
+        if (d.isSpecial) say(`👑 VIP Access Unlocked!`, "ok");
+        else if (d.hasFreeCup) say(`Welcome back! 🎁 1 Free cup unlocked!`, "ok");
+        else if (d.orders > 0) say(`Welcome back! ${3 - d.orders} more orders for a free cup!`, "ok");
+        
+      }, 500);
+    } else {
+      showLoginLoading(false);
+      $("#loginMsg").textContent = "Could not connect. Try again.";
+    }
+  } catch (e) {
+    showLoginLoading(false);
+    $("#loginMsg").textContent = "Connection error.";
+  }
+});
+
+$("#skipLoginBtn").addEventListener("click", () => {
+  loyaltyState.verified = true;
+  loyaltyState.orders = 0;
+  loyaltyState.phone = ""; 
+  
+  $("#loginScreen").classList.add("gone");
+  setTimeout(() => {
+    $("#loginScreen").classList.add("hide");
+    $("#mainApp").classList.remove("hide");
+    revealContent();
+    renderFlavors();
+  }, 500);
+});
+
 /* --------- +/− buttons --------- */
 $("#flavors").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b||b.disabled)return;
   const f=CONFIG.flavors[b.dataset.i]; if(!f) return;
 
   const info = flavorInfo[f.id] || {};
-  if (info.soldOut) { say(`${f.id} is sold out.`,"err"); return; }
+  if (info.soldOut && !loyaltyState.isSpecial) { say(`${f.id} is sold out.`,"err"); return; }
 
   const cap = capFor(f.id);
   if (+b.dataset.d > 0 && qty[f.id] >= cap) {
@@ -635,7 +726,7 @@ $("#flavors").addEventListener("input", e => {
   if (!f) return;
 
   const info = flavorInfo[f.id] || {};
-  if (info.soldOut) { inp.value = String(qty[f.id]); return; }
+  if (info.soldOut && !loyaltyState.isSpecial) { inp.value = String(qty[f.id]); return; }
 
   let raw = inp.value.replace(/\D+/g, "");
   if (raw !== inp.value) inp.value = raw;
@@ -661,7 +752,7 @@ function finalizeQtyInput(inp){
   qty[f.id] = n;
   inp.value = String(n);
 
-  if (info.soldOut) say(`${f.id} is sold out.`, "err");
+  if (info.soldOut && !loyaltyState.isSpecial) say(`${f.id} is sold out.`, "err");
 
   update();
 }
@@ -695,58 +786,62 @@ function updateQtyButtons(){
     const f=CONFIG.flavors[+b.dataset.i]; if(!f) return;
     const d=+b.dataset.d;
     const info=flavorInfo[f.id]||{};
-    if (info.soldOut) { b.disabled = true; return; }
+    if (info.soldOut && !loyaltyState.isSpecial) { b.disabled = true; return; }
     b.disabled = d<0 ? qty[f.id]<=0 : qty[f.id]>=capFor(f.id);
   });
 }
 
-/* Always shows a badge. Uses live `remaining` when the sheet has replied;
-   falls back to maxPerFlavor until the first fetch lands so the pill is
-   never invisible. */
 function updateFlavorBadges(){
   CONFIG.flavors.forEach((f, i) => {
     const el = document.getElementById("fb" + i);
     if (!el) return;
 
     const info = flavorInfo[f.id] || {};
-    const out  = !!info.soldOut;
+    const out  = !!info.soldOut && !loyaltyState.isSpecial;
     const rem  = info.remaining;
 
-    if (out) {
-      el.className = "fl-badge out";
-      el.textContent = "Sold out";
-      return;
-    }
+    if (out) { el.className = "fl-badge out"; el.textContent = "Sold out"; return; }
 
     if (isFinite(rem)) {
-      if (rem <= 0) {
-        el.className = "fl-badge out";
-        el.textContent = "Sold out";
-        return;
-      }
+      if (rem <= 0 && !loyaltyState.isSpecial) { el.className = "fl-badge out"; el.textContent = "Sold out"; return; }
       const available = Math.max(0, rem - qty[f.id]);
       el.className = "fl-badge";
-      el.textContent = `${available} left`;
+      el.textContent = loyaltyState.isSpecial ? "VIP Access" : `${available} left`;
       return;
     }
 
-    /* no live data yet — show a conservative fallback based on the cap */
     const fallback = Math.max(0, CONFIG.maxPerFlavor - qty[f.id]);
     el.className = "fl-badge";
-    el.textContent = `${fallback} left`;
+    el.textContent = loyaltyState.isSpecial ? "VIP Access" : `${fallback} left`;
   });
 }
 
 function update(){
   const t=totals();
   $("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;
-  $("#price").textContent=t.p+" AED";
+  
+  let finalTotal = t.p;
+  let extraText = "";
+  
+  if (loyaltyState.isSpecial && t.c > 0) {
+    const freeCups = Math.floor(t.c / 3);
+    if (freeCups > 0) {
+      finalTotal -= freeCups * 3;
+      extraText = ` (${freeCups} Free)`;
+    }
+  } else if (loyaltyState.hasFreeCup && t.c > 0) {
+    finalTotal -= 3;
+    extraText = " (1 Free)";
+  }
+  
+  if (finalTotal < 0) finalTotal = 0;
+  $("#price").textContent = finalTotal + " AED" + extraText;
 
   CONFIG.flavors.forEach((f,i)=>{
     const inp=$("#q"+i);
     if (!inp) return;
     const info = flavorInfo[f.id] || {};
-    const out = !!info.soldOut;
+    const out = !!info.soldOut && !loyaltyState.isSpecial;
 
     if (out) {
       if (document.activeElement === inp) inp.blur();
@@ -767,8 +862,8 @@ function renderFlavors(){
   const container = $("#flavors");
   if (!container) return;
 
-  container.innerHTML = CONFIG.flavors.map((f,i)=>{
-    const out = !!(flavorInfo[f.id] && flavorInfo[f.id].soldOut);
+  let html = CONFIG.flavors.map((f,i)=>{
+    const out = !!(flavorInfo[f.id] && flavorInfo[f.id].soldOut) && !loyaltyState.isSpecial;
     const disabled = out ? " disabled" : "";
 
     return `<div class="flavor${out ? " is-out" : ""}">
@@ -788,6 +883,17 @@ function renderFlavors(){
     </div>`;
   }).join("");
 
+  if (loyaltyState.isSpecial) {
+    html += `<div style="padding:12px; border-radius:12px; background:color-mix(in srgb,var(--berry) 15%,var(--card)); border:1.5px solid var(--berry); margin-top:10px; text-align:center;">
+      <b style="color:var(--berry);">👑 VIP Mode Active: Buy 2, Get 1 Free</b>
+    </div>`;
+  } else if (loyaltyState.hasFreeCup) {
+    html += `<div style="padding:12px; border-radius:12px; background:color-mix(in srgb,var(--ok) 15%,var(--card)); border:1.5px solid var(--ok); margin-top:10px; text-align:center;">
+      <b style="color:var(--ok);">🎁 Loyalty Reward: +1 FREE Cup Added!</b>
+    </div>`;
+  }
+
+  container.innerHTML = html;
   update();
 }
 
@@ -819,32 +925,21 @@ function renderDays(){
   const prevStillValid = avail.days.some(d => d.value === prev);
   const checkedValue = prevStillValid ? prev : "";
 
-  const lostNote = (prev && !prevStillValid)
-    ? `<small class="note" style="color:var(--err)">Your previously selected day is no longer available.</small>`
-    : "";
+  const lostNote = (prev && !prevStillValid) ? `<small class="note" style="color:var(--err)">Your previously selected day is no longer available.</small>` : "";
 
-  /* Per-date override notes, e.g. "Wednesday same-day orders open until 11pm." */
-  const overrideNotes = avail.days
-    .filter(d => CONFIG.dateOverrides[d.dateKey])
-    .map(d => {
+  const overrideNotes = avail.days.filter(d => CONFIG.dateOverrides[d.dateKey]).map(d => {
       const o = CONFIG.dateOverrides[d.dateKey];
-      if (o && o.sameDayCutoffHour !== undefined) {
-        const dayShort = d.label.split(",")[0];
-        return `${dayShort} same-day orders are open until ${fmtHour(o.sameDayCutoffHour)}.`;
-      }
+      if (o && o.sameDayCutoffHour !== undefined) return `${d.label.split(",")[0]} same-day orders are open until ${fmtHour(o.sameDayCutoffHour)}.`;
       return "";
-    })
-    .filter(Boolean);
+  }).filter(Boolean);
+  
   const specialNote = overrideNotes.length ? ` Special: ${overrideNotes.join(" ")}` : "";
 
-  /* Hide the "Wednesday closes Tuesday 2 PM" line for the week that has an override. */
   const hasWedOverride = avail.days.some(d => {
     const o = CONFIG.dateOverrides[d.dateKey];
     return o && o.bypassWednesdayBlock;
   });
-  const wedBlockNote = hasWedOverride
-    ? ""
-    : ` Wednesday closes Tuesday ${fmtHour(CONFIG.campusSameDayCutoffHour)} (campus sellout).`;
+  const wedBlockNote = hasWedOverride ? "" : ` Wednesday closes Tuesday ${fmtHour(CONFIG.campusSameDayCutoffHour)} (campus sellout).`;
 
   const cutoffNote = isCampus()
     ? `Order any campus day this week. Same-day campus pickup closes at ${fmtHour(CONFIG.campusSameDayCutoffHour)} Dubai time.${specialNote}`
@@ -859,17 +954,11 @@ function updateClosedBanner(){
   const banner = $("#closedBanner");
   const form   = $("#f");
 
-  /* Once the order-confirmation screen is showing, never re-show the form.
-     A background status refresh runs right after a successful order and
-     would otherwise bring the form back alongside the confirmation card. */
   if (!$("#done").classList.contains("hide")) return;
 
   if (storeStatus === "CLOSED") {
     const dm = `<a href="https://ig.me/m/${CONFIG.instagram}" target="_blank" rel="noopener">DM us on Instagram @${CONFIG.instagram}</a>`;
-    banner.innerHTML =
-      `<p style="margin:0 0 6px">We are currently sold out and not taking new orders.</p>` +
-      `<p style="margin:0 0 6px">${dm}</p>` +
-      `<p style="margin:0">Stay tuned on Instagram for updates.</p>`;
+    banner.innerHTML = `<p style="margin:0 0 6px">We are currently sold out and not taking new orders.</p><p style="margin:0 0 6px">${dm}</p><p style="margin:0">Stay tuned on Instagram for updates.</p>`;
     banner.classList.remove("hide");
     form.classList.add("hide");
     $("#go").disabled = true;
@@ -902,8 +991,6 @@ document.querySelectorAll("input[name=loc]").forEach(r=>r.addEventListener("chan
 
 function cleanIG(s){return s.trim().replace(/^@+/,"")}
 function validIG(s){return /^[A-Za-z0-9._]{1,30}$/.test(s)}
-function cleanPhone(s){return s.replace(/[\s\-().]/g,"")}
-function validPhone(s){return /^\+?\d{7,15}$/.test(s)}
 
 $("#f").addEventListener("submit",async e=>{
   e.preventDefault();
@@ -915,25 +1002,21 @@ $("#f").addEventListener("submit",async e=>{
 
   const name=$("#name").value.trim().replace(/\s+/g," ").slice(0,80);
   const ig=cleanIG($("#ig").value);
-  const ph=cleanPhone($("#ph").value);
   const day=(document.querySelector("input[name=day]:checked")||{}).value, t=totals();
 
   if($("#company").value) return say("Something went wrong. Please try again.","err");
   if(Date.now()-pageLoadedAt<CONFIG.minFillMs) return say("That was too fast for a human — take a breath and press Place order again.","err");
 
   if(!name) return say("Enter your name.","err");
-  if(!ig&&!ph) return say("Enter an Instagram username or a phone number so we can reach you.","err");
+  if(!ig && !loyaltyState.phone) return say("Enter an Instagram username, or log in with your phone number so we can reach you.","err");
   if(ig&&!validIG(ig)) return say("That Instagram username doesn’t look right (letters, numbers, dots and underscores only).","err");
-  if(ph&&!validPhone(ph)) return say("That phone number doesn’t look right — digits only, e.g. 05x xxx xxxx.","err");
   if(!loc()) return say("Choose campus pickup or local delivery.","err");
   if(!day) return say("Choose a day.","err");
 
   const nowD = dubaiNowParts();
   const avail = getAvailability(nowD, isCampus());
   const dayStillValid = !avail.closed && avail.days.some(d => d.value === day);
-  if(!dayStillValid) {
-    return say(avail.closed ? avail.message : explainUnavailable(day, nowD, isCampus()), "err");
-  }
+  if(!dayStillValid) return say(avail.closed ? avail.message : explainUnavailable(day, nowD, isCampus()), "err");
 
   const min=isCampus()?CONFIG.minCampus:CONFIG.minLocal;
   if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
@@ -941,19 +1024,23 @@ $("#f").addEventListener("submit",async e=>{
   for (const f of CONFIG.flavors) {
     if (qty[f.id] <= 0) continue;
     const info = flavorInfo[f.id] || {};
-    if (info.soldOut)
-      return say(`${f.id} just sold out — please remove it from your order.`,"err");
-    if (isFinite(info.remaining) && qty[f.id] > info.remaining)
-      return say(`Only ${info.remaining} ${f.id} left — please lower the quantity.`,"err");
+    if (info.soldOut && !loyaltyState.isSpecial) return say(`${f.id} just sold out — please remove it from your order.`,"err");
+    if (isFinite(info.remaining) && qty[f.id] > info.remaining) return say(`Only ${info.remaining} ${f.id} left in stock — please lower the quantity.`,"err");
   }
 
   if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
 
-  const order={id:orderId,name,instagram:ig,phone:ph,location:loc(),day,campus:isCampus(),total:t.p,cups:t.c,
-               sentAt:new Date().toISOString()};
+  const order={id:orderId,name,instagram:ig,phone:loyaltyState.phone || "NA",location:loc(),day,campus:isCampus(),total:t.p,cups:t.c,sentAt:new Date().toISOString()};
+  
+  if (loyaltyState.verified) {
+    order.loyaltyPhone = loyaltyState.phone;
+    order.hasFreeCupClaim = loyaltyState.hasFreeCup;
+    order.isSpecial = loyaltyState.isSpecial;
+  }
+
   CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
 
-  if(!reviewOK){ openReview({name,ig,ph,day,t}); return; }
+  if(!reviewOK){ openReview({name,ig,ph:loyaltyState.phone,day,t}); return; }
   reviewOK=false;
 
   sending=true;
@@ -972,7 +1059,7 @@ $("#f").addEventListener("submit",async e=>{
 
     $("#f").classList.add("hide"); $("#done").classList.remove("hide");
     const ref=orderId.slice(-5).toUpperCase();
-    lastSubmittedRef = ref;   // only refs that actually exist in the sheet go into bug emails
+    lastSubmittedRef = ref;   
     const parts=CONFIG.flavors.filter(f=>qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
     $("#sum").textContent=`${parts} · ${t.c} cup${t.c==1?"":"s"} · ${t.p} AED · ${day} · Ref ${ref}`;
     const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${t.p} AED), ${loc()}, ${day}. Please confirm.`;
@@ -1038,7 +1125,7 @@ function hideSplash(){
 
     if(!splashLogo || !targetLogo || reduce) {
       s.remove();
-      revealContent();
+      $("#loginScreen").classList.remove("hide");
       return;
     }
 
@@ -1055,34 +1142,18 @@ function hideSplash(){
     const dy = sCY - tCY;
 
     splashLogo.style.opacity = "0";
-    targetLogo.style.position = "relative";
-    targetLogo.style.zIndex = "50";
-    targetLogo.style.transformOrigin = "center center";
-    targetLogo.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
-    targetLogo.style.willChange = "transform";
-
-    void targetLogo.offsetWidth;
-
+    
     s.style.transition = "background-color .6s ease";
     s.style.backgroundColor = "transparent";
     s.style.pointerEvents = "none";
     fadeOutNow(s.querySelector(".dots"), 250);
     fadeOutNow(s.querySelector(".note"), 250);
 
-    revealContent();
-
-    targetLogo.style.transition = "transform .85s cubic-bezier(.22,1,.36,1)";
-    targetLogo.style.transform = "translate(0px, 0px) scale(1, 1)";
-
-    setTimeout(()=>{
-      targetLogo.style.transition = "";
-      targetLogo.style.transform = "";
-      targetLogo.style.transformOrigin = "";
-      targetLogo.style.willChange = "";
-      targetLogo.style.position = "";
-      targetLogo.style.zIndex = "";
-      s.remove();
-    }, 900);
+    setTimeout(() => {
+        s.remove();
+        $("#loginScreen").classList.remove("hide");
+    }, 400);
+    
   }, wait);
 }
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
@@ -1090,26 +1161,20 @@ window.addEventListener("load",hideSplash);
 setTimeout(hideSplash,6500);
 
 fetchStoreStatus();
-updateClosedBanner();
 
 setInterval(()=>{
   if(sending) return;
   if(!$("#done").classList.contains("hide")) return;
   fetchStoreStatus();
-  updateClosedBanner();
   if(loc()) renderDays();
 }, 30000);
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     if (sending || !$("#done").classList.contains("hide")) return;
-
     const hadSelectedDay = !!(document.querySelector("input[name=day]:checked"));
-
     fetchStoreStatus();
-    updateClosedBanner();
     if (loc()) renderDays();
-
     if (hadSelectedDay && !document.querySelector("input[name=day]:checked")) {
       say("The day you selected is no longer available because the cutoff time passed or it sold out. Please pick a new day.", "err");
     }
@@ -1134,7 +1199,6 @@ document.addEventListener("visibilitychange", () => {
   }
 
   updateHref();
-  /* refresh on click so the ref is current if they ordered then hit the footer */
   link.addEventListener("click", updateHref);
 })();
 </script>
