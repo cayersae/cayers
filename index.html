@@ -313,7 +313,7 @@ const CONFIG = {
   campusDays: ["Tuesday","Friday"],
   localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday"],
   minCampus: 1,
-  minLocal: 3,
+  minLocal: 2,
   maxPerFlavor: 20,
   minFillMs: 2500,
   localSameDayCutoffHour: 17,
@@ -701,8 +701,8 @@ $("#loginBtn").addEventListener("click", async () => {
       loyaltyState.phone = phone;
       loyaltyState.isSpecial = isSpecial;
       loyaltyState.orders = isSpecial ? 0 : (d.orders || 0);
-      // Free cup on every 3rd order (2 previous orders), worked out here from the order count
-      loyaltyState.hasFreeCup = isSpecial ? false : (loyaltyState.orders > 0 && loyaltyState.orders % 3 === 2);
+      // The Apps Script decides the free cup (every 3rd order, and only after 4+ cups bought in total)
+      loyaltyState.hasFreeCup = isSpecial ? false : Boolean(d.hasFreeCup);
       
       // Restrict delivery options for member access (Local delivery only)
       const campusLabel = $("#campusOptLabel");
