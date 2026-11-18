@@ -721,7 +721,8 @@ $("#loginBtn").addEventListener("click", async () => {
         await new Promise(res => setTimeout(res, 200));
         note.textContent = isSpecial
           ? "Member Access Unlocked!"
-          : (loyaltyState.hasFreeCup ? "🎁 Reward Unlocked" : "Welcome Back");
+          : (loyaltyState.hasFreeCup ? "🎁 Reward Unlocked"
+            : (loyaltyState.orders > 0 ? "Back for more? 🍰" : "Welcome to Cayers 🍰"));
         note.style.opacity = "1";
       }
 
@@ -738,7 +739,7 @@ $("#loginBtn").addEventListener("click", async () => {
 
         if (!isSpecial) {
           if (loyaltyState.hasFreeCup) say("Welcome back! 🎁 1 Free cup unlocked!", "ok");
-          else if (loyaltyState.orders > 0) say(`Welcome back! ${3 - loyaltyState.orders} more order${3 - loyaltyState.orders === 1 ? "" : "s"} for a free cup!`, "ok");
+          else if (loyaltyState.orders > 0) say(`Back for more? 🍰 ${3 - loyaltyState.orders} more order${3 - loyaltyState.orders === 1 ? "" : "s"} for a free cup!`, "ok");
         }
       }, 460);
     } else {
