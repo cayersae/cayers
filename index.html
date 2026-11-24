@@ -107,6 +107,9 @@ input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry
 .login-card h2 { font-family: 'Abril Fatface', Georgia, serif; font-size: 2rem; margin: 0 0 8px; }
 .login-card p { font-size: 0.95rem; color: var(--mute); margin-bottom: 20px; }
 
+/* When admin has the store switched OFF, never show the login screen */
+html.store-closed #loginScreen { display: none !important; }
+
 /* LOGIN LOADING OVERLAY */
 #loginLoading {
   position: fixed; inset: 0; z-index: 96; background: var(--bg);
@@ -308,7 +311,7 @@ const CONFIG = {
   endpoint: "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec",
   instagram: "cayers.ae",
   flavors: [
-    {id:"Silk Cayer", desc:"Biscoff Biscuits, cream cheese & biscoff spread", price:3}
+    {id:"Silk Cayer", desc:"Biscoff Biscuits, cream cheese & biscoff spread", price:4}
   ],
   campusDays: ["Tuesday","Friday"],
   localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday"],
@@ -462,7 +465,7 @@ function openReview(d){
   if (loyaltyState.isSpecial) {
     const freeCups = Math.floor(d.t.c / 3);
     if (freeCups > 0) {
-      const discAmount = freeCups * 3;
+      const discAmount = freeCups * 4;
       displayTotal -= discAmount;
       const discRow = document.createElement("div");
       discRow.className = "rv-row"; discRow.style.color = "var(--berry)"; discRow.style.fontWeight = "800";
@@ -470,10 +473,10 @@ function openReview(d){
       box.append(discRow);
     }
   } else if (loyaltyState.hasFreeCup && d.t.c > 0) {
-    displayTotal -= 3;
+    displayTotal -= 4;
     const discRow = document.createElement("div");
     discRow.className = "rv-row"; discRow.style.color = "var(--ok)"; discRow.style.fontWeight = "800";
-    discRow.innerHTML = `<span>🎁 Loyalty Discount</span><span>-3 AED</span>`;
+    discRow.innerHTML = `<span>🎁 Loyalty Discount</span><span>-4 AED</span>`;
     box.append(discRow);
   }
 
@@ -909,11 +912,11 @@ function update(){
   if (loyaltyState.isSpecial && t.c > 0) {
     const freeCups = Math.floor(t.c / 3);
     if (freeCups > 0) {
-      finalTotal -= freeCups * 3;
+      finalTotal -= freeCups * 4;
       extraText = ` (${freeCups} Free)`;
     }
   } else if (loyaltyState.hasFreeCup && t.c > 0) {
-    finalTotal -= 3;
+    finalTotal -= 4;
     extraText = " (1 Free)";
   }
   
@@ -1121,9 +1124,9 @@ $("#f").addEventListener("submit",async e=>{
   let finalTotal = t.p;
   if (loyaltyState.isSpecial && t.c > 0) {
     const freeCups = Math.floor(t.c / 3);
-    if (freeCups > 0) finalTotal -= freeCups * 3;
+    if (freeCups > 0) finalTotal -= freeCups * 4;
   } else if (loyaltyState.hasFreeCup && t.c > 0) {
-    finalTotal -= 3;
+    finalTotal -= 4;
   }
   if (finalTotal < 0) finalTotal = 0;
 
@@ -1208,6 +1211,66 @@ function fadeOutNow(el, ms){
 }
 
 const splashShownAt=Date.now();
+
+/* Capture the initial status fetch so the splash knows which screen to show.
+   If the fetch is slow or fails, we fall back to OPEN → normal login screen. */
+const initialStatusFetch = fetchStoreStatus();
+
+/* When the store is CLOSED, skip the login screen entirely and show the
+   closed banner in the main app. Nothing else is touched. */
+function enterClosedMode(){
+  document.documentElement.classList.add("store-closed");
+
+  const ls = document.getElementById("loginScreen");
+  if (ls) {
+    ls.classList.add("gone");
+    setTimeout(() => ls.classList.add("hide"), 500);
+  }
+
+  const ma = document.getElementById("mainApp");
+  if (ma) ma.classList.remove("hide");
+
+  try { updateClosedBanner(); } catch(_) {}
+  try { revealContent(); }      catch(_) {}
+  try { renderFlavors(); }      catch(_) {}
+}
+
+/* Route the splash exit depending on storeStatus. storeStatus is set by
+   fetchStoreStatus; default "OPEN" means we show the login screen as before. */
+function showPostSplashScreen(){
+  if (storeStatus === "CLOSED") {
+    enterClosedMode();
+  } else {
+    const ls = document.getElementById("loginScreen");
+    if (ls) ls.classList.remove("hide");
+  }
+}
+
+function finishSplash(s){
+  const splashLogo = s.querySelector(".splash-logo");
+  const targetLogo = document.getElementById("target-logo");
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if(!splashLogo || !targetLogo || reduce) {
+    s.remove();
+    showPostSplashScreen();
+    return;
+  }
+
+  splashLogo.style.opacity = "0";
+
+  s.style.transition = "background-color .6s ease";
+  s.style.backgroundColor = "transparent";
+  s.style.pointerEvents = "none";
+  fadeOutNow(s.querySelector(".dots"), 250);
+  fadeOutNow(s.querySelector(".note"), 250);
+
+  setTimeout(() => {
+    s.remove();
+    showPostSplashScreen();
+  }, 400);
+}
+
 function hideSplash(){
   const s=document.getElementById("splash");
   if(!s || s.dataset.done) return;
@@ -1215,37 +1278,21 @@ function hideSplash(){
 
   const wait=Math.max(0,4500-(Date.now()-splashShownAt));
 
-  setTimeout(()=>{
-    const splashLogo = s.querySelector(".splash-logo");
-    const targetLogo = document.getElementById("target-logo");
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Give the initial status fetch up to 2.5s to settle (it usually resolves in
+  // a fraction of a second). This prevents the login screen flashing when the
+  // store is actually closed.
+  const settled = Promise.race([
+    Promise.resolve(initialStatusFetch).catch(()=>{}),
+    new Promise(r => setTimeout(r, 2500))
+  ]);
 
-    if(!splashLogo || !targetLogo || reduce) {
-      s.remove();
-      $("#loginScreen").classList.remove("hide");
-      return;
-    }
-
-    splashLogo.style.opacity = "0";
-    
-    s.style.transition = "background-color .6s ease";
-    s.style.backgroundColor = "transparent";
-    s.style.pointerEvents = "none";
-    fadeOutNow(s.querySelector(".dots"), 250);
-    fadeOutNow(s.querySelector(".note"), 250);
-
-    setTimeout(() => {
-        s.remove();
-        $("#loginScreen").classList.remove("hide");
-    }, 400);
-    
+  setTimeout(() => {
+    settled.then(() => finishSplash(s));
   }, wait);
 }
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
 window.addEventListener("load",hideSplash);
 setTimeout(hideSplash,6500);
-
-fetchStoreStatus();
 
 setInterval(()=>{
   if(sending) return;
