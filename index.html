@@ -356,6 +356,7 @@ let lastFlavorSig = "";
 function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${ampm}`;}
 function dateKey(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
+function unitPrice(){return (CONFIG.flavors[0] && CONFIG.flavors[0].price) || 3;}
 
 function remainingFor(id){
   const info = flavorInfo[id];
@@ -460,12 +461,13 @@ function openReview(d){
     a.textContent=`${qty[f.id]} × ${f.id}`; b.textContent=`${qty[f.id]*f.price} AED`;
     r.append(a,b); box.append(r);
   });
-  
+
+  const cupPrice = unitPrice();
   let displayTotal = d.t.p;
   if (loyaltyState.isSpecial) {
     const freeCups = Math.floor(d.t.c / 3);
     if (freeCups > 0) {
-      const discAmount = freeCups * 4;
+      const discAmount = freeCups * cupPrice;
       displayTotal -= discAmount;
       const discRow = document.createElement("div");
       discRow.className = "rv-row"; discRow.style.color = "var(--berry)"; discRow.style.fontWeight = "800";
@@ -473,10 +475,10 @@ function openReview(d){
       box.append(discRow);
     }
   } else if (loyaltyState.hasFreeCup && d.t.c > 0) {
-    displayTotal -= 4;
+    displayTotal -= cupPrice;
     const discRow = document.createElement("div");
     discRow.className = "rv-row"; discRow.style.color = "var(--ok)"; discRow.style.fontWeight = "800";
-    discRow.innerHTML = `<span>🎁 Loyalty Discount</span><span>-4 AED</span>`;
+    discRow.innerHTML = `<span>🎁 Loyalty Discount</span><span>-${cupPrice} AED</span>`;
     box.append(discRow);
   }
 
@@ -906,17 +908,18 @@ function update(){
     minLocalEl.textContent = loyaltyState.isSpecial ? "No minimum" : `Minimum ${CONFIG.minLocal} cups`;
   }
 
+  const cupPrice = unitPrice();
   let finalTotal = t.p;
   let extraText = "";
   
   if (loyaltyState.isSpecial && t.c > 0) {
     const freeCups = Math.floor(t.c / 3);
     if (freeCups > 0) {
-      finalTotal -= freeCups * 4;
+      finalTotal -= freeCups * cupPrice;
       extraText = ` (${freeCups} Free)`;
     }
   } else if (loyaltyState.hasFreeCup && t.c > 0) {
-    finalTotal -= 4;
+    finalTotal -= cupPrice;
     extraText = " (1 Free)";
   }
   
@@ -1121,12 +1124,13 @@ $("#f").addEventListener("submit",async e=>{
 
   if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
 
+  const cupPrice = unitPrice();
   let finalTotal = t.p;
   if (loyaltyState.isSpecial && t.c > 0) {
     const freeCups = Math.floor(t.c / 3);
-    if (freeCups > 0) finalTotal -= freeCups * 4;
+    if (freeCups > 0) finalTotal -= freeCups * cupPrice;
   } else if (loyaltyState.hasFreeCup && t.c > 0) {
-    finalTotal -= 4;
+    finalTotal -= cupPrice;
   }
   if (finalTotal < 0) finalTotal = 0;
 
