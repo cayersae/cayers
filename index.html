@@ -7,154 +7,399 @@
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-html{scrollbar-gutter:stable}
-:root{--bg:#ffe4b5;--card:#fff;--ink:#7a0505;--mute:#8a6a70;--berry:#c2304f;--cocoa:#4a2a22;--line:#f0d9d6;--ok:#2f7d4f;--err:#b3261e}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#241517;--card:#33201f;--ink:#fbeae6;--mute:#c4a29f;--berry:#ff7d96;--cocoa:#e8c4b0;--line:#4b3030;--ok:#6fd59a;--err:#ff8a80}}
-*{box-sizing:border-box}
-html{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito","Segoe UI",system-ui,sans-serif;font-synthesis:none;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
-.wrap{max-width:560px;margin:0 auto;padding:28px 18px 60px;text-align:left}
-h1{font:400 clamp(2.6rem,12vw,4rem)/.95 "Abril Fatface","Georgia",serif;margin:0;color:var(--ink);letter-spacing:-.02em;text-align:center;text-wrap:balance}
-#target-logo{display:inline-block}
-.sub{color:var(--mute);margin:10px 0 26px;text-align:center;text-wrap:balance}
-fieldset{border:0;padding:0;margin:0 0 22px}
-legend,label.l{font-weight:800;margin:0 0 8px;display:block;padding:0;line-height:1.3}
-input[type=text],input[type=tel]{display:block;width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit}
-input:focus,button:focus-visible,.opt:focus-within{outline:3px solid var(--berry);outline-offset:2px}
-.row{display:grid;gap:10px}
-.opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}
-.opt input{margin:0;flex:0 0 auto}
-.opt > span{flex:1;min-width:0}
-.opt:has(input:checked){border-color:var(--berry);background:color-mix(in srgb,var(--berry) 10%,var(--card))}
-.opt small{color:var(--mute);display:block}
-.flavor{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);margin-bottom:10px}
-.flavor b{font:400 1.15rem "Abril Fatface",Georgia,serif;display:block;line-height:1.2}
-.flavor > div:first-child{flex:1;min-width:0;text-align:left}
-.flavor span{color:var(--mute);font-size:.9rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.flavor .fl-badge{display:inline-block;margin-top:6px;font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--ok) 14%,var(--card));color:var(--ok);-webkit-line-clamp:unset;-webkit-box-orient:initial;overflow:visible}
-.flavor .fl-badge.out{background:color-mix(in srgb,var(--err) 14%,var(--card));color:var(--err)}
-.flavor .fl-badge.empty{display:none}
-.flavor.is-out{opacity:.6}
-.flavor.is-out b{text-decoration:line-through}
-.step{display:flex;align-items:center;gap:10px;flex:0 0 auto}
-.step button{width:42px;height:42px;border-radius:50%;border:0;background:var(--cocoa);color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
-.step button:disabled{opacity:.4;cursor:default}
-
-/* tappable quantity */
-.step .qty-input{
-  width:4.5ch; padding:6px 2px; border:0; background:transparent; color:inherit; font:inherit; font-weight:800; font-size:1.2rem;
-  font-variant-numeric:tabular-nums; text-align:center; border-radius:8px; outline:0; cursor:text; caret-color:var(--berry);
-  -moz-appearance:textfield; appearance:none; transition:background .15s ease,box-shadow .15s ease;
+html{scrollbar-gutter:stable;height:100%}
+:root{
+  --bg:#ffe4b5;
+  --card:#fff;
+  --ink:#7a0505;
+  --mute:#6e4f55;
+  --berry:#c2304f;
+  --cocoa:#4a2a22;
+  --line:#e6c8c3;
+  --ok:#256b42;
+  --err:#b3261e;
+  --header-h:68px;
 }
-.step .qty-input::-webkit-outer-spin-button,
-.step .qty-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.step .qty-input:focus{background:color-mix(in srgb,var(--berry) 12%,transparent);box-shadow:inset 0 0 0 2px var(--berry);}
-.step .qty-input:disabled{opacity:.5;cursor:default}
-
-.total{position:sticky;bottom:0;background:var(--cocoa);color:var(--bg);border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin:8px 0 14px;font-weight:800;font-variant-numeric:tabular-nums}
-.total > div:first-child{text-align:left}
-.total > div:last-child{text-align:right;white-space:nowrap}
-.total small{display:block;font-weight:400;opacity:.85}
-#go{display:block;width:100%;padding:16px;border:0;border-radius:14px;background:var(--berry);color:#fff;font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer}
-#go:disabled{opacity:.6}
-.msg{margin-top:14px;font-weight:700;text-align:center}
-.err{color:var(--err)}.ok{color:var(--ok)}
-.hide{display:none}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme=light]){
+    --bg:#241517;
+    --card:#33201f;
+    --ink:#fbeae6;
+    --mute:#d4b5b2;
+    --berry:#ff7d96;
+    --cocoa:#e8c4b0;
+    --line:#573838;
+    --ok:#7ce0a5;
+    --err:#ff8a80;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:17px/1.5 "Nunito","Segoe UI",system-ui,sans-serif;
+  font-synthesis:none;
+  padding-top:calc(var(--header-h) + env(safe-area-inset-top,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.hide{display:none!important}
 .hp{position:absolute!important;left:-10000px!important;top:auto;width:1px;height:1px;overflow:hidden}
-.note{color:var(--mute);font-size:.85rem;margin-top:8px;text-align:left}
-.closed{padding:16px;border-radius:12px;background:var(--card);border:1.5px dashed var(--line);text-align:center;color:var(--mute)}
-.closed p{margin:0 0 8px}
-.closed p:last-child{margin:0}
-.closed a{color:var(--berry);font-weight:800}
-.closed-banner{background:color-mix(in srgb,var(--berry) 12%,var(--card));border:1.5px solid var(--berry);border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;font-weight:700}
-.closed-banner a{color:var(--berry)}
+button:focus-visible,input:focus-visible,.opt:focus-within,.service-btn:focus-visible{
+  outline:3px solid var(--berry);
+  outline-offset:2px;
+}
 
-/* ---------- splash & login screen ---------- */
-#splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease}
+/* ---------- TOP HEADER BAR (Top-Left Menu [Logged-in] / Top-Center Logo / Top-Right Login) ---------- */
+.topbar{
+  position:fixed;
+  top:0;left:0;right:0;
+  height:calc(var(--header-h) + env(safe-area-inset-top,0px));
+  padding:env(safe-area-inset-top,0px) 16px 0;
+  background:var(--bg);
+  border-bottom:2px solid var(--line);
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  z-index:70;
+}
+.tb-left{display:flex;align-items:center;justify-content:flex-start}
+.tb-center{display:flex;align-items:center;justify-content:center}
+.tb-right{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+
+.brand-btn{
+  background:none;border:0;padding:4px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:12px;
+}
+.brand-logo-img{
+  height:44px;width:auto;max-width:160px;object-fit:contain;display:block;
+}
+.brand-fallback{
+  font:400 1.9rem/1 "Abril Fatface",Georgia,serif;
+  color:var(--ink);letter-spacing:-.02em;
+}
+
+/* Expandable Top-Left Menu Button (Only shown after login) */
+.menu-toggle{
+  display:inline-flex;align-items:center;gap:8px;
+  min-height:44px;padding:8px 14px;border-radius:12px;
+  border:2px solid var(--line);
+  background:var(--card);color:var(--ink);
+  font:inherit;font-weight:800;font-size:.92rem;
+  cursor:pointer;
+}
+.menu-toggle svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+
+/* Top-Right Login Button */
+.login-pill{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:44px;padding:8px 16px;border-radius:12px;
+  border:2px solid var(--berry);background:var(--berry);color:#fff;
+  font:inherit;font-weight:800;font-size:.92rem;
+  cursor:pointer;
+}
+.login-pill.is-member{
+  background:var(--card);color:var(--ink);
+}
+
+/* ---------- EXPANDABLE TOP-LEFT DRAWER ---------- */
+.drawer-backdrop{
+  position:fixed;inset:0;z-index:85;
+  background:rgba(30,10,10,.5);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s ease;
+}
+.drawer-backdrop.open{opacity:1;pointer-events:auto}
+.nav-drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:86;
+  width:min(310px,84vw);
+  background:var(--card);
+  border-right:2px solid var(--line);
+  padding:calc(18px + env(safe-area-inset-top,0px)) 16px 24px;
+  display:flex;flex-direction:column;gap:10px;
+  transform:translateX(-104%);
+  transition:transform .24s ease;
+}
+.nav-drawer.open{transform:translateX(0)}
+.drawer-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:12px;border-bottom:2px solid var(--line);
+}
+.drawer-head strong{font:400 1.4rem "Abril Fatface",Georgia,serif}
+.drawer-close{
+  width:42px;height:42px;border-radius:12px;
+  border:2px solid var(--line);background:var(--bg);color:var(--ink);
+  font-size:1.3rem;font-weight:800;cursor:pointer;display:grid;place-items:center;
+}
+.member-badge-box{
+  background:var(--bg);
+  border:2px solid var(--line);
+  border-radius:14px;padding:12px;
+}
+.member-badge-box small{display:block;color:var(--mute);font-size:.82rem;font-weight:700}
+.member-badge-box strong{display:block;font-size:1rem;margin-top:2px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;width:100%;min-height:48px;
+  padding:12px 14px;border-radius:14px;
+  border:2px solid transparent;background:transparent;
+  color:var(--ink);font:inherit;font-weight:800;font-size:.98rem;
+  text-align:left;cursor:pointer;
+}
+.nav-item.active{
+  background:color-mix(in srgb,var(--berry) 14%,var(--card));
+  border-color:var(--berry);color:var(--berry);
+}
+.nav-item svg{width:20px;height:20px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.drawer-foot{margin-top:auto;padding-top:12px;border-top:2px solid var(--line)}
+.logout-btn{
+  width:100%;min-height:46px;padding:10px;border-radius:12px;
+  border:2px solid var(--line);background:var(--bg);
+  color:var(--err);font:inherit;font-weight:800;cursor:pointer;
+}
+
+/* ---------- SPLASH SCREEN (Top-Middle Logo) ---------- */
+#splash{
+  position:fixed;inset:0;z-index:100;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-start;
+  padding-top:calc(12vh + env(safe-area-inset-top,0px));
+  transition:opacity .45s ease;
+}
 #splash.gone{opacity:0;pointer-events:none}
 .splash-inner{text-align:center;display:flex;flex-direction:column;align-items:center}
-.splash-logo{font:400 clamp(3rem,16vw,5rem)/.95 "Abril Fatface",Georgia,serif;color:var(--ink);letter-spacing:-.02em;text-align:center;will-change:transform,opacity}
-#splash .splash-logo span{display:inline-block;opacity:0;animation:spell .45s cubic-bezier(.2,.7,.3,1) forwards}
-#splash .splash-logo span:nth-child(1){animation-delay:.15s}
-#splash .splash-logo span:nth-child(2){animation-delay:.40s}
-#splash .splash-logo span:nth-child(3){animation-delay:.65s}
-#splash .splash-logo span:nth-child(4){animation-delay:.90s}
-#splash .splash-logo span:nth-child(5){animation-delay:1.15s}
-#splash .splash-logo span:nth-child(6){animation-delay:1.40s}
-@keyframes spell{from{opacity:0;transform:translateY(8px) scale(.85)}to{opacity:1;transform:none}}
-#splash .dots,#splash .note{opacity:0;animation:fadein .5s ease 1.6s forwards}
-@keyframes fadein{to{opacity:1}}
-.dots{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:40px;pointer-events:none;will-change:opacity}
-.dots i{width:12px;height:12px;border-radius:50%;background:var(--berry);animation:bounce 1s infinite}
+.splash-logo-wrap{
+  transition:transform .55s cubic-bezier(.22,1,.36,1), opacity .4s ease;
+}
+.splash-logo-img{width:min(200px,52vw);height:auto;object-fit:contain;display:block}
+.splash-logo-text{font:400 clamp(3rem,15vw,4.5rem)/.95 "Abril Fatface",Georgia,serif;color:var(--ink)}
+.dots{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:24px}
+.dots i{width:11px;height:11px;border-radius:50%;background:var(--berry);animation:bounce 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}
 .dots i:nth-child(3){animation-delay:.3s}
-@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-12px);opacity:1}}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-10px);opacity:1}}
 
-/* THE LOGIN SCREEN */
-#loginScreen {
-  position: fixed; inset: 0; z-index: 95; background: var(--bg);
-  display: flex; align-items: center; justify-content: center; padding: 20px;
-  transition: opacity .5s ease;
+/* ---------- MAIN WRAPPER & PREFERRED SERVICE HUB ---------- */
+.wrap{max-width:560px;margin:0 auto;padding:22px 16px 64px;text-align:left}
+
+.hub-box{
+  background:var(--card);
+  border:2px solid var(--line);
+  border-radius:20px;
+  padding:22px 18px;
 }
-#loginScreen.gone { opacity: 0; pointer-events: none; }
-.login-card {
-  background: var(--card); border: 1.5px solid var(--line); border-radius: 24px;
-  padding: 30px 24px; width: 100%; max-width: 380px; text-align: center;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+.hub-box h1{
+  font:400 clamp(1.85rem,7vw,2.35rem)/1.1 "Abril Fatface",Georgia,serif;
+  margin:0 0 6px;
+  text-align:center;
 }
-.login-card h2 { font-family: 'Abril Fatface', Georgia, serif; font-size: 2rem; margin: 0 0 8px; }
-.login-card p { font-size: 0.95rem; color: var(--mute); margin-bottom: 20px; }
-
-/* When admin has the store switched OFF, never show the login screen */
-html.store-closed #loginScreen { display: none !important; }
-
-/* LOGIN LOADING OVERLAY */
-#loginLoading {
-  position: fixed; inset: 0; z-index: 96; background: var(--bg);
-  display: flex; align-items: center; justify-content: center; padding: 20px;
-  opacity: 1; transition: opacity .45s ease;
+.hub-sub{
+  text-align:center;
+  color:var(--mute);
+  font-size:.96rem;
+  margin:0 0 18px;
 }
-#loginLoading.gone { opacity: 0; pointer-events: none; }
-#loginLoading.hide { display: none; }
-#loginLoading .note { transition: opacity .25s ease, transform .25s ease; }
+.service-list{display:grid;gap:12px}
+.service-btn{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  width:100%;min-height:68px;
+  padding:15px 16px;
+  border-radius:16px;
+  border:2px solid var(--line);
+  background:var(--bg);
+  color:var(--ink);
+  font:inherit;text-align:left;cursor:pointer;
+}
+.service-btn:hover{border-color:var(--berry)}
+.service-btn.primary-svc{
+  background:color-mix(in srgb,var(--berry) 12%,var(--card));
+  border-color:var(--berry);
+}
+.service-btn strong{display:block;font-size:1.05rem;font-weight:800}
+.service-btn small{display:block;color:var(--mute);font-size:.86rem;font-weight:600;margin-top:2px}
+.service-arrow{
+  font-size:1.3rem;font-weight:800;color:var(--berry);flex:0 0 auto;
+}
+.member-strip{
+  margin-top:16px;padding:12px 14px;border-radius:14px;
+  background:color-mix(in srgb,var(--ok) 12%,var(--card));
+  border:1.5px solid var(--ok);
+  font-size:.9rem;font-weight:700;color:var(--ok);
+  text-align:center;
+}
+.guest-strip{
+  margin-top:16px;padding:12px 14px;border-radius:14px;
+  background:var(--bg);border:1.5px dashed var(--line);
+  font-size:.88rem;color:var(--mute);text-align:center;
+}
+.guest-strip button{
+  background:none;border:0;color:var(--berry);font:inherit;font-weight:800;
+  text-decoration:underline;cursor:pointer;padding:0;
+}
 
-/* ---------- Sending & Review Overlays ---------- */
-#sending{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;opacity:1;transition:opacity .6s ease}
-#sending.gone{opacity:0;pointer-events:none}
-#sending.hide{display:none}
+/* ---------- BACK BAR ON SUB-VIEWS ---------- */
+.back-row{margin-bottom:14px}
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:42px;padding:8px 14px;border-radius:12px;
+  border:2px solid var(--line);background:var(--card);color:var(--ink);
+  font:inherit;font-weight:800;font-size:.9rem;cursor:pointer;
+}
+
+/* ---------- LOYALTY & QR CARDS ---------- */
+.card-panel{
+  background:var(--card);border:2px solid var(--line);
+  border-radius:20px;padding:20px 18px;margin-bottom:16px;
+}
+.card-panel h2{font:400 1.65rem/1.1 "Abril Fatface",Georgia,serif;margin:0 0 6px}
+.punch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.punch-slot{
+  aspect-ratio:1/1;border-radius:14px;
+  border:2px dashed var(--line);background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-weight:800;font-size:.85rem;color:var(--mute);
+}
+.punch-slot.filled{
+  border-style:solid;border-color:var(--berry);
+  background:color-mix(in srgb,var(--berry) 14%,var(--card));
+  color:var(--berry);
+}
+.stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat-box{background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.stat-box strong{display:block;font-size:1.3rem;font-weight:800}
+.stat-box small{font-size:.78rem;color:var(--mute);font-weight:700}
+
+.qr-box{
+  background:#fff;color:#241517;
+  border:2px solid var(--berry);border-radius:18px;
+  padding:18px;display:flex;flex-direction:column;align-items:center;
+  margin:14px 0;text-align:center;
+}
+.qr-box img{width:210px;height:210px;display:block}
+.qr-summary{
+  width:100%;background:var(--bg);border:1.5px solid var(--line);
+  border-radius:14px;padding:12px 14px;font-size:.9rem;
+}
+.qr-summary div{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.qr-summary div:last-child{border-bottom:0}
+
+/* ---------- ORDER FORM ---------- */
+.section-title{font:400 clamp(1.85rem,8vw,2.4rem)/1 "Abril Fatface",Georgia,serif;margin:0 0 6px;text-align:center}
+.sub{color:var(--mute);margin:6px 0 20px;text-align:center}
+fieldset{border:0;padding:0;margin:0 0 20px}
+legend,label.l{font-weight:800;margin:0 0 8px;display:block;padding:0;line-height:1.3}
+input[type=text],input[type=tel]{
+  display:block;width:100%;min-height:48px;padding:12px 14px;
+  border:2px solid var(--line);border-radius:12px;
+  background:var(--card);color:var(--ink);font:inherit;
+}
+.row{display:grid;gap:10px}
+.opt{
+  display:flex;align-items:center;gap:12px;min-height:52px;
+  padding:12px 14px;border:2px solid var(--line);border-radius:12px;
+  background:var(--card);cursor:pointer;
+}
+.opt input{width:20px;height:20px;margin:0;flex:0 0 auto;accent-color:var(--berry)}
+.opt > span{flex:1;min-width:0}
+.opt:has(input:checked){border-color:var(--berry);background:color-mix(in srgb,var(--berry) 10%,var(--card))}
+.opt small{color:var(--mute);display:block;font-size:.86rem}
+
+.flavor{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px;border-radius:14px;background:var(--card);
+  border:2px solid var(--line);margin-bottom:10px;
+}
+.flavor b{font:400 1.2rem "Abril Fatface",Georgia,serif;display:block;line-height:1.2}
+.flavor > div:first-child{flex:1;min-width:0;text-align:left}
+.flavor span{color:var(--mute);font-size:.9rem;display:block}
+.flavor .fl-badge{
+  display:inline-block;margin-top:6px;font-size:.76rem;font-weight:800;
+  padding:3px 10px;border-radius:999px;
+  background:color-mix(in srgb,var(--ok) 15%,var(--card));color:var(--ok);
+}
+.flavor .fl-badge.out{background:color-mix(in srgb,var(--err) 15%,var(--card));color:var(--err)}
+.flavor.is-out{opacity:.65}
+.flavor.is-out b{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--err)}
+
+.step{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.step button{
+  width:46px;height:46px;border-radius:50%;border:0;
+  background:var(--cocoa);color:var(--bg);font-size:1.5rem;
+  line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;
+}
+.step button:disabled{opacity:.38;cursor:default}
+.step .qty-input{
+  width:4ch;min-height:44px;padding:4px 2px;border:0;background:transparent;
+  color:inherit;font:inherit;font-weight:800;font-size:1.2rem;
+  font-variant-numeric:tabular-nums;text-align:center;border-radius:8px;
+  -moz-appearance:textfield;appearance:none;
+}
+.step .qty-input::-webkit-outer-spin-button,.step .qty-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+.free-banner{
+  padding:12px 14px;border-radius:14px;
+  background:color-mix(in srgb,var(--ok) 15%,var(--card));
+  border:2px solid var(--ok);
+  color:var(--ok);font-weight:800;text-align:center;
+  margin-top:10px;
+}
+
+.total{
+  position:sticky;bottom:10px;background:var(--cocoa);color:var(--bg);
+  border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;
+  align-items:center;gap:16px;margin:10px 0 14px;font-weight:800;
+  font-variant-numeric:tabular-nums;z-index:20;
+}
+.total small{display:block;font-weight:600;opacity:.9}
+#go{
+  display:block;width:100%;min-height:54px;padding:15px;border:0;
+  border-radius:14px;background:var(--berry);color:#fff;
+  font-weight:800;font-size:1.1rem;font-family:inherit;cursor:pointer;
+}
+#go:disabled{opacity:.55}
+.msg{margin-top:14px;font-weight:700;text-align:center}
+.err{color:var(--err)}.ok{color:var(--ok)}
+.note{color:var(--mute);font-size:.86rem;margin-top:8px;text-align:left}
+.closed{padding:16px;border-radius:12px;background:var(--card);border:2px dashed var(--line);text-align:center;color:var(--mute)}
+.closed a{color:var(--berry);font-weight:800}
+.closed-banner{background:color-mix(in srgb,var(--berry) 12%,var(--card));border:2px solid var(--berry);border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;font-weight:700}
+.closed-banner a{color:var(--berry)}
+
+/* ---------- LOGIN MODAL & OVERLAYS ---------- */
+#loginModal{
+  position:fixed;inset:0;z-index:95;background:rgba(35,10,10,.6);
+  display:flex;align-items:center;justify-content:center;padding:18px;
+}
+.login-card{
+  background:var(--card);border:2px solid var(--line);border-radius:22px;
+  padding:26px 20px;width:100%;max-width:380px;text-align:center;position:relative;
+}
+.login-card h2{font-family:'Abril Fatface',Georgia,serif;font-size:1.85rem;margin:0 0 8px}
+.login-card p{font-size:.94rem;color:var(--mute);margin-bottom:16px}
+.modal-x{
+  position:absolute;top:12px;right:12px;width:40px;height:40px;
+  border-radius:50%;border:2px solid var(--line);background:var(--bg);
+  color:var(--ink);font-size:1.2rem;font-weight:800;cursor:pointer;display:grid;place-items:center;
+}
+
+#loginLoading,#sending{
+  position:fixed;inset:0;z-index:96;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  transition:opacity .4s ease;
+}
+#loginLoading.gone,#sending.gone{opacity:0;pointer-events:none}
 
 #review{
-  position: fixed; 
-  inset: 0; 
-  z-index: 80; 
-  background: rgba(58,15,15,.58); 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  padding: 18px; 
-  opacity: 1; 
-  transition: opacity .35s ease;
-  overflow-y: auto;
+  position:fixed;inset:0;z-index:88;background:rgba(45,12,12,.6);
+  display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;
 }
-#review.gone{opacity:0;pointer-events:none}
-#review.hide{display:none}
-
 .rv-card{
-  background: var(--card); 
-  color: var(--ink); 
-  border: 1.5px solid var(--line); 
-  border-radius: 18px; 
-  padding: 22px; 
-  width: 100%; 
-  max-width: 420px; 
-  max-height: 85vh; 
-  overflow-y: auto; 
-  margin: auto;
-  transition: transform .35s ease;
+  background:var(--card);color:var(--ink);border:2px solid var(--line);
+  border-radius:18px;padding:20px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;
 }
-#review.gone .rv-card{transform:translateY(14px) scale(.97)}
 .rv-card h2{font:400 1.6rem/1.1 "Abril Fatface",Georgia,serif;margin:0 0 4px}
 .rv-sub{color:var(--mute);font-size:.9rem;margin:0 0 14px}
 .rv-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-weight:700}
@@ -162,87 +407,185 @@ html.store-closed #loginScreen { display: none !important; }
 .rv-meta{margin:12px 0 0;font-size:.95rem;line-height:1.4}
 .rv-meta small{display:block;color:var(--mute);margin-top:8px}
 .rv-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:16px}
-.rv-actions button{padding:13px;border-radius:12px;font-size:1rem;font-weight:800;font-family:inherit;cursor:pointer;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.rv-actions button{min-height:48px;padding:12px;border-radius:12px;font-size:1rem;font-weight:800;font-family:inherit;cursor:pointer;border:2px solid var(--line);background:var(--card);color:var(--ink)}
 .rv-actions .primary{background:var(--berry);color:#fff;border-color:var(--berry)}
-@media(prefers-reduced-motion:reduce){#review,.rv-card{transition:none}}
-#sending .splash-logo{transition:opacity .45s ease,transform .45s ease}
-#sending .dots,#sending .note{transition:opacity .3s ease}
-.okwrap{position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;opacity:0;transform:scale(.45);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.8,.3,1.2);pointer-events:none}
+
+.okwrap{position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;opacity:0;transform:scale(.45);transition:opacity .45s ease,transform .5s ease;pointer-events:none}
 .okwrap svg{width:100%;height:100%;display:block;overflow:visible}
 .okwrap .ring{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round;stroke-dasharray:1 2;stroke-dashoffset:1.06;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .7s ease}
 .okwrap .tick{fill:none;stroke:var(--ink);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 2;stroke-dashoffset:1.06;transition:stroke-dashoffset .55s ease}
-#sending.s-circle .splash-logo{opacity:0;transform:scale(.35)}
-#sending.s-circle .dots,#sending.s-circle .note{opacity:0}
+#sending.s-circle .splash-inner{opacity:0}
 #sending.s-circle .okwrap{opacity:1;transform:scale(1)}
 #sending.s-circle .ring{stroke-dashoffset:0}
 #sending.s-tick .tick{stroke-dashoffset:0}
 .oktext{position:absolute;left:0;right:0;top:50%;margin-top:88px;text-align:center;font:400 1.7rem/1.1 "Abril Fatface",Georgia,serif;color:var(--ink);opacity:0;transition:opacity .5s ease;pointer-events:none}
 #sending.s-tick .oktext{opacity:1}
-#sending.s-undo .ring{stroke-dashoffset:1.06;transition:stroke-dashoffset .7s ease .25s}
-#sending.s-undo .okwrap{opacity:0;transition:opacity 1.2s ease .1s}
-#sending.s-undo .oktext{opacity:0;transition:opacity 1.2s ease}
-@media(prefers-reduced-motion:reduce){#splash,#sending,#loginLoading{transition:none}.dots i{animation:none;opacity:.8}#splash .splash-logo span,#splash .dots,#splash .note{animation:none;opacity:1;transform:none}}
 
-/* ---------- content reveal (top → bottom) ---------- */
-@keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-.reveal{opacity:0}
-.reveal.in{animation:riseIn .85s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s)}
-@media(prefers-reduced-motion:reduce){.reveal{opacity:1}.reveal.in{animation:none}}
-
-.done{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center;position:relative;z-index:10;opacity:1;}
+.done{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:22px;text-align:center}
 .done a{color:var(--berry);font-weight:800}
 .done a.igbtn{display:block;background:var(--berry);color:#fff;padding:14px;border-radius:14px;text-decoration:none;margin:14px 0 8px}
 
-/* ---------- bug report footer ---------- */
-.site-foot{margin:34px 0 0;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:center}
-.bug-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 16px 9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--mute);font:inherit;font-size:.85rem;font-weight:700;line-height:1;text-decoration:none;transition:color .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease;}
-.bug-pill svg{width:15px;height:15px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.bug-pill:hover{color:var(--berry);border-color:color-mix(in srgb,var(--berry) 45%,var(--line));background:color-mix(in srgb,var(--berry) 6%,var(--card));}
-.bug-pill:active{transform:scale(.97)}
-.bug-pill:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
-@media(prefers-reduced-motion:reduce){.bug-pill{transition:none}.bug-pill:active{transform:none}}
+.site-foot{margin:34px 0 0;padding-top:20px;border-top:2px solid var(--line);display:flex;justify-content:center}
+.bug-pill{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:8px 16px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--mute);font:inherit;font-size:.86rem;font-weight:700;text-decoration:none}
+.bug-pill svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
 </style>
 </head>
 <body>
-<!-- splash logo -->
+
+<!-- SPLASH SCREEN (Top-Middle Transparent Brand Logo) -->
 <div id="splash">
   <div class="splash-inner">
-    <div class="splash-logo" role="img" aria-label="Cayers"><span aria-hidden="true">C</span><span aria-hidden="true">a</span><span aria-hidden="true">y</span><span aria-hidden="true">e</span><span aria-hidden="true">r</span><span aria-hidden="true">s</span></div>
+    <div id="splashLogoWrap" class="splash-logo-wrap">
+      <img id="splashLogoImg" class="splash-logo-img" src="logo.png" alt="Cayers" onerror="this.classList.add('hide');document.getElementById('splashLogoFallback').classList.remove('hide')">
+      <div id="splashLogoFallback" class="splash-logo-text hide">Cayers</div>
+    </div>
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <p class="note" style="margin-top:18px;text-align:center">Whipping up something sweet&hellip;</p>
+    <p class="note" style="margin-top:14px;text-align:center">Loading Cayers&hellip;</p>
+  </div>
+</div>
+
+<!-- FIXED TOP HEADER (Top-Left Expandable Menu [Logged-in Only] / Top-Center Logo / Top-Right Login) -->
+<header class="topbar">
+  <div class="tb-left">
+    <button type="button" id="menuToggleBtn" class="menu-toggle hide" aria-expanded="false" aria-controls="navDrawer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <span>Menu</span>
+    </button>
+  </div>
+
+  <div class="tb-center">
+    <button type="button" id="headerLogoBtn" class="brand-btn" aria-label="Cayers Service Hub">
+      <img id="headerLogoImg" class="brand-logo-img" src="logo.png" alt="Cayers" onerror="this.classList.add('hide');document.getElementById('headerLogoFallback').classList.remove('hide')">
+      <span id="headerLogoFallback" class="brand-fallback hide">Cayers</span>
+    </button>
+  </div>
+
+  <div class="tb-right">
+    <button type="button" id="topLoginBtn" class="login-pill">Log in</button>
+  </div>
+</header>
+
+<!-- EXPANDABLE TOP-LEFT MENU DRAWER (Unlocked on Login) -->
+<div id="drawerBackdrop" class="drawer-backdrop"></div>
+<aside id="navDrawer" class="nav-drawer" aria-label="Member Menu">
+  <div class="drawer-head">
+    <strong>Member Menu</strong>
+    <button type="button" id="drawerCloseBtn" class="drawer-close" aria-label="Close menu">&times;</button>
+  </div>
+
+  <div class="member-badge-box">
+    <small>Logged in as</small>
+    <strong id="drawerMemberPhone">+971 -- --- ----</strong>
+  </div>
+
+  <button type="button" class="nav-item active" data-view="hubView">
+    <svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>
+    <span>Choose Today&rsquo;s Service</span>
+  </button>
+
+  <button type="button" class="nav-item" data-view="orderView">
+    <svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+    <span>Order Dessert Cups</span>
+  </button>
+
+  <button type="button" class="nav-item" data-view="loyaltyView">
+    <svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3z"/></svg>
+    <span>Loyalty &amp; Past Cups</span>
+  </button>
+
+  <button type="button" class="nav-item" data-view="qrView">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 20h2"/></svg>
+    <span>University Walk-In QR</span>
+  </button>
+
+  <div class="drawer-foot">
+    <button type="button" id="logoutBtn" class="logout-btn">Log out</button>
+  </div>
+</aside>
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="hide" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+  <div class="login-card">
+    <button type="button" id="closeLoginModal" class="modal-x" aria-label="Close">&times;</button>
+    <h2 id="loginModalTitle">Member Log In</h2>
+    <p>Log in with your phone number to track your cups, get 1 free cup automatically when you buy 4 (or buy 2 for loyalty members), and open your university walk-in QR.</p>
+
+    <input type="tel" id="loginPhone" placeholder="5X XXX XXXX" inputmode="numeric" autocomplete="tel" style="text-align:center;margin-bottom:12px;font-size:1.15rem;font-weight:800">
+
+    <button type="button" id="loginBtn" style="width:100%;min-height:50px;padding:12px;border-radius:14px;background:var(--berry);color:#fff;font-weight:800;font-size:1.05rem;border:none;cursor:pointer;margin-bottom:8px">Log In</button>
+    <button type="button" id="guestContinueBtn" style="width:100%;min-height:42px;padding:8px;background:transparent;color:var(--mute);font-weight:700;border:none;text-decoration:underline;cursor:pointer">Continue as Guest</button>
+
+    <p id="loginMsg" class="err" style="margin-top:8px;font-size:.9rem"></p>
   </div>
 </div>
 
 <!-- LOGIN LOADING OVERLAY -->
 <div id="loginLoading" class="hide">
   <div class="splash-inner">
-    <div class="splash-logo">Cayers</div>
+    <div class="brand-fallback" style="font-size:2.5rem">Cayers</div>
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <p id="loginLoadingNote" class="note" style="margin-top:18px;text-align:center">Checking the guest list&hellip;</p>
+    <p id="loginLoadingNote" class="note" style="margin-top:16px;text-align:center">Checking your account&hellip;</p>
   </div>
 </div>
 
-<!-- FULL SCREEN LOGIN SCREEN -->
-<div id="loginScreen" class="hide">
-  <div class="login-card">
-    <h2>Cayers Log in</h2>
-    <p>Log in with your phone number to unlock rewards, or skip to order as a guest.</p>
-    
-    <input type="tel" id="loginPhone" placeholder="5X XXX XXXX" inputmode="numeric" autocomplete="off" style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); text-align:center; margin-bottom:12px; font-size:1.1rem; font-weight:700;">
-    
-    <button type="button" id="loginBtn" style="width:100%; padding:16px; border-radius:14px; background:var(--berry); color:#fff; font-weight:800; font-size:1.1rem; border:none; margin-bottom:10px;">Log In</button>
-    
-    <button type="button" id="skipLoginBtn" style="width:100%; padding:10px; background:transparent; color:var(--mute); font-weight:700; border:none; text-decoration:underline; cursor:pointer;">Skip (Order as Guest)</button>
-    
-    <p id="loginMsg" class="err" style="margin-top:10px; font-size:0.85rem;"></p>
-  </div>
-</div>
+<!-- MAIN CONTENT -->
+<main class="wrap">
 
-<!-- MAIN WRAPPER (Hidden until login/skip) -->
-<div id="mainApp" class="hide">
-  <div class="wrap">
-    <h1><span id="target-logo">Cayers</span></h1>
-    <p class="sub">Dessert cups, made fresh. Pick your flavors and a day, and your order goes straight to us.</p>
+  <!-- VIEW 1: PREFERRED SERVICE FOR THE DAY (Default Landing Screen) -->
+  <section id="hubView" class="app-view">
+    <div class="hub-box">
+      <h1>Choose your service for today</h1>
+      <p class="hub-sub">Pick how you want to use Cayers right now. Every choice is logged so your order and rewards stay up to date.</p>
+
+      <div class="service-list" role="group" aria-label="Preferred service for today">
+        <button type="button" class="service-btn primary-svc" data-service="Campus Pickup Order">
+          <div>
+            <strong>1. Campus Pickup Order</strong>
+            <small>Order cups for University of Greater Manchester pickup days</small>
+          </div>
+          <span class="service-arrow" aria-hidden="true">&rarr;</span>
+        </button>
+
+        <button type="button" class="service-btn" data-service="Local Delivery Order">
+          <div>
+            <strong>2. Local Delivery / Pickup Spot</strong>
+            <small>Schedule a local delivery or DM pickup spot this week</small>
+          </div>
+          <span class="service-arrow" aria-hidden="true">&rarr;</span>
+        </button>
+
+        <button type="button" class="service-btn" data-service="University Walk-In QR">
+          <div>
+            <strong>3. University Walk-In QR Pass</strong>
+            <small>Buying in person on campus? Generate your QR code to scan</small>
+          </div>
+          <span class="service-arrow" aria-hidden="true">&rarr;</span>
+        </button>
+
+        <button type="button" class="service-btn" data-service="Check Loyalty & History">
+          <div>
+            <strong>4. Check My Cups &amp; Free Rewards</strong>
+            <small>View past cups bought and track your automatic free cup</small>
+          </div>
+          <span class="service-arrow" aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+
+      <div id="hubMemberBanner" class="member-strip hide"></div>
+      <div id="hubGuestBanner" class="guest-strip">
+        Ordering as a guest. <button type="button" id="hubInlineLoginBtn">Log in with your phone number</button> to unlock loyalty rewards &amp; walk-in QR.
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 2: ORDER SCREEN (Preserves all existing backend & scheduling logic) -->
+  <section id="orderView" class="app-view hide">
+    <div class="back-row">
+      <button type="button" class="back-btn" onclick="switchView('hubView')">&larr; Change service</button>
+    </div>
+
+    <h1 class="section-title">Order Cayers</h1>
+    <p class="sub">Pick your day and cups below. Free reward cups are added automatically.</p>
 
     <div id="closedBanner" class="closed-banner hide" role="status"></div>
 
@@ -275,43 +618,102 @@ html.store-closed #loginScreen { display: none !important; }
       <p id="igHint" style="font-size:.9rem;color:var(--mute)"></p>
       <p style="font-size:.9rem">Or find us at <a id="igLink" href="#" target="_blank" rel="noopener"></a>.</p>
     </div>
+  </section>
 
-    <footer class="site-foot">
-      <a id="bugLink" class="bug-pill" href="mailto:cayerscakes@gmail.com?subject=Bug%20report%20%E2%80%94%20cayers.ae">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 6.5l9 6 9-6"/></svg>
-        <span>Report a bug</span>
-      </a>
-    </footer>
+  <!-- VIEW 3: LOYALTY & PAST CUPS -->
+  <section id="loyaltyView" class="app-view hide">
+    <div class="back-row">
+      <button type="button" class="back-btn" onclick="switchView('hubView')">&larr; Change service</button>
+    </div>
+
+    <div class="card-panel">
+      <h2>Your Cups &amp; Rewards</h2>
+      <p id="loyaltyRuleText" style="color:var(--mute);margin:0"></p>
+
+      <div id="punchGrid" class="punch-grid"></div>
+      <p id="loyaltyStatusText" style="font-weight:800;margin:8px 0 0;color:var(--berry)"></p>
+
+      <div class="stat-strip">
+        <div class="stat-box">
+          <strong id="statTotalCups">0</strong>
+          <small>Past Cups</small>
+        </div>
+        <div class="stat-box">
+          <strong id="statTowardsNext">0 / 4</strong>
+          <small>Progress</small>
+        </div>
+        <div class="stat-box">
+          <strong id="statFreeAvailable">0</strong>
+          <small>Free Ready</small>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button type="button" id="goOrderFromLoyalty" style="min-height:50px;border-radius:14px;border:0;background:var(--berry);color:#fff;font:inherit;font-weight:800;cursor:pointer" onclick="switchView('orderView')">Order Cups</button>
+      <button type="button" style="min-height:50px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:800;cursor:pointer" onclick="switchView('qrView')">Open Walk-In QR</button>
+    </div>
+  </section>
+
+  <!-- VIEW 4: UNIVERSITY WALK-IN QR PASS -->
+  <section id="qrView" class="app-view hide">
+    <div class="back-row">
+      <button type="button" class="back-btn" onclick="switchView('hubView')">&larr; Change service</button>
+    </div>
+
+    <div class="card-panel">
+      <h2>University Walk-In QR</h2>
+      <p style="color:var(--mute);margin:0 0 12px">Show this QR code when buying in person at university so we can scan your past purchases, free cups, and current order.</p>
+
+      <div class="qr-box">
+        <img id="memberQrImg" alt="Member Walk-In QR Code" width="210" height="210">
+        <small style="margin-top:10px;font-weight:800;color:#4a2a22">Scan at Cayers Campus Stand</small>
+      </div>
+
+      <div class="qr-summary" id="qrSummaryBox"></div>
+
+      <button type="button" style="width:100%;min-height:48px;margin-top:12px;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-weight:800;cursor:pointer" onclick="switchView('orderView')">Pick Cups for Walk-In QR</button>
+    </div>
+  </section>
+
+  <footer class="site-foot">
+    <a id="bugLink" class="bug-pill" href="mailto:cayerscakes@gmail.com?subject=Bug%20report%20%E2%80%94%20cayers.ae">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 6.5l9 6 9-6"/></svg>
+      <span>Report a bug</span>
+    </a>
+  </footer>
+</main>
+
+<!-- REVIEW & SENDING OVERLAYS -->
+<div id="review" class="hide" role="dialog" aria-modal="true" aria-labelledby="rvTitle">
+  <div class="rv-card">
+    <h2 id="rvTitle">Check your order</h2>
+    <p class="rv-sub">Please make sure everything is right before you confirm.</p>
+    <div id="rvItems"></div>
+    <div class="rv-total"><span id="rvCups"></span><span id="rvTotal"></span></div>
+    <div class="rv-meta"><small>For</small><div id="rvWho"></div><small>Pickup or delivery</small><div id="rvWhen"></div></div>
+    <div class="rv-actions"><button type="button" id="rvBack">Edit order</button><button type="button" id="rvConfirm" class="primary">Confirm order</button></div>
   </div>
 </div>
 
-<!-- Fixed overlays live outside .wrap: an animated ancestor would trap position:fixed -->
-    <div id="review" class="hide" role="dialog" aria-modal="true" aria-labelledby="rvTitle">
-      <div class="rv-card">
-        <h2 id="rvTitle">Check your order</h2>
-        <p class="rv-sub">Please make sure everything is right before you confirm.</p>
-        <div id="rvItems"></div>
-        <div class="rv-total"><span id="rvCups"></span><span id="rvTotal"></span></div>
-        <div class="rv-meta"><small>For</small><div id="rvWho"></div><small>Pickup or delivery</small><div id="rvWhen"></div></div>
-        <div class="rv-actions"><button type="button" id="rvBack">Edit order</button><button type="button" id="rvConfirm" class="primary">Confirm order</button></div>
-      </div>
-    </div>
-    <div id="sending" class="hide" role="status" aria-live="polite">
-      <div class="splash-inner">
-        <div class="splash-logo">Cayers</div>
-        <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-        <p class="note" style="margin-top:18px;text-align:center">Sending your order&hellip;</p>
-      </div>
-      <div class="oktext" aria-hidden="true">Order Submitted</div>
-      <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
-    </div>
+<div id="sending" class="hide" role="status" aria-live="polite">
+  <div class="splash-inner">
+    <div class="brand-fallback" style="font-size:2.5rem">Cayers</div>
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="note" style="margin-top:16px;text-align:center">Sending your order&hellip;</p>
+  </div>
+  <div class="oktext" aria-hidden="true">Order Submitted</div>
+  <div class="okwrap" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="44" pathLength="1"/><path class="tick" d="M30 52 L45 66 L71 36" pathLength="1"/></svg></div>
+</div>
 
 <script>
 const CONFIG = {
   endpoint: "https://script.google.com/macros/s/AKfycbzzYEoHmxy4_WtQbvSlszi8iOOl6YIdcuL-tVuA17d8rOMZhQ_0z4sFgfqIRo0rQGNH/exec",
   instagram: "cayers.ae",
   flavors: [
-    {id:"Silk Cayer", desc:"Biscoff Biscuits, cream cheese & biscoff spread", price:3}
+    {id:"Silk Cayer", desc:"Biscoff Biscuits, cream cheese & biscoff spread", price:3, discontinued:false},
+    {id:"Darkland", desc:"Rich dark chocolate ganache & cocoa biscuit layers", price:3, discontinued:true},
+    {id:"Cloud Cayer", desc:"Whipped vanilla mascarpone & airy sponge", price:3, discontinued:true}
   ],
   campusDays: ["Tuesday","Friday"],
   localDays:  ["Monday","Tuesday","Wednesday","Thursday","Friday"],
@@ -336,19 +738,27 @@ let orderId=makeId();
 let sending=false;
 let reviewOK=false, reviewOpen=false;
 let renderedDaysKey=null;
-let revealed=false;
 let storeStatus = "OPEN";
 let soldOutDays = [];
-let lastSubmittedRef = ""; 
+let lastSubmittedRef = "";
+let selectedServiceToday = "";
+let pendingPostLoginView = "";
 const qty={};
 
-/* Loyalty & Member Access State */
-const loyaltyState = { verified: false, phone: "", orders: 0, hasFreeCup: false, isSpecial: false };
+/* Loyalty & Returning Customer State */
+const loyaltyState = {
+  loggedIn: false,
+  phone: "",
+  orders: 0,
+  totalCupsBought: 0,
+  hasFreeCup: false,
+  isSpecial: false
+};
 
 const flavorInfo={};
 CONFIG.flavors.forEach(f=>{
   qty[f.id]=0;
-  flavorInfo[f.id]={soldOut:false, remaining:Infinity};
+  flavorInfo[f.id]={soldOut:!!f.discontinued, remaining:f.discontinued?0:Infinity};
 });
 
 let lastFlavorSig = "";
@@ -356,14 +766,297 @@ let lastFlavorSig = "";
 function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function fmtHour(h){const ampm=h>=12?"pm":"am";const hh=h%12||12;return `${hh}${ampm}`;}
 function dateKey(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
-function unitPrice(){return (CONFIG.flavors[0] && CONFIG.flavors[0].price) || 3;}
 
+/* ---------- AUTOMATIC FREE CUP CALCULATION ----------
+   - Loyalty Members (isSpecial): Buy 2 -> automatically adds +1 FREE cup (floor(paid / 2))
+   - Returning / Logged-in Customers: Buy 4 (in one order or across orders) -> automatically adds +1 FREE cup
+----------------------------------------------------- */
+function computeCart(){
+  let paidCups = 0;
+  let paidPrice = 0;
+  CONFIG.flavors.forEach(f => {
+    if (!f.discontinued) {
+      paidCups += qty[f.id];
+      paidPrice += qty[f.id] * f.price;
+    }
+  });
+
+  let autoFreeCups = 0;
+  let rewardLabel = "";
+
+  if (paidCups > 0) {
+    if (loyaltyState.isSpecial) {
+      // Loyalty Member: auto-add 1 free cup for every 2 cups added
+      autoFreeCups = Math.floor(paidCups / 2);
+      if (autoFreeCups > 0) {
+        rewardLabel = `✨ Loyalty Member Perk: +${autoFreeCups} FREE cup${autoFreeCups > 1 ? "s" : ""} automatically added!`;
+      }
+    } else if (loyaltyState.loggedIn) {
+      // Returning / Logged-in customer: auto-add 1 free cup when reaching 4 cups (either in this order or combined with past cups)
+      const earnedFromHistory = loyaltyState.hasFreeCup ? 1 : 0;
+      const earnedFromCart = Math.floor(((loyaltyState.totalCupsBought % 4) + paidCups) / 4);
+      autoFreeCups = Math.max(earnedFromHistory, earnedFromCart);
+      if (autoFreeCups > 0) {
+        rewardLabel = `🎁 4-Cup Reward: +${autoFreeCups} FREE cup${autoFreeCups > 1 ? "s" : ""} automatically added!`;
+      }
+    }
+  }
+
+  return {
+    paidCups,
+    autoFreeCups,
+    totalCups: paidCups + autoFreeCups,
+    totalPrice: paidPrice,
+    rewardLabel
+  };
+}
+
+/* ---------- BACKEND LOGGING HELPER (Preferred Service & QR Scans) ---------- */
+function logMemberActivity(actionType, details){
+  try {
+    const payload = {
+      action: actionType,
+      service: details.service || selectedServiceToday || "General",
+      phone: loyaltyState.phone || "Guest",
+      isSpecial: loyaltyState.isSpecial,
+      pastCups: loyaltyState.totalCupsBought,
+      cartSummary: details.cartSummary || "",
+      timestamp: new Date().toISOString()
+    };
+    fetch(CONFIG.endpoint, {
+      method: "POST",
+      headers: {"Content-Type": "text/plain;charset=utf-8"},
+      body: JSON.stringify(payload),
+      keepalive: true
+    }).catch(()=>{});
+  } catch(_) {}
+}
+
+/* ---------- VIEW & DRAWER NAVIGATION ---------- */
+function switchView(viewId){
+  document.querySelectorAll(".app-view").forEach(v => v.classList.add("hide"));
+  const target = document.getElementById(viewId);
+  if (target) target.classList.remove("hide");
+
+  document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.view === viewId);
+  });
+
+  if (viewId === "loyaltyView") renderLoyaltyDashboard();
+  if (viewId === "qrView") renderMemberQR();
+  closeDrawer();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function openDrawer(){
+  if (!loyaltyState.loggedIn) return;
+  $("#navDrawer").classList.add("open");
+  $("#drawerBackdrop").classList.add("open");
+  $("#menuToggleBtn").setAttribute("aria-expanded","true");
+}
+function closeDrawer(){
+  $("#navDrawer").classList.remove("open");
+  $("#drawerBackdrop").classList.remove("open");
+  $("#menuToggleBtn").setAttribute("aria-expanded","false");
+}
+
+$("#menuToggleBtn").addEventListener("click", openDrawer);
+$("#drawerCloseBtn").addEventListener("click", closeDrawer);
+$("#drawerBackdrop").addEventListener("click", closeDrawer);
+document.querySelectorAll(".nav-item").forEach(btn => {
+  btn.addEventListener("click", () => switchView(btn.dataset.view));
+});
+$("#headerLogoBtn").addEventListener("click", () => switchView("hubView"));
+
+/* ---------- PREFERRED SERVICE FOR THE DAY HANDLER ---------- */
+document.querySelectorAll(".service-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const svc = btn.dataset.service;
+    selectedServiceToday = svc;
+    logMemberActivity("log_service", { service: svc });
+
+    if (svc === "Campus Pickup Order") {
+      if (!loyaltyState.isSpecial) {
+        const campusRadio = document.querySelector('input[name=loc][value^="University"]');
+        if (campusRadio) {
+          campusRadio.checked = true;
+          renderDays();
+          updateClosedBanner();
+        }
+      }
+      switchView("orderView");
+    } else if (svc === "Local Delivery Order") {
+      const localRadio = document.querySelector('input[name=loc][value^="Local"]');
+      if (localRadio) {
+        localRadio.checked = true;
+        renderDays();
+        updateClosedBanner();
+      }
+      switchView("orderView");
+    } else if (svc === "University Walk-In QR") {
+      if (!loyaltyState.loggedIn) {
+        pendingPostLoginView = "qrView";
+        openLoginModal();
+      } else {
+        switchView("qrView");
+      }
+    } else if (svc === "Check Loyalty & History") {
+      if (!loyaltyState.loggedIn) {
+        pendingPostLoginView = "loyaltyView";
+        openLoginModal();
+      } else {
+        switchView("loyaltyView");
+      }
+    }
+  });
+});
+
+/* ---------- LOGIN MODAL & AUTH UI ---------- */
+function openLoginModal(){
+  $("#loginMsg").textContent = "";
+  $("#loginModal").classList.remove("hide");
+  setTimeout(() => $("#loginPhone").focus(), 50);
+}
+function closeLoginModal(){
+  $("#loginModal").classList.add("hide");
+}
+
+$("#topLoginBtn").addEventListener("click", () => {
+  if (loyaltyState.loggedIn) switchView("loyaltyView");
+  else openLoginModal();
+});
+$("#hubInlineLoginBtn").addEventListener("click", openLoginModal);
+$("#closeLoginModal").addEventListener("click", closeLoginModal);
+$("#loginModal").addEventListener("click", e => { if (e.target.id === "loginModal") closeLoginModal(); });
+$("#guestContinueBtn").addEventListener("click", () => {
+  pendingPostLoginView = "";
+  closeLoginModal();
+});
+
+function syncAuthUI(){
+  const menuBtn = $("#menuToggleBtn");
+  const topBtn = $("#topLoginBtn");
+  const hubMember = $("#hubMemberBanner");
+  const hubGuest = $("#hubGuestBanner");
+
+  if (loyaltyState.loggedIn) {
+    menuBtn.classList.remove("hide");
+    topBtn.textContent = "Member · " + loyaltyState.phone.slice(-4);
+    topBtn.classList.add("is-member");
+    $("#drawerMemberPhone").textContent = "+971 " + loyaltyState.phone;
+
+    hubGuest.classList.add("hide");
+    hubMember.classList.remove("hide");
+    hubMember.textContent = loyaltyState.isSpecial
+      ? "✨ Loyalty Member Active: Add 2 cups & get 1 free automatically!"
+      : `Logged in (+971 ${loyaltyState.phone}) · ${loyaltyState.totalCupsBought} past cups recorded`;
+  } else {
+    menuBtn.classList.add("hide");
+    topBtn.textContent = "Log in";
+    topBtn.classList.remove("is-member");
+
+    hubMember.classList.add("hide");
+    hubGuest.classList.remove("hide");
+  }
+}
+
+$("#logoutBtn").addEventListener("click", () => {
+  loyaltyState.loggedIn = false;
+  loyaltyState.phone = "";
+  loyaltyState.orders = 0;
+  loyaltyState.totalCupsBought = 0;
+  loyaltyState.hasFreeCup = false;
+  loyaltyState.isSpecial = false;
+
+  const campusLabel = $("#campusOptLabel");
+  if (campusLabel) campusLabel.style.display = "flex";
+
+  closeDrawer();
+  syncAuthUI();
+  renderFlavors();
+  switchView("hubView");
+});
+
+/* ---------- LOYALTY & PAST CUPS VIEW ---------- */
+function renderLoyaltyDashboard(){
+  const total = loyaltyState.totalCupsBought;
+  const progress = total % 4;
+  const freeReady = loyaltyState.hasFreeCup ? 1 : 0;
+
+  $("#statTotalCups").textContent = String(total);
+  $("#statTowardsNext").textContent = loyaltyState.isSpecial ? "VIP" : `${progress} / 4`;
+  $("#statFreeAvailable").textContent = loyaltyState.isSpecial ? "Auto" : String(freeReady);
+
+  const grid = $("#punchGrid");
+  if (loyaltyState.isSpecial) {
+    $("#loyaltyRuleText").textContent = "Loyalty Member Perk: Whenever you add 2 cups, 1 free cup is automatically added to your order.";
+    grid.innerHTML = [1,2,3].map(i => `<div class="punch-slot filled"><span>${i === 3 ? "🎁" : "🍰"}</span><span>${i === 3 ? "FREE" : "Buy " + i}</span></div>`).join("");
+    $("#loyaltyStatusText").textContent = "✨ Add 2 cups on the Order screen and your 3rd cup is added automatically at 0 AED.";
+    return;
+  }
+
+  $("#loyaltyRuleText").textContent = "Returning Customer Reward: Buy 4 cups (in one order or across orders) and 1 free cup is automatically added.";
+  let slotsHtml = "";
+  for (let i = 1; i <= 4; i++) {
+    const filled = i <= progress || (freeReady > 0 && progress === 0 && total > 0);
+    slotsHtml += `<div class="punch-slot${filled ? " filled" : ""}">
+      <span style="font-size:1.25rem">${filled ? "🍰" : i}</span>
+      <span>${filled ? "Stamped" : "Cup " + i}</span>
+    </div>`;
+  }
+  grid.innerHTML = slotsHtml;
+
+  if (freeReady > 0) {
+    $("#loyaltyStatusText").textContent = "🎁 You have 1 FREE cup ready! Add cups on the Order screen and your free cup is added automatically.";
+  } else {
+    const needed = 4 - progress;
+    $("#loyaltyStatusText").textContent = `Buy ${needed} more cup${needed === 1 ? "" : "s"} (now or across visits) to get 1 free cup added automatically.`;
+  }
+}
+
+/* ---------- UNIVERSITY WALK-IN QR GENERATOR ---------- */
+function renderMemberQR(){
+  const c = computeCart();
+  const selectedItems = CONFIG.flavors
+    .filter(f => !f.discontinued && qty[f.id] > 0)
+    .map(f => `${qty[f.id]}x ${f.id}`);
+
+  if (c.autoFreeCups > 0) {
+    selectedItems.push(`+${c.autoFreeCups}x FREE Reward Cup`);
+  }
+
+  const orderSummary = selectedItems.length ? selectedItems.join(", ") : "Walk-in (no cups pre-selected)";
+
+  const payload = [
+    `CAYERS WALK-IN PASS`,
+    `Phone: +971${loyaltyState.phone}`,
+    `Past Cups Bought: ${loyaltyState.totalCupsBought}`,
+    `Free Cups in Order: ${c.autoFreeCups}`,
+    `Order: ${orderSummary}`,
+    `Total Payable: ${c.totalPrice} AED`
+  ].join(" | ");
+
+  $("#memberQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(payload)}`;
+
+  $("#qrSummaryBox").innerHTML = `
+    <div><span>Member Phone</span><strong>+971 ${loyaltyState.phone}</strong></div>
+    <div><span>Past Cups Bought</span><strong>${loyaltyState.totalCupsBought} cups</strong></div>
+    <div><span>Free Reward Cups</span><strong>${c.autoFreeCups > 0 ? `+${c.autoFreeCups} FREE included` : (loyaltyState.hasFreeCup ? "1 Free Ready" : `${4 - (loyaltyState.totalCupsBought % 4)} cups to free`)}</strong></div>
+    <div><span>Walk-In Order</span><strong>${orderSummary}</strong></div>
+  `;
+
+  logMemberActivity("log_qr", { service: "University Walk-In QR", cartSummary: orderSummary });
+}
+
+/* ---------- STOCK & FLAVORS ---------- */
 function remainingFor(id){
   const info = flavorInfo[id];
   return info && isFinite(info.remaining) ? info.remaining : Infinity;
 }
 
 function capFor(id){
+  const fObj = CONFIG.flavors.find(x => x.id === id);
+  if (fObj && fObj.discontinued) return 0;
   const info = flavorInfo[id] || {};
   if (loyaltyState.isSpecial) return Infinity;
   if (info.soldOut) return 0;
@@ -383,7 +1076,7 @@ function clampCartToStock(){
 function flavorSignature(){
   return CONFIG.flavors.map(f => {
     const info = flavorInfo[f.id] || {};
-    return `${f.id}:${!!info.soldOut}:${info.remaining}`;
+    return `${f.id}:${!!f.discontinued}:${!!info.soldOut}:${info.remaining}`;
   }).join("|");
 }
 
@@ -391,23 +1084,23 @@ async function fetchStoreStatus() {
   try {
     const r = await fetch(CONFIG.endpoint + "?action=get_settings");
     const d = await r.json();
-    if (!d.ok) { console.warn("get_settings returned not-ok:", d); return; }
+    if (!d.ok) return;
 
     storeStatus = d.storeStatus || "OPEN";
     soldOutDays = d.soldOutDays || [];
 
     if (d.flavors) {
       CONFIG.flavors.forEach(f => {
+        if (f.discontinued) {
+          flavorInfo[f.id] = { soldOut: true, remaining: 0 };
+          return;
+        }
         const s = d.flavors[f.id] || {};
         const rem = Number(s.remaining);
         flavorInfo[f.id] = {
           soldOut: !!s.soldOut,
           remaining: isFinite(rem) ? Math.max(0, Math.floor(rem)) : Infinity
         };
-      });
-    } else {
-      CONFIG.flavors.forEach(f => {
-        if (!flavorInfo[f.id]) flavorInfo[f.id] = { soldOut:false, remaining: Infinity };
       });
     }
 
@@ -429,6 +1122,7 @@ async function fetchStoreStatus() {
   }
 }
 
+/* ---------- REVIEW & SENDING OVERLAYS ---------- */
 let sendingTimeout;
 function showSending(on,slow){
   const s=$("#sending");
@@ -445,103 +1139,73 @@ function showSending(on,slow){
   const ms=slow?1400:600;
   s.style.transition=`opacity ${ms}ms ease`;
   s.classList.add("gone");
-  sendingTimeout = setTimeout(()=>{ 
-    if(s.classList.contains("gone")){ 
-      s.classList.add("hide"); 
-      s.classList.remove("s-circle","s-tick","s-undo"); 
-    } 
+  sendingTimeout = setTimeout(()=>{
+    if(s.classList.contains("gone")){
+      s.classList.add("hide");
+      s.classList.remove("s-circle","s-tick","s-undo");
+    }
   },ms);
 }
 
 function openReview(d){
   const box=$("#rvItems"); box.textContent="";
-  CONFIG.flavors.filter(f=>qty[f.id]).forEach(f=>{
+  CONFIG.flavors.filter(f=>!f.discontinued && qty[f.id]).forEach(f=>{
     const r=document.createElement("div"); r.className="rv-row";
     const a=document.createElement("span"), b=document.createElement("span");
     a.textContent=`${qty[f.id]} × ${f.id}`; b.textContent=`${qty[f.id]*f.price} AED`;
     r.append(a,b); box.append(r);
   });
 
-  const cupPrice = unitPrice();
-  let displayTotal = d.t.p;
-  if (loyaltyState.isSpecial) {
-    const freeCups = Math.floor(d.t.c / 3);
-    if (freeCups > 0) {
-      const discAmount = freeCups * cupPrice;
-      displayTotal -= discAmount;
-      const discRow = document.createElement("div");
-      discRow.className = "rv-row"; discRow.style.color = "var(--berry)"; discRow.style.fontWeight = "800";
-      discRow.innerHTML = `<span>👑 Cayers Member (Buy 2 Get 1)</span><span>-${discAmount} AED</span>`;
-      box.append(discRow);
-    }
-  } else if (loyaltyState.hasFreeCup && d.t.c > 0) {
-    displayTotal -= cupPrice;
-    const discRow = document.createElement("div");
-    discRow.className = "rv-row"; discRow.style.color = "var(--ok)"; discRow.style.fontWeight = "800";
-    discRow.innerHTML = `<span>🎁 Loyalty Discount</span><span>-${cupPrice} AED</span>`;
-    box.append(discRow);
+  if (d.cart.autoFreeCups > 0) {
+    const freeRow = document.createElement("div");
+    freeRow.className = "rv-row";
+    freeRow.style.color = "var(--ok)";
+    freeRow.style.fontWeight = "800";
+    freeRow.innerHTML = `<span>🎁 +${d.cart.autoFreeCups} Free Reward Cup${d.cart.autoFreeCups > 1 ? "s" : ""}</span><span>0 AED</span>`;
+    box.append(freeRow);
   }
 
-  $("#rvCups").textContent=`Total · ${d.t.c} cup${d.t.c==1?"":"s"}`;
-  $("#rvTotal").textContent=`${displayTotal} AED`;
-  
+  $("#rvCups").textContent=`Total · ${d.cart.totalCups} cup${d.cart.totalCups==1?"":"s"}`;
+  $("#rvTotal").textContent=`${d.cart.totalPrice} AED`;
+
   const whoParts = [d.name];
-  if (loyaltyState.phone) whoParts.push(loyaltyState.phone);
+  if (loyaltyState.phone) whoParts.push("+971 " + loyaltyState.phone);
   if (d.ig) whoParts.push("@" + d.ig);
   $("#rvWho").textContent = whoParts.filter(Boolean).join(" · ");
 
   $("#rvWhen").textContent=`${loc()} · ${d.day}`;
   const r=$("#review");
-  r.style.transition="none"; r.classList.remove("hide"); r.classList.add("gone");
-  void r.offsetWidth; r.style.transition=""; r.classList.remove("gone");
+  r.classList.remove("hide");
   reviewOpen=true; document.body.style.overflow="hidden";
   setTimeout(()=>$("#rvConfirm").focus(),50);
 }
 function closeReview(){
   if(!reviewOpen) return;
   reviewOpen=false;
-  const r=$("#review"); r.classList.add("gone");
+  $("#review").classList.add("hide");
   document.body.style.overflow="";
-  setTimeout(()=>{ if(r.classList.contains("gone")) r.classList.add("hide"); },380);
 }
 $("#rvBack").addEventListener("click",()=>{ reviewOK=false; closeReview(); $("#go").focus(); });
 $("#review").addEventListener("click",e=>{ if(e.target.id==="review"){ reviewOK=false; closeReview(); } });
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&reviewOpen){ reviewOK=false; closeReview(); } });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(reviewOpen){ reviewOK=false; closeReview(); } closeDrawer(); closeLoginModal(); } });
 $("#rvConfirm").addEventListener("click",()=>{
   if(!reviewOpen) return;
   reviewOK=true; closeReview();
   setTimeout(()=>{
     const f=$("#f");
     f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit",{cancelable:true,bubbles:true}));
-  },400);
+  },150);
 });
 
 async function playSuccess(){
   const s=$("#sending"), sleep=ms=>new Promise(r=>setTimeout(r,ms));
   if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){ await sleep(500); return; }
   const note=s.querySelector(".note"); if(note) note.textContent="Order submitted";
-  s.classList.add("s-circle"); await sleep(1000);
-  s.classList.add("s-tick");   await sleep(1700);
-  s.classList.remove("s-tick");
-  s.classList.add("s-undo");   await sleep(1400);
+  s.classList.add("s-circle"); await sleep(900);
+  s.classList.add("s-tick");   await sleep(1400);
 }
 
-function revealContent(){
-  if(revealed) return;
-  revealed=true;
-  const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const els=[...document.querySelectorAll("#mainApp > *, #f > *")]
-    .filter(el=>!el.classList.contains("hide") && !el.classList.contains("hp") && el.tagName !== "H1");
-  if(reduce){ els.forEach(el=>el.classList.add("reveal","in")); return; }
-  const STEP=0.07;
-  els.forEach((el,i)=>{
-    el.style.setProperty("--d",(i*STEP).toFixed(2)+"s");
-    el.classList.add("reveal");
-  });
-  void document.body.offsetWidth;
-  els.forEach(el=>el.classList.add("in"));
-}
-
+/* ---------- DUBAI SCHEDULING & AVAILABILITY ---------- */
 function dubaiNowParts(){
   const fmt = new Intl.DateTimeFormat("en-GB", { timeZone: CONFIG.timeZone, year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", hour12:false });
   const map = {};
@@ -565,10 +1229,9 @@ function getAvailability(nowD, isCampus){
   const allowedNames = isCampus ? CONFIG.campusDays : CONFIG.localDays;
   const baseSameDayCutoff = isCampus ? CONFIG.campusSameDayCutoffHour : CONFIG.localSameDayCutoffHour;
   const thisWeekStart = weekStart(nowD.y, nowD.m, nowD.d).getTime();
-  const lookahead = 7;
 
   const days = [];
-  for (let i = 0; i < lookahead; i++) {
+  for (let i = 0; i < 7; i++) {
     const d = new Date(Date.UTC(nowD.y, nowD.m-1, nowD.d + i));
     const dow = d.getUTCDay();
     if (dow === 0) continue;
@@ -607,7 +1270,6 @@ function closedMessage(nowD, isCampus){
   const todayName = DAY_NAMES[todayDow];
 
   if (todayDow === 0) return "We’re closed on Sundays. Orders reopen Monday morning.";
-
   if (isCampus) {
     if (todayName === "Friday" && nowD.hours >= CONFIG.campusSameDayCutoffHour) return "Today’s campus pickup has ended. Next campus day is Tuesday — ordering reopens Monday.";
     if (todayName === "Saturday") return "This week’s campus days are done. Next campus pickup is Tuesday — ordering reopens Monday.";
@@ -653,10 +1315,9 @@ $("#igBtn").href="https://ig.me/m/"+CONFIG.instagram;
 renderFlavors();
 lastFlavorSig = flavorSignature();
 
-/* --------- LOGIN SCREEN LOGIC ---------- */
+/* --------- PHONE LOGIN LOGIC ---------- */
 const loginPhone = $("#loginPhone");
-
-loginPhone.addEventListener("input", function(e) {
+loginPhone.addEventListener("input", function() {
   let val = this.value.replace(/\D/g, "");
   if (val.startsWith("0")) val = val.substring(1);
   if (val.length > 9) val = val.substring(0, 9);
@@ -670,54 +1331,50 @@ function showLoginLoading(on) {
   clearTimeout(loginLoadTimer);
 
   if (on) {
-    if (note) {
-      note.style.opacity = "1";
-      note.textContent = "Checking member access\u2026";
-    }
+    if (note) { note.style.opacity = "1"; note.textContent = "Checking your account\u2026"; }
     l.classList.remove("hide");
     l.classList.add("gone");
     void l.offsetWidth;
     l.classList.remove("gone");
   } else {
     l.classList.add("gone");
-    loginLoadTimer = setTimeout(() => {
-      if (l.classList.contains("gone")) l.classList.add("hide");
-    }, 460);
+    loginLoadTimer = setTimeout(() => { if (l.classList.contains("gone")) l.classList.add("hide"); }, 420);
   }
 }
 
 $("#loginBtn").addEventListener("click", async () => {
   const phone = loginPhone.value.replace(/\D/g, "");
   if (phone.length < 8) {
-    $("#loginMsg").textContent = "Please enter a valid phone number.";
+    $("#loginMsg").textContent = "Please enter a valid UAE phone number.";
     return;
   }
 
   $("#loginMsg").textContent = "";
+  closeLoginModal();
   showLoginLoading(true);
 
   try {
     const r = await fetch(CONFIG.endpoint + "?action=check_loyalty&phone=" + phone);
     const d = await r.json();
-    
+
     if (d.ok) {
       const isSpecial = Boolean(d.isSpecial);
-      loyaltyState.verified = true;
+      const pastCups = Number(d.totalCups ?? d.cups ?? d.orders ?? 0);
+      const unlockedFree = Boolean(d.hasFreeCup) || (pastCups > 0 && pastCups % 4 === 0);
+
+      loyaltyState.loggedIn = true;
       loyaltyState.phone = phone;
       loyaltyState.isSpecial = isSpecial;
-      loyaltyState.orders = isSpecial ? 0 : (d.orders || 0);
-      // The Apps Script decides the free cup (every 4 cups they've paid for earns 1 free cup on their next order)
-      loyaltyState.hasFreeCup = isSpecial ? false : Boolean(d.hasFreeCup);
-      
-      // Restrict delivery options for member access (Local delivery only)
+      loyaltyState.orders = isSpecial ? 0 : (d.orders || pastCups);
+      loyaltyState.totalCupsBought = isSpecial ? 0 : pastCups;
+      loyaltyState.hasFreeCup = isSpecial ? false : unlockedFree;
+
       const campusLabel = $("#campusOptLabel");
       if (campusLabel) {
         if (isSpecial) {
           campusLabel.style.display = "none";
           const campusInput = campusLabel.querySelector("input[name=loc]");
-          if (campusInput && campusInput.checked) {
-            campusInput.checked = false;
-          }
+          if (campusInput && campusInput.checked) campusInput.checked = false;
         } else {
           campusLabel.style.display = "flex";
         }
@@ -726,62 +1383,43 @@ $("#loginBtn").addEventListener("click", async () => {
       const note = $("#loginLoadingNote");
       if (note) {
         note.style.opacity = "0";
-        await new Promise(res => setTimeout(res, 200));
+        await new Promise(res => setTimeout(res, 160));
         note.textContent = isSpecial
-          ? "Member Access Unlocked!"
-          : (loyaltyState.hasFreeCup ? "🎁 Reward Unlocked"
-            : (loyaltyState.orders > 0 ? "Back for more? 🍰" : "Welcome to Cayers 🍰"));
+          ? "Loyalty Member Unlocked! (Add 2, Get 1 Free)"
+          : (loyaltyState.hasFreeCup ? "🎁 1 Free Cup Ready!" : `Welcome back! (${loyaltyState.totalCupsBought} past cups)`);
         note.style.opacity = "1";
       }
 
-      await new Promise(res => setTimeout(res, 1100));
-
-      $("#loginScreen").classList.add("gone");
+      await new Promise(res => setTimeout(res, 850));
       showLoginLoading(false);
 
-      setTimeout(() => {
-        $("#loginScreen").classList.add("hide");
-        $("#mainApp").classList.remove("hide");
-        revealContent();
-        renderFlavors(); 
+      syncAuthUI();
+      renderFlavors();
+      logMemberActivity("log_login", { service: "Member Login" });
 
-        if (!isSpecial) {
-          if (loyaltyState.hasFreeCup) say("Welcome back! 🎁 1 Free cup unlocked!", "ok");
-          else if (loyaltyState.orders > 0) say("Back for more? 🍰", "ok");
-        }
-      }, 460);
+      if (pendingPostLoginView) {
+        const dest = pendingPostLoginView;
+        pendingPostLoginView = "";
+        switchView(dest);
+      } else {
+        switchView("hubView");
+      }
     } else {
       showLoginLoading(false);
+      openLoginModal();
       $("#loginMsg").textContent = "Could not connect. Try again.";
     }
   } catch (e) {
     showLoginLoading(false);
+    openLoginModal();
     $("#loginMsg").textContent = "Connection error.";
   }
 });
 
-$("#skipLoginBtn").addEventListener("click", () => {
-  loyaltyState.verified = true;
-  loyaltyState.orders = 0;
-  loyaltyState.phone = ""; 
-  loyaltyState.isSpecial = false;
-  
-  const campusLabel = $("#campusOptLabel");
-  if (campusLabel) campusLabel.style.display = "flex";
-
-  $("#loginScreen").classList.add("gone");
-  setTimeout(() => {
-    $("#loginScreen").classList.add("hide");
-    $("#mainApp").classList.remove("hide");
-    revealContent();
-    renderFlavors();
-  }, 500);
-});
-
-/* --------- +/− buttons --------- */
+/* --------- FLAVOR STEPPERS & INPUTS ---------- */
 $("#flavors").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b||b.disabled)return;
-  const f=CONFIG.flavors[b.dataset.i]; if(!f) return;
+  const f=CONFIG.flavors[b.dataset.i]; if(!f || f.discontinued) return;
 
   const info = flavorInfo[f.id] || {};
   if (info.soldOut && !loyaltyState.isSpecial) { say(`${f.id} is sold out.`,"err"); return; }
@@ -790,7 +1428,7 @@ $("#flavors").addEventListener("click",e=>{
   if (+b.dataset.d > 0 && qty[f.id] >= cap) {
     const rem = remainingFor(f.id);
     if (isFinite(rem)) say(`Only ${rem} ${f.id} available — that's all we've got.`,"err");
-    else               say(`Maximum ${CONFIG.maxPerFlavor} cups per flavour. For bigger orders, DM us on Instagram.`,"err");
+    else say(`Maximum ${CONFIG.maxPerFlavor} cups per flavour. For bigger orders, DM us on Instagram.`,"err");
     $("#msg").scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
@@ -799,13 +1437,12 @@ $("#flavors").addEventListener("click",e=>{
   update();
 });
 
-/* --------- typing directly into the quantity box --------- */
 $("#flavors").addEventListener("input", e => {
   const inp = e.target.closest(".qty-input");
   if (!inp) return;
   const i = +inp.dataset.i;
   const f = CONFIG.flavors[i];
-  if (!f) return;
+  if (!f || f.discontinued) return;
 
   const info = flavorInfo[f.id] || {};
   if (info.soldOut && !loyaltyState.isSpecial) { inp.value = String(qty[f.id]); return; }
@@ -823,7 +1460,7 @@ $("#flavors").addEventListener("input", e => {
 function finalizeQtyInput(inp){
   const i = +inp.dataset.i;
   const f = CONFIG.flavors[i];
-  if (!f) return;
+  if (!f || f.discontinued) return;
 
   const info = flavorInfo[f.id] || {};
   const cap = capFor(f.id);
@@ -836,37 +1473,32 @@ function finalizeQtyInput(inp){
   inp.value = String(n);
 
   if (info.soldOut && !loyaltyState.isSpecial) say(`${f.id} is sold out.`, "err");
-
   update();
 }
 
 $("#flavors").addEventListener("focusout", e => {
   const inp = e.target.closest && e.target.closest(".qty-input");
-  if (!inp) return;
-  finalizeQtyInput(inp);
+  if (inp) finalizeQtyInput(inp);
 });
 
 $("#flavors").addEventListener("focusin", e => {
   const inp = e.target.closest(".qty-input");
   if (!inp) return;
-  setTimeout(() => {
-    try { inp.setSelectionRange(0, inp.value.length); } catch(_) {}
-  }, 0);
+  setTimeout(() => { try { inp.setSelectionRange(0, inp.value.length); } catch(_) {} }, 0);
 });
 
 $("#flavors").addEventListener("keydown", e => {
   const inp = e.target.closest(".qty-input");
-  if (!inp) return;
-  if (e.key === "Enter") { e.preventDefault(); inp.blur(); }
+  if (inp && e.key === "Enter") { e.preventDefault(); inp.blur(); }
 });
 
 function loc(){const r=document.querySelector("input[name=loc]:checked");return r&&r.value}
 function isCampus(){return loc()&&loc().startsWith("University")}
-function totals(){let c=0,p=0;CONFIG.flavors.forEach(f=>{c+=qty[f.id];p+=qty[f.id]*f.price});return{c,p}}
 
 function updateQtyButtons(){
   document.querySelectorAll('.step button').forEach(b=>{
     const f=CONFIG.flavors[+b.dataset.i]; if(!f) return;
+    if (f.discontinued) { b.disabled = true; return; }
     const d=+b.dataset.d;
     const info=flavorInfo[f.id]||{};
     if (info.soldOut && !loyaltyState.isSpecial) { b.disabled = true; return; }
@@ -878,6 +1510,12 @@ function updateFlavorBadges(){
   CONFIG.flavors.forEach((f, i) => {
     const el = document.getElementById("fb" + i);
     if (!el) return;
+
+    if (f.discontinued) {
+      el.className = "fl-badge out";
+      el.textContent = "Discontinued";
+      return;
+    }
 
     const info = flavorInfo[f.id] || {};
     const out  = !!info.soldOut && !loyaltyState.isSpecial;
@@ -900,37 +1538,45 @@ function updateFlavorBadges(){
 }
 
 function update(){
-  const t=totals();
-  $("#cups").textContent=`${t.c} cup${t.c==1?"":"s"}`;
-  
+  const c = computeCart();
+
+  if (c.autoFreeCups > 0) {
+    $("#cups").textContent = `${c.totalCups} cups (${c.paidCups} paid + ${c.autoFreeCups} FREE)`;
+  } else {
+    $("#cups").textContent = `${c.totalCups} cup${c.totalCups == 1 ? "" : "s"}`;
+  }
+
   const minLocalEl = document.getElementById("minLocalTxt");
   if (minLocalEl) {
     minLocalEl.textContent = loyaltyState.isSpecial ? "No minimum" : `Minimum ${CONFIG.minLocal} cups`;
   }
 
-  const cupPrice = unitPrice();
-  let finalTotal = t.p;
-  let extraText = "";
-  
-  if (loyaltyState.isSpecial && t.c > 0) {
-    const freeCups = Math.floor(t.c / 3);
-    if (freeCups > 0) {
-      finalTotal -= freeCups * cupPrice;
-      extraText = ` (${freeCups} Free)`;
+  $("#price").textContent = `${c.totalPrice} AED`;
+
+  const autoBanner = $("#autoRewardBanner");
+  if (autoBanner) {
+    if (c.rewardLabel) {
+      autoBanner.textContent = c.rewardLabel;
+      autoBanner.classList.remove("hide");
+    } else if (loyaltyState.isSpecial) {
+      autoBanner.textContent = "✨ Loyalty Member: Add 2 cups and 1 free cup will be added automatically";
+      autoBanner.classList.remove("hide");
+    } else if (loyaltyState.loggedIn) {
+      const rem = 4 - (loyaltyState.totalCupsBought % 4);
+      autoBanner.textContent = loyaltyState.hasFreeCup
+        ? "🎁 Add any cup and your 1 FREE reward cup will be added automatically"
+        : `🎁 Add ${rem} cup${rem === 1 ? "" : "s"} to automatically unlock +1 FREE cup`;
+      autoBanner.classList.remove("hide");
+    } else {
+      autoBanner.classList.add("hide");
     }
-  } else if (loyaltyState.hasFreeCup && t.c > 0) {
-    finalTotal -= cupPrice;
-    extraText = " (1 Free)";
   }
-  
-  if (finalTotal < 0) finalTotal = 0;
-  $("#price").textContent = finalTotal + " AED" + extraText;
 
   CONFIG.flavors.forEach((f,i)=>{
     const inp=$("#q"+i);
     if (!inp) return;
     const info = flavorInfo[f.id] || {};
-    const out = !!info.soldOut && !loyaltyState.isSpecial;
+    const out = !!f.discontinued || (!!info.soldOut && !loyaltyState.isSpecial);
 
     if (out) {
       if (document.activeElement === inp) inp.blur();
@@ -952,13 +1598,13 @@ function renderFlavors(){
   if (!container) return;
 
   let html = CONFIG.flavors.map((f,i)=>{
-    const out = !!(flavorInfo[f.id] && flavorInfo[f.id].soldOut) && !loyaltyState.isSpecial;
+    const out = !!f.discontinued || (!!(flavorInfo[f.id] && flavorInfo[f.id].soldOut) && !loyaltyState.isSpecial);
     const disabled = out ? " disabled" : "";
 
     return `<div class="flavor${out ? " is-out" : ""}">
       <div>
         <b>${f.id}</b>
-        <span>${f.desc} · ${f.price} AED</span>
+        <span>${f.desc}${f.discontinued ? "" : ` · ${f.price} AED`}</span>
         <span id="fb${i}" class="fl-badge"></span>
       </div>
       <div class="step">
@@ -972,16 +1618,7 @@ function renderFlavors(){
     </div>`;
   }).join("");
 
-  if (loyaltyState.isSpecial) {
-    html += `<div style="padding:12px; border-radius:12px; background:color-mix(in srgb,var(--berry) 15%,var(--card)); border:1.5px solid var(--berry); margin-top:10px; text-align:center;">
-      <b style="color:var(--berry);">✨ Cayers Member Access: No Minimums & Buy 2, Get 1 Free</b>
-    </div>`;
-  } else if (loyaltyState.hasFreeCup) {
-    html += `<div style="padding:12px; border-radius:12px; background:color-mix(in srgb,var(--ok) 15%,var(--card)); border:1.5px solid var(--ok); margin-top:10px; text-align:center;">
-      <b style="color:var(--ok);">🎁 Loyalty Reward: +1 FREE Cup Added!</b>
-    </div>`;
-  }
-
+  html += `<div id="autoRewardBanner" class="free-banner hide"></div>`;
   container.innerHTML = html;
   update();
 }
@@ -989,8 +1626,7 @@ function renderFlavors(){
 function say(t,c){const m=$("#msg");m.textContent=t;m.className="msg "+(c||"")}
 
 function renderDays(){
-  if (sending) return;
-  if (!loc()) return;
+  if (sending || !loc()) return;
 
   const nowD = dubaiNowParts();
   const avail = getAvailability(nowD, isCampus());
@@ -1013,7 +1649,6 @@ function renderDays(){
 
   const prevStillValid = avail.days.some(d => d.value === prev);
   const checkedValue = prevStillValid ? prev : "";
-
   const lostNote = (prev && !prevStillValid) ? `<small class="note" style="color:var(--err)">Your previously selected day is no longer available.</small>` : "";
 
   const overrideNotes = avail.days.filter(d => CONFIG.dateOverrides[d.dateKey]).map(d => {
@@ -1021,13 +1656,9 @@ function renderDays(){
       if (o && o.sameDayCutoffHour !== undefined) return `${d.label.split(",")[0]} same-day orders are open until ${fmtHour(o.sameDayCutoffHour)}.`;
       return "";
   }).filter(Boolean);
-  
-  const specialNote = overrideNotes.length ? ` Special: ${overrideNotes.join(" ")}` : "";
 
-  const hasWedOverride = avail.days.some(d => {
-    const o = CONFIG.dateOverrides[d.dateKey];
-    return o && o.bypassWednesdayBlock;
-  });
+  const specialNote = overrideNotes.length ? ` Special: ${overrideNotes.join(" ")}` : "";
+  const hasWedOverride = avail.days.some(d => CONFIG.dateOverrides[d.dateKey] && CONFIG.dateOverrides[d.dateKey].bypassWednesdayBlock);
   const wedBlockNote = hasWedOverride ? "" : ` Wednesday closes Tuesday ${fmtHour(CONFIG.campusSameDayCutoffHour)} (campus sellout).`;
 
   const cutoffNote = isCampus()
@@ -1042,7 +1673,6 @@ function renderDays(){
 function updateClosedBanner(){
   const banner = $("#closedBanner");
   const form   = $("#f");
-
   if (!$("#done").classList.contains("hide")) return;
 
   if (storeStatus === "CLOSED") {
@@ -1093,7 +1723,8 @@ $("#f").addEventListener("submit",async e=>{
 
   const name=$("#name").value.trim().replace(/\s+/g," ").slice(0,80);
   const ig=cleanIG($("#ig").value);
-  const day=(document.querySelector("input[name=day]:checked")||{}).value, t=totals();
+  const day=(document.querySelector("input[name=day]:checked")||{}).value;
+  const cart = computeCart();
 
   if($("#company").value) return say("Something went wrong. Please try again.","err");
   if(Date.now()-pageLoadedAt<CONFIG.minFillMs) return say("That was too fast for a human — take a breath and press Place order again.","err");
@@ -1109,42 +1740,45 @@ $("#f").addEventListener("submit",async e=>{
   const dayStillValid = !avail.closed && avail.days.some(d => d.value === day);
   if(!dayStillValid) return say(avail.closed ? avail.message : explainUnavailable(day, nowD, isCampus()), "err");
 
-  // Member access bypasses minimum order requirements
   if (!loyaltyState.isSpecial) {
     const min = isCampus()?CONFIG.minCampus:CONFIG.minLocal;
-    if(t.c<min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${t.c}.`,"err");
+    if(cart.paidCups < min) return say(`This option needs at least ${min} cup${min>1?"s":""}. You have ${cart.paidCups}.`,"err");
+  } else if (cart.paidCups < 1) {
+    return say("Add at least 1 cup to place an order.","err");
   }
 
   for (const f of CONFIG.flavors) {
-    if (qty[f.id] <= 0) continue;
+    if (f.discontinued || qty[f.id] <= 0) continue;
     const info = flavorInfo[f.id] || {};
     if (info.soldOut && !loyaltyState.isSpecial) return say(`${f.id} just sold out — please remove it from your order.`,"err");
     if (isFinite(info.remaining) && qty[f.id] > info.remaining && !loyaltyState.isSpecial) return say(`Only ${info.remaining} ${f.id} left in stock — please lower the quantity.`,"err");
   }
 
-  if(CONFIG.endpoint.startsWith("PASTE")) return say("The order page isn’t connected to the sheet yet. See setup steps.","err");
+  const order={
+    id:orderId,
+    name,
+    instagram:ig,
+    phone:loyaltyState.phone || "NA",
+    location:loc(),
+    day,
+    campus:isCampus(),
+    serviceSelected: selectedServiceToday || loc(),
+    total:cart.totalPrice,
+    cups:cart.totalCups,
+    paidCups:cart.paidCups,
+    freeCupsAdded:cart.autoFreeCups,
+    sentAt:new Date().toISOString()
+  };
 
-  const cupPrice = unitPrice();
-  let finalTotal = t.p;
-  if (loyaltyState.isSpecial && t.c > 0) {
-    const freeCups = Math.floor(t.c / 3);
-    if (freeCups > 0) finalTotal -= freeCups * cupPrice;
-  } else if (loyaltyState.hasFreeCup && t.c > 0) {
-    finalTotal -= cupPrice;
-  }
-  if (finalTotal < 0) finalTotal = 0;
-
-  const order={id:orderId,name,instagram:ig,phone:loyaltyState.phone || "NA",location:loc(),day,campus:isCampus(),total:finalTotal,cups:t.c,sentAt:new Date().toISOString()};
-  
-  if (loyaltyState.verified) {
+  if (loyaltyState.loggedIn) {
     order.loyaltyPhone = loyaltyState.phone;
-    order.hasFreeCupClaim = loyaltyState.hasFreeCup;
+    order.hasFreeCupClaim = cart.autoFreeCups > 0;
     order.isSpecial = loyaltyState.isSpecial;
   }
 
-  CONFIG.flavors.forEach(f=>order[f.id]=qty[f.id]);
+  CONFIG.flavors.forEach(f=>{ if(!f.discontinued) order[f.id]=qty[f.id]; });
 
-  if(!reviewOK){ openReview({name,ig,ph:loyaltyState.phone,day,t}); return; }
+  if(!reviewOK){ openReview({name,ig,day,cart}); return; }
   reviewOK=false;
 
   sending=true;
@@ -1161,12 +1795,18 @@ $("#f").addEventListener("submit",async e=>{
     const d=await r.json();
     if(!d.ok) throw new Error(d.error||d.message||"not ok");
 
+    if (loyaltyState.loggedIn && !loyaltyState.isSpecial) {
+      loyaltyState.totalCupsBought += cart.paidCups;
+      loyaltyState.hasFreeCup = false;
+    }
+
     $("#f").classList.add("hide"); $("#done").classList.remove("hide");
     const ref=orderId.slice(-5).toUpperCase();
-    lastSubmittedRef = ref;   
-    const parts=CONFIG.flavors.filter(f=>qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
-    $("#sum").textContent=`${parts} · ${t.c} cup${t.c==1?"":"s"} · ${finalTotal} AED · ${day} · Ref ${ref}`;
-    const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts} (${finalTotal} AED), ${loc()}, ${day}. Please confirm.`;
+    lastSubmittedRef = ref;
+    const parts=CONFIG.flavors.filter(f=>!f.discontinued && qty[f.id]).map(f=>`${qty[f.id]} ${f.id}`).join(", ");
+    const freeNote = cart.autoFreeCups > 0 ? ` + ${cart.autoFreeCups} FREE` : "";
+    $("#sum").textContent=`${parts}${freeNote} · ${cart.totalCups} cup${cart.totalCups==1?"":"s"} · ${cart.totalPrice} AED · ${day} · Ref ${ref}`;
+    const msg=`Hi Cayers! Order ${ref} from ${name}: ${parts}${freeNote} (${cart.totalPrice} AED), ${loc()}, ${day}. Please confirm.`;
     $("#igBtn").onclick=()=>{
       const ok = () => { $("#igHint").textContent="Your order message is copied. Paste it into the chat and send."; };
       const fail = () => { $("#igHint").textContent="Copy failed — please copy the message manually from above."; };
@@ -1181,21 +1821,21 @@ $("#f").addEventListener("submit",async e=>{
     fetchStoreStatus();
   }catch(err){
     if(err.name==="AbortError"){
-      say("Your connection timed out — we don’t know if the order arrived. Please don’t assume it went through: message us on Instagram @"+CONFIG.instagram+" to check before reordering.","err");
+      say("Your connection timed out — we don’t know if the order arrived. Please message us on Instagram @"+CONFIG.instagram+" to check before reordering.","err");
     }else{
       const m=String(err.message||"");
       if (/sold out|left|only/i.test(m)) {
         say(m + " Please adjust your order and try again.","err");
         fetchStoreStatus();
       } else {
-        say("We couldn’t confirm your order, so please don’t assume it went through. Check your connection and press Place order again (it won’t double-book), or message us on Instagram.","err");
+        say("We couldn’t confirm your order. Check your connection and press Place order again (it won’t double-book), or message us on Instagram.","err");
       }
     }
     $("#go").disabled=false;
   }
   finally{
     clearTimeout(timer);
-    const wait=Math.max(0,(succeeded?2000:1000)-(Date.now()-startedAt));
+    const wait=Math.max(0,(succeeded?1600:1000)-(Date.now()-startedAt));
     if(wait) await new Promise(r=>setTimeout(r,wait));
     if(succeeded){ await playSuccess(); showSending(false,true); } else { showSending(false); }
     document.body.style.overflow="";
@@ -1204,136 +1844,79 @@ $("#f").addEventListener("submit",async e=>{
   }
 });
 
-function fadeOutNow(el, ms){
-  if(!el) return;
-  const cur = getComputedStyle(el).opacity;
-  el.style.animation = "none";
-  el.style.opacity = cur;
-  void el.offsetWidth;
-  el.style.transition = `opacity ${ms}ms ease`;
-  el.style.opacity = "0";
-}
-
-const splashShownAt=Date.now();
-
-/* Capture the initial status fetch so the splash knows which screen to show.
-   If the fetch is slow or fails, we fall back to OPEN → normal login screen. */
+/* ---------- SPLASH SCREEN TO TOP-MIDDLE LOGO ---------- */
+const splashShownAt = Date.now();
 const initialStatusFetch = fetchStoreStatus();
 
-/* When the store is CLOSED, skip the login screen entirely and show the
-   closed banner in the main app. Nothing else is touched. */
-function enterClosedMode(){
-  document.documentElement.classList.add("store-closed");
-
-  const ls = document.getElementById("loginScreen");
-  if (ls) {
-    ls.classList.add("gone");
-    setTimeout(() => ls.classList.add("hide"), 500);
-  }
-
-  const ma = document.getElementById("mainApp");
-  if (ma) ma.classList.remove("hide");
-
-  try { updateClosedBanner(); } catch(_) {}
-  try { revealContent(); }      catch(_) {}
-  try { renderFlavors(); }      catch(_) {}
-}
-
-/* Route the splash exit depending on storeStatus. storeStatus is set by
-   fetchStoreStatus; default "OPEN" means we show the login screen as before. */
-function showPostSplashScreen(){
-  if (storeStatus === "CLOSED") {
-    enterClosedMode();
-  } else {
-    const ls = document.getElementById("loginScreen");
-    if (ls) ls.classList.remove("hide");
-  }
-}
-
 function finishSplash(s){
-  const splashLogo = s.querySelector(".splash-logo");
-  const targetLogo = document.getElementById("target-logo");
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wrap = document.getElementById("splashLogoWrap");
+  const target = document.getElementById("headerLogoBtn");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  if(!splashLogo || !targetLogo || reduce) {
+  if (!wrap || !target || reduce) {
     s.remove();
-    showPostSplashScreen();
     return;
   }
 
-  splashLogo.style.opacity = "0";
+  const from = wrap.getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+  const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+  const scale = Math.max(0.25, Math.min(1, to.height / Math.max(1, from.height)));
 
-  s.style.transition = "background-color .6s ease";
-  s.style.backgroundColor = "transparent";
-  s.style.pointerEvents = "none";
-  fadeOutNow(s.querySelector(".dots"), 250);
-  fadeOutNow(s.querySelector(".note"), 250);
+  wrap.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+  s.classList.add("gone");
 
-  setTimeout(() => {
-    s.remove();
-    showPostSplashScreen();
-  }, 400);
+  setTimeout(() => s.remove(), 500);
 }
 
 function hideSplash(){
-  const s=document.getElementById("splash");
-  if(!s || s.dataset.done) return;
-  s.dataset.done="1";
+  const s = document.getElementById("splash");
+  if (!s || s.dataset.done) return;
+  s.dataset.done = "1";
 
-  const wait=Math.max(0,4500-(Date.now()-splashShownAt));
-
-  // Give the initial status fetch up to 2.5s to settle (it usually resolves in
-  // a fraction of a second). This prevents the login screen flashing when the
-  // store is actually closed.
+  const wait = Math.max(0, 1800 - (Date.now() - splashShownAt));
   const settled = Promise.race([
     Promise.resolve(initialStatusFetch).catch(()=>{}),
-    new Promise(r => setTimeout(r, 2500))
+    new Promise(r => setTimeout(r, 1500))
   ]);
 
   setTimeout(() => {
     settled.then(() => finishSplash(s));
   }, wait);
 }
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hideSplash);
-window.addEventListener("load",hideSplash);
-setTimeout(hideSplash,6500);
+
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(hideSplash);
+window.addEventListener("load", hideSplash);
+setTimeout(hideSplash, 4000);
 
 setInterval(()=>{
-  if(sending) return;
-  if(!$("#done").classList.contains("hide")) return;
+  if (document.hidden || sending || !$("#done").classList.contains("hide")) return;
   fetchStoreStatus();
-  if(loc()) renderDays();
+  if (loc()) renderDays();
 }, 30000);
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     if (sending || !$("#done").classList.contains("hide")) return;
-    const hadSelectedDay = !!(document.querySelector("input[name=day]:checked"));
     fetchStoreStatus();
     if (loc()) renderDays();
-    if (hadSelectedDay && !document.querySelector("input[name=day]:checked")) {
-      say("The day you selected is no longer available because the cutoff time passed or it sold out. Please pick a new day.", "err");
-    }
   }
 });
 
-/* ---------- enrich bug report mailto with page context ---------- */
+/* ---------- BUG REPORT MAILTO ---------- */
 (function () {
   const link = document.getElementById("bugLink");
   if (!link) return;
-
   function updateHref() {
     const subject = encodeURIComponent("Bug report — cayers.ae");
     const body = encodeURIComponent(
-      `Hi Cayers,\n\n` +
-      `I spotted a bug on the order page.\n\n` +
-      `Page: ${location.href}\n` +
+      `Hi Cayers,\n\nI spotted a bug on the website.\n\nPage: ${location.href}\n` +
       (lastSubmittedRef ? `Order ref: ${lastSubmittedRef}\n` : "") +
       `\nWhat happened:\n\n`
     );
     link.href = `mailto:cayerscakes@gmail.com?subject=${subject}&body=${body}`;
   }
-
   updateHref();
   link.addEventListener("click", updateHref);
 })();
